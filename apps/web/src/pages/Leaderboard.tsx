@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
-import { Avatar, Card, HoverBarList, LevelBadge } from "../ui";
+import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -44,6 +44,34 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
   );
 }
 
+function LeaderboardSkeleton() {
+  return (
+    <>
+      <div className="mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
+        {[0, 1, 2].map((i) => (
+          <Card key={i} outerClassName={i === 1 ? "-translate-y-4" : undefined} className="flex flex-col items-center gap-3 p-5">
+            <Skeleton className="size-[60px] rounded-full" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="size-[26px] rounded-lg" />
+            <Skeleton className="h-5 w-14" />
+          </Card>
+        ))}
+      </div>
+      <Card className="flex flex-col gap-2 p-[var(--bezel)]">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="flex items-center gap-4 px-4 py-2.5">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="size-[34px] rounded-full" />
+            <Skeleton className="size-6 rounded-md" />
+            <Skeleton className="h-4 flex-1 max-w-[160px]" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+        ))}
+      </Card>
+    </>
+  );
+}
+
 export function Leaderboard() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
@@ -61,7 +89,7 @@ export function Leaderboard() {
       <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
       <p className="mt-1 mb-8 text-sm text-ink-dim">Membres du pôle CS2, triés par ELO Faceit.</p>
 
-      {isLoading && <p className="text-ink-dim">Chargement…</p>}
+      {isLoading && <LeaderboardSkeleton />}
       {isError && <p className="text-loss">Impossible de charger le classement. L'API tourne-t-elle ?</p>}
 
       {hasPodium && first && second && third && (

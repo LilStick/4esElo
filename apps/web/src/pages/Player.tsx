@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { TbArrowLeft, TbExternalLink } from "react-icons/tb";
 import { getPlayer } from "../lib/api";
-import { Avatar, Card, EloGauge, LevelBadge } from "../ui";
+import { Avatar, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
 import { EloChart } from "../components/EloChart";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
@@ -36,6 +36,40 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+function PlayerSkeleton() {
+  return (
+    <div className="mt-6 flex flex-col gap-4">
+      <Card className="flex flex-wrap items-center gap-5 p-5">
+        <Skeleton className="size-[78px] rounded-[20px]" />
+        <div className="flex flex-col gap-2.5">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+        <div className="ml-auto">
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="flex items-center justify-center p-5">
+          <Skeleton className="size-[140px] rounded-full" />
+        </Card>
+        <Card className="p-5 sm:col-span-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="mt-4 h-[190px] w-full rounded-xl" />
+        </Card>
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Card key={i} className="p-[18px]">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="mt-3 h-7 w-20" />
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Player() {
   const { id = "" } = useParams();
   const { data, isLoading, isError } = useQuery({
@@ -58,7 +92,7 @@ export function Player() {
         <TbArrowLeft size={16} /> Classement
       </Link>
 
-      {isLoading && <p className="mt-8 text-ink-dim">Chargement…</p>}
+      {isLoading && <PlayerSkeleton />}
       {isError && <p className="mt-8 text-loss">Joueur introuvable.</p>}
 
       {data && (
