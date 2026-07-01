@@ -127,7 +127,7 @@ export function Styleguide() {
             <Card
               key={p.rank}
               outerClassName={p.rank === 1 ? "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]" : undefined}
-              className="relative p-5 text-center"
+              className="relative p-4 text-center sm:p-5"
             >
               {p.rank === 1 && (
                 <TbCrown className="absolute -top-3 left-1/2 -translate-x-1/2 text-brand drop-shadow-[0_0_8px_rgba(94,139,255,0.5)]" size={22} />

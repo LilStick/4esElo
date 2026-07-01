@@ -140,7 +140,7 @@ export function Player() {
                 )}
               </div>
             </div>
-            <div className="ml-auto text-right">
+            <div className="w-full text-left sm:ml-auto sm:w-auto sm:text-right">
               <div className="font-mono text-[42px] font-extrabold tracking-[-0.03em] text-brand tabular-nums [text-shadow:0_0_24px_rgba(94,139,255,0.4)]">
                 {data.elo ?? "—"}
               </div>
