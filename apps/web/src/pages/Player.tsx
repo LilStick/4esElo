@@ -5,6 +5,7 @@ import { getPlayer } from "../lib/api";
 import { Avatar, Button, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
+import { useTitle } from "../lib/useTitle";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
 const BANDS: Record<number, [number, number]> = {
@@ -81,6 +82,7 @@ export function Player() {
   });
 
   const name = data?.faceitNickname ?? data?.discordName ?? "Joueur";
+  useTitle(name);
   const elos = data?.history.map((h) => h.elo) ?? [];
   const peak = elos.length ? Math.max(...elos) : null;
   const low = elos.length ? Math.min(...elos) : null;
