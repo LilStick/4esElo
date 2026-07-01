@@ -36,6 +36,9 @@ gh pr list --state all --search "updated:>=<DATE>" --json number,title,author,st
 gh issue list --state all --search "updated:>=<DATE>" --json number,title,state,labels,url
 git log origin/main --since="<SINCE>" --pretty="%h %s (%an)"
 gh run list --limit 20 --json headBranch,conclusion,displayTitle   # repérer les échecs CI
+
+# Qui bosse sur quoi MAINTENANT (tickets en cours, par assigné)
+gh issue list --state open --label "status:in-progress" --json number,title,assignees
 ```
 
 ## 4. Résumer : clair, par personne
@@ -47,6 +50,9 @@ Détecter l'auteur de chaque PR/commit → séparer **toi** vs **l'autre**. Cour
 
 🆕 Dernier merge
 - #42 · B3.4 Radar de comparaison (Arthur) — ajoute la page de comparaison 2 joueurs.
+
+🔨 En cours
+- #3 · B2.3 Ingestion des matchs — Noé
 
 🧑 Ce que tu as fait récemment (Noé)
 - #40 · B2.1 Table match_stats — mergé

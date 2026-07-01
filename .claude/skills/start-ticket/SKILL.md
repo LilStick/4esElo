@@ -31,8 +31,16 @@ git switch main && git pull --ff-only
 git switch -c feat/B2.1-<slug>          # slug court, humain-friendly
 ```
 
-## 4. Lire la Definition of Done
+## 4. Prendre le ticket (assignation + statut en cours)
+
+**Obligatoire** — pour que l'autre (et `repo-catchup`/`/resume`) voie qui bosse sur quoi :
+
+```bash
+gh issue edit <n> --add-assignee @me --add-label "status:in-progress"
+```
+
+## 5. Lire la Definition of Done
 
 Afficher la DoD du ticket et coder **par petits incréments vérifiés** (`pnpm typecheck && pnpm test && pnpm lint` verts au fur et à mesure).
 
-Quand c'est fini → utiliser le skill **open-pr**.
+Quand c'est fini → utiliser le skill **open-pr** (la PR ferme le ticket via `Closes #n`, ce qui enlève le statut « en cours »).
