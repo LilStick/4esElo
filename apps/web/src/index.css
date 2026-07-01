@@ -1,7 +1,52 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens — source de vérité (charte B1.1).
+   Ne jamais coder une couleur/rayon en dur dans un composant : passer par ces
+   tokens (utilitaires Tailwind `bg-bg`, `text-ink`, `text-brand`, …).
+--------------------------------------------------------------------------- */
+@theme {
+  /* Ground — OLED noir, biais froid */
+  --color-bg: #060709;
+  --color-surface: #0c0e13;
+  --color-surface-2: #11141b;
+
+  /* Encre */
+  --color-ink: #f4f6fa;
+  --color-ink-dim: #8b90a0;
+  --color-ink-faint: #565b6e;
+
+  /* Accent — bleu électrique, seul point de couleur */
+  --color-brand: #5e8bff;
+  --color-brand-hi: #86a6ff;
+  --color-brand-deep: #3a5cd8;
+
+  /* Sémantique — réservé aux victoires / défaites */
+  --color-win: #34d8a0;
+  --color-loss: #fb6474;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Tokens non-couleur (système de cartes + motion) */
 :root {
   color-scheme: dark;
+
+  /* Cartes double-bezel : radius enfant = radius parent − bezel */
+  --r-card: 20px;
+  --bezel: 5px;
+
+  /* Courbes de motion (Emil Kowalski — plus fortes que les defaults CSS) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Anneau de jauge animable */
+@property --p {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
 }
 
 html,
@@ -12,12 +57,43 @@ body,
 
 body {
   margin: 0;
-  background-color: #09090b;
-  color: #fafafa;
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(900px 480px at 78% -8%, rgba(94, 139, 255, 0.13), transparent 62%),
+    radial-gradient(700px 520px at 8% 12%, rgba(58, 92, 216, 0.08), transparent 60%);
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grain de film discret */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Anneau de la jauge d'ELO (rempli via la variable --p) */
+.gauge-ring {
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    var(--color-brand-deep),
+    var(--color-brand) var(--p),
+    var(--color-surface-2) var(--p)
+  );
+  -webkit-mask: radial-gradient(circle 56px at center, transparent 98%, #000 100%);
+  mask: radial-gradient(circle 56px at center, transparent 98%, #000 100%);
+  filter: drop-shadow(0 0 10px rgba(94, 139, 255, 0.4));
+  transition: --p 1.2s var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-ring {
+    transition: none;
+  }
 }
