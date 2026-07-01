@@ -20,12 +20,12 @@ Monorepo pnpm en TypeScript :
 ```bash
 cp .env.example .env      # renseigne FACEIT_API_KEY quand tu l'auras
 pnpm install
-pnpm db:up                # lance PostgreSQL via Docker
 pnpm db:push              # applique le schéma
-pnpm dev:api              # API sur http://localhost:3001
+pnpm dev                  # API (:3001) + front (:5173) ensemble, en watch
 ```
 
-Vérif : `curl http://localhost:3001/health` → `{"ok":true}`
+`pnpm dev` lance tout ; sinon `pnpm dev:api` / `pnpm dev:web` séparément.
+Vérif API : `curl http://localhost:3001/health` → `{"ok":true}`
 
 ## API (Hono, port 3001)
 
