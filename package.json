@@ -1,0 +1,43 @@
+{
+  "name": "4eselo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "scripts": {
+    "doctor": "node scripts/preflight.mjs",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "dev:web": "pnpm --filter @4eselo/web dev",
+    "dev:api": "pnpm --filter @4eselo/api dev",
+    "dev:worker": "pnpm --filter @4eselo/worker dev",
+    "sync:once": "pnpm --filter @4eselo/worker sync:once",
+    "db:generate": "pnpm --filter @4eselo/db generate",
+    "db:migrate": "pnpm --filter @4eselo/db migrate",
+    "db:push": "pnpm --filter @4eselo/db push",
+    "db:studio": "pnpm --filter @4eselo/db studio",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
+  }
+}
