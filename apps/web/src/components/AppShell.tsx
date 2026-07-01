@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button
           onClick={() => setOpen(true)}
           aria-label="Ouvrir le menu"
-          className="grid size-9 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+          className="grid size-10 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
         >
           <TbMenu2 size={20} />
         </button>
@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Fermer le menu"
-                  className="grid size-9 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                  className="grid size-10 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
                 >
                   <TbX size={20} />
                 </button>

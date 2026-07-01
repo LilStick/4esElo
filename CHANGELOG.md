@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-01
 
+- Web : audit responsive — podium et header joueur adaptés mobile, cibles tactiles ≥ 40px. (#46)
 - Web : meta & partage — favicon 4esElo, `<title>` dynamique par page, balises OG/Twitter + image de partage. (#45)
 - Web : page 404 + états vides soignés (aucun joueur, joueur introuvable) via composant `EmptyState`. (#44)
 - Web : skeletons de chargement (classement + page joueur), remplacent les "Chargement…". (#43)

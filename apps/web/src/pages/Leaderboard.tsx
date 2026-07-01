@@ -22,7 +22,7 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
           "transition-[border-color] duration-200 group-hover:border-white/20",
           first && "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]",
         )}
-        className="relative p-5 text-center"
+        className="relative p-4 text-center sm:p-5"
       >
         {first && (
           <TbCrown
