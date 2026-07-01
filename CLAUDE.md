@@ -66,11 +66,28 @@ Monorepo **pnpm** en **TypeScript** (ESM).
 pnpm doctor                       # preflight (À FAIRE EN PREMIER)
 pnpm dev:api                      # API sur :3001
 pnpm dev:worker                   # worker en boucle (10 min)
+pnpm dev:web                      # front Vite sur :5173
 pnpm sync:once                    # un passage de sync
 pnpm --filter @4eselo/worker add-player <pseudoFaceit> [discordName]
 pnpm test                         # unit + intégration
 pnpm typecheck                    # tsc sur tout
+pnpm lint / lint:fix              # ESLint
+pnpm format / format:check        # Prettier
 pnpm db:up / db:down / db:push / db:studio
+```
+
+## Suivi & tickets (GitHub)
+
+Repo : **LilStick/4esElo** (privé). Le suivi vit sur GitHub, lisible via `gh` :
+
+- **Epics** = blocs, titrés `EPIC B<n> · …` ; **tickets** = `B<n>.<x> · …` (ID logique dans le titre).
+- **Labels de propriété** : `lilstick` (back/API/data) · `arthur` (front/UI/design).
+- Workflow branches + pilotage via Claude Code : voir [CONTRIBUTING.md](./CONTRIBUTING.md).
+- Prochain bloc : **B2 — Fondation data** (tickets B2.1 → B2.7).
+
+```bash
+gh issue list --label lilstick --state open
+gh issue view <n>                 # lire un ticket + sa Definition of Done
 ```
 
 ## Conventions (à respecter)
@@ -84,10 +101,15 @@ pnpm db:up / db:down / db:push / db:studio
   (SQL versionné) ; `pnpm db:push` en dev.
 - **Ne jamais commit `.env`** (déjà gitignoré). La clé Faceit est une _server-side key_.
 - **Types partagés** : toute forme échangée API↔front vit dans `packages/types`.
+- **Auteurs** : seuls **LilStick** et **Arthur** signent les commits. **Jamais** de trailer `Co-Authored-By: Claude` ni de mention Claude.
+- **Branches & tickets** : une branche par ticket (`feat/B<n>.<x>-slug`), PR vers `main` liée au ticket (`Closes #<n>`).
 
 ## Sources de données
 
 - **Faceit** (V1) : API officielle, ELO = nombre unique directement comparable. Clé serveur requise.
+  - Les stats **par match** (`GET /matches/{id}/stats`) sont riches pour CS2 : ADR, clutch 1v1/1v2, entry frags, utility, flashs, HS%, multi-kills. La plupart des features avancées se calculent en stockant ces matchs (Bloc 2).
+  - Pas d'endpoint officiel pour l'historique d'ELO → endpoint **interne non officiel** `api.faceit.com/stats/api/v1/stats/time/users/{id}/games/csgo` (elo + eloDiff par match), à isoler derrière une interface.
+  - Pas dispo via API : ADR/rating _lifetime_, teammates, filtres temporels → on les **calcule** depuis les matchs stockés.
 - **Premier** (plus tard) : pas d'API Valve officielle → Leetify (non officiel) ou snapshots.
   Le multi-compte par personne sera introduit **uniquement** pour Premier (Faceit interdit les smurfs).
 
@@ -96,14 +118,24 @@ pnpm db:up / db:down / db:push / db:studio
 - `players` — identité (Discord / Faceit / Steam), un compte Faceit par personne.
 - `elo_snapshots` — série temporelle (`source` = faceit|premier) → **la courbe**.
   Le worker n'insère un point que si l'ELO a **changé** (évite de noyer la courbe).
-- `faceit_matches` — stats par match (backfill/détail, à exploiter plus tard).
+- `faceit_matches` — table posée (détail par match, non encore alimentée).
+- `faceit_match_stats` — **à créer (ticket B2.1)** : une ligne par match/membre (colonnes clés indexées + stats en JSONB). C'est la brique qui débloque stats avancées, social, filtres, heatmap.
 
 ## État d'avancement
 
-- ✅ Phase 0 : scaffold + DB + Docker
-- ✅ Phase 1a : client Faceit (testé)
-- ✅ Phase 1b : worker + sync (testé + smoke-test réel)
-- ✅ Phase 1c : endpoints `/leaderboard`, `/players/:id`, `/players/:id/elo` (testés)
-- 🔨 Phase 1d : `apps/web` (classement + page joueur + courbe)
-- ⏳ Phase 2 : bot Discord `/register`
-- ⏳ Phase 3 : Premier Mode
+**V1 — Fondations : ✅ TERMINÉ** (epic GitHub #9)
+
+- Scaffold monorepo + DB + Docker (colima/Docker Desktop)
+- `packages/db`, `packages/faceit` (+ tests), `packages/types`
+- `apps/worker` : sync ELO snapshot-on-change + add-player (smoke-test réel OK)
+- `apps/api` : `/leaderboard`, `/players/:id`, `/players/:id/elo` (tests d'intégration)
+- `apps/web` : classement + page joueur + courbe (design encore basique)
+- Outillage : `pnpm doctor`, ESLint + Prettier, tests, CLAUDE.md, CONTRIBUTING
+- Repo git privé + epics/tickets GitHub
+
+**Roadmap (epics GitHub, blocs B1→B8)** — le détail vit dans les issues :
+
+- 🔜 **B2 — Fondation data** (prochain) : ingestion matchs + backfill courbe ELO
+- B1 — Design & assets (front, Arthur) · B3 — Profil enrichi · B4 — Social (asso)
+- B5 — Engagement · B6 — Bot Discord · B7 — Features splashy · B8 — Highlights
+- Ultérieur : **Premier Mode** (pas d'API Valve → Leetify/snapshots ; multi-compte par membre uniquement pour Premier)
