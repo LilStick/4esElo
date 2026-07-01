@@ -8,7 +8,7 @@
     "start": "tsx src/index.ts",
     "sync:once": "tsx src/index.ts --once",
     "add-player": "tsx src/add-player.ts",
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test --test-force-exit \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@4eselo/db": "workspace:*",

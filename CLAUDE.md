@@ -28,6 +28,20 @@ Si un check échoue, le script affiche la commande de correction. Rappels couran
 
 ---
 
+## ⚠️ RÈGLE N°2 — Toujours partir d'un `main` à jour
+
+**Au début de CHAQUE session** et **avant de créer/switcher une branche** :
+
+```bash
+git fetch origin
+git switch main && git pull --ff-only     # récupérer le dernier main
+git switch -c feat/B<n>.<x>-slug           # brancher depuis un main à jour
+```
+
+`main` est **protégé** (PR obligatoire, push direct/force/suppression interdits, aucun bypass) → on ne pousse jamais sur `main` directement, on merge via PR. Ne jamais coder sur `main`.
+
+---
+
 ## Setup initial (première fois)
 
 ```bash
@@ -91,6 +105,44 @@ gh issue list --label lilstick --state open
 gh issue view <n>                 # lire un ticket + sa Definition of Done
 ```
 
+La vision large + le vivier d'idées (features "to-do later", Premier Mode…) vit dans [ROADMAP.md](./ROADMAP.md).
+
+## Créer des epics / tickets (FORMAT IMPOSÉ)
+
+Tout le monde (LilStick, Arthur) peut proposer des features et créer des tickets — **toujours dans ce format**, pour que le suivi reste cohérent quel que soit qui (ou quel Claude) les crée :
+
+- **Milestone** = 1 epic/bloc, titre `Bloc <n> — <Nom>`.
+- **Epic** = issue labellée `epic`, titre **`EPIC B<n> · <Nom>`** ; corps = checklist des tickets :
+  `- [ ] **B<n>.<x>** · #<id> — <titre>`.
+- **Ticket** = issue titre **`B<n>.<x> · <titre court>`** ; corps commençant par :
+  ```
+  **Epic :** #<id epic> · EPIC B<n> · <Nom>
+  **Branche :** `feat/B<n>.<x>-<slug>`
+  **Dépendances :** 🔗 dépend de #<id>   —OU—   ✅ Autonome
+
+  ---
+  <description> + **Definition of Done** (critères vérifiables)
+  ```
+- **Labels obligatoires** : un `type:*` (feature/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
+- Feature hors blocs → soit la rattacher à un bloc, soit créer un nouveau bloc (milestone + epic). Noter l'idée dans [ROADMAP.md](./ROADMAP.md) si pas encore ticketée.
+
+```bash
+gh issue create --milestone "Bloc 3 — Profil enrichi" --label "type:feature,area:web,arthur" \
+  --title "B3.4 · Radar de comparaison" --body $'**Epic :** #11 · EPIC B3 · Profil enrichi\n**Branche :** `feat/B3.4-compare-radar`\n\n---\n…\n\n**DoD:** …'
+```
+
+## Skills (Claude Code)
+
+Des skills committés dans `.claude/skills/` encapsulent les formats/process (partagés avec Arthur) :
+
+- **refine** — une idée → epic/ticket(s) au format (labels, dépendances, DoD).
+- **start-ticket** — démarre un ticket : env OK, `main` à jour, branche `feat/…`, DoD + alerte dépendances.
+- **open-pr** — PR propre : vert, 1 commit, changelog/`[NO-CHANGELOG]`, `Closes #n`.
+- **migration** — changer le schéma DB (Drizzle) sans casser : schema.ts → migration SQL versionnée → commit → apply.
+- **review-pr** — relire la PR de l'autre : diff, DoD, CI, format.
+
+Les skills gèrent le **format** ; la **sécurité** reste garantie par la machine (protection `main`, CI, `pnpm doctor`).
+
 ## Conventions (à respecter)
 
 - **I/O aux extrémités, logique pure au milieu.** Le réseau (Faceit) et la DB sont des
@@ -104,6 +156,10 @@ gh issue view <n>                 # lire un ticket + sa Definition of Done
 - **Types partagés** : toute forme échangée API↔front vit dans `packages/types`.
 - **Auteurs** : seuls **LilStick** et **Arthur** signent les commits. **Jamais** de trailer `Co-Authored-By: Claude` ni de mention Claude.
 - **Branches & tickets** : une branche par ticket (`feat/B<n>.<x>-slug`), PR vers `main` liée au ticket (`Closes #<n>`).
+- **CI** : GitHub Actions lance typecheck + lint + tests sur chaque PR vers `main` (`.github/workflows/ci.yml`). Une PR doit être verte avant merge.
+- **Changelog** : une PR **liée à un ticket** met à jour [CHANGELOG.md](./CHANGELOG.md) (ligne datée `AAAA-MM-JJ` + `#ticket`). Une PR **non liée** (infra/docs/chore) porte **`[NO-CHANGELOG]`** dans son titre. La CI vérifie l'un ou l'autre.
+- **1 seul commit par PR** (lisibilité de l'historique `main`).
+- **Nommage humain** : titres de tickets/epics/PR/commits **courts et clairs**, pas verbeux ni jargonneux. On doit comprendre d'un coup d'œil (ex. `B3.4 · Radar de comparaison`, pas une phrase de 15 mots).
 
 ## Sources de données
 

@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test --test-force-exit \"src/**/*.test.ts\""
   },
   "dependencies": {
     "zod": "^3.24.1"

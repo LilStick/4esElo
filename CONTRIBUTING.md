@@ -19,30 +19,45 @@ Labels de propriété : **`lilstick`** (back / API / data) · **`arthur`** (fron
 ## Workflow branches
 
 1. Prends un ticket. Filtre par propriétaire : `gh issue list --label lilstick` ou `--label arthur`.
-2. Crée une branche depuis `main`, **nommée d'après l'ID logique** :
+2. Pars d'un `main` **à jour**, et nomme la branche d'après l'ID logique :
    ```bash
+   git fetch origin
+   git switch main && git pull --ff-only
    git switch -c feat/B2.1-match-stats-table
    ```
    Préfixes : `feat/` (feature), `fix/` (bug), `chore/` (outillage), `design/` (UI).
+3. Code par petits incréments. Garde vert : `pnpm typecheck && pnpm test && pnpm lint`.
+4. Commits clairs (Conventional Commits), en anglais : `feat(web): add per-map stats table`. **1 seul commit par PR.**
+5. Ouvre une **PR** vers `main`, liée au ticket (`Closes #<n>`).
+6. Merge une fois la **CI verte**.
 
 ## Piloter via Claude Code
 
-Le suivi vit sur GitHub, donc chaque Claude Code (le tien, celui d'Arthur) le lit via `gh` :
+Le suivi vit sur GitHub : chaque Claude Code (le tien, celui d'Arthur) le lit via `gh`.
 
 ```bash
 gh issue list --label lilstick --state open    # voir mes tickets
-gh issue view 1                                 # lire le ticket B2.1 (n° GitHub #1) + sa DoD
+gh issue view 1                                 # lire un ticket + sa DoD
 ```
 
-Tu peux simplement dire à Claude Code : « prends le ticket **B2.1** » → il le retrouve (`gh issue list | grep B2.1`), lit la Definition of Done, crée la branche `feat/B2.1-...`, code, puis ouvre la PR avec `Closes #1`.
-3. Code par petits incréments. Garde vert :
-   ```bash
-   pnpm typecheck && pnpm test && pnpm lint
-   ```
-4. Commits clairs, en anglais, style Conventional Commits :
-   `feat(web): add per-map stats table`. Référence le ticket : `... (#23)`.
-5. Ouvre une **Pull Request** vers `main`, liée au ticket (`Closes #23`).
-6. Merge une fois la PR verte (typecheck + test + lint).
+Tu peux juste dire à Claude Code : « prends le ticket **B2.1** » → il le retrouve, lit la Definition of Done, crée la branche `feat/B2.1-…`, code, puis ouvre la PR avec `Closes #1`.
+
+## Proposer une feature / créer un ticket
+
+Tout le monde est libre de proposer. Deux niveaux :
+
+- **Idée pas encore mûre** → l'ajouter dans [ROADMAP.md](./ROADMAP.md) (vivier / to-do later).
+- **Prête à coder** → créer un **ticket** au format imposé (titres **humain-friendly**, courts) : voir [CLAUDE.md](./CLAUDE.md#créer-des-epics--tickets-format-imposé). En bref : titre `B<n>.<x> · <titre court>`, corps avec `Epic` + `Branche` + **Definition of Done**, labels `type:*` + `area:*` + propriétaire (`arthur`/`lilstick`).
+
+## CI
+
+Chaque PR vers `main` déclenche GitHub Actions (typecheck + lint + tests, avec un Postgres). **La PR doit être verte avant merge.** `main` est protégé : pas de push direct.
+
+## Changelog
+
+- PR **liée à un ticket** → ajoute une ligne dans [CHANGELOG.md](./CHANGELOG.md) : `- AAAA-MM-JJ — <desc> (#<ticket>)` (date du merge).
+- PR **non liée** (infra, docs, chore) → mets **`[NO-CHANGELOG]`** dans le titre de la PR/commit.
+- La CI bloque si ni l'un ni l'autre.
 
 ## Conventions de code
 
