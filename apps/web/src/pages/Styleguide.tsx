@@ -1,5 +1,5 @@
 import { TbArrowRight, TbCrown, TbExternalLink, TbTrendingUp } from "react-icons/tb";
-import { Button, Card, EloGauge, HoverBarList, LevelBadge } from "../ui";
+import { Avatar, Button, Card, EloGauge, HoverBarList, LevelBadge } from "../ui";
 
 const SWATCHES = [
   { name: "bg", hex: "#060709" },
@@ -12,31 +12,20 @@ const SWATCHES = [
   { name: "loss", hex: "#FB6474" },
 ];
 
-type Row = { rank: number; name: string; level: number; elo: number; from: string };
+type Row = { rank: number; name: string; level: number; elo: number };
 const ROWS: Row[] = [
-  { rank: 4, name: "Kiro", level: 8, elo: 2180, from: "#7A6ED0" },
-  { rank: 5, name: "Arthur", level: 7, elo: 1890, from: "#5E8BFF" },
-  { rank: 6, name: "Bibou", level: 6, elo: 1640, from: "#4E9AD0" },
-  { rank: 7, name: "Womps", level: 5, elo: 1420, from: "#4ED0B0" },
-  { rank: 8, name: "Tchoupi", level: 4, elo: 1180, from: "#59D9C4" },
+  { rank: 4, name: "Kiro", level: 8, elo: 2180 },
+  { rank: 5, name: "Arthur", level: 7, elo: 1890 },
+  { rank: 6, name: "Bibou", level: 6, elo: 1640 },
+  { rank: 7, name: "Womps", level: 5, elo: 1420 },
+  { rank: 8, name: "Tchoupi", level: 4, elo: 1180 },
 ];
 
 const PODIUM = [
-  { rank: 2, name: "Nyxøn", level: 9, elo: 2740, from: "#59D9C4", to: "#1E8A7A" },
-  { rank: 1, name: "s1non", level: 10, elo: 3120, from: "#86A6FF", to: "#3A5CD8" },
-  { rank: 3, name: "LilStick", level: 9, elo: 2510, from: "#8FB2FF", to: "#4A63B0" },
+  { rank: 2, name: "Nyxøn", level: 9, elo: 2740 },
+  { rank: 1, name: "s1non", level: 10, elo: 3120 },
+  { rank: 3, name: "LilStick", level: 9, elo: 2510 },
 ];
-
-function Avatar({ from, to, letter, size }: { from: string; to?: string; letter: string; size: number }) {
-  return (
-    <span
-      className="grid shrink-0 place-items-center rounded-full font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]"
-      style={{ width: size, height: size, fontSize: size * 0.42, background: `linear-gradient(140deg, ${from}, ${to ?? from})` }}
-    >
-      {letter}
-    </span>
-  );
-}
 
 function Eyebrow({ children }: { children: string }) {
   return <div className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">{children}</div>;
@@ -145,7 +134,7 @@ export function Styleguide() {
               )}
               <span className="absolute top-1.5 left-2 font-mono text-xs font-bold text-ink-faint">#{p.rank}</span>
               <div className="mx-auto mt-1.5 mb-3 w-fit">
-                <Avatar from={p.from} to={p.to} letter={p.name.charAt(0)} size={60} />
+                <Avatar name={p.name} size={60} />
               </div>
               <div className="text-[15px] font-bold">{p.name}</div>
               <div className="mt-2 flex justify-center">
@@ -164,7 +153,7 @@ export function Styleguide() {
             children={(r) => (
               <>
                 <span className="w-5 text-center font-mono font-bold text-ink-faint">{r.rank}</span>
-                <Avatar from={r.from} letter={r.name.charAt(0)} size={34} />
+                <Avatar name={r.name} size={34} />
                 <LevelBadge level={r.level} size={24} />
                 <span className="flex-1 truncate font-semibold">{r.name}</span>
                 <span className="font-mono text-[15px] font-bold text-brand tabular-nums">{r.elo}</span>
@@ -183,7 +172,7 @@ export function Styleguide() {
 
         <div className="flex flex-col gap-4">
         <Card className="flex flex-wrap items-center gap-5 p-5">
-          <Avatar from="#8FB2FF" to="#4A63B0" letter="L" size={78} />
+          <Avatar name="LilStick" size={78} />
           <div>
             <h3 className="flex items-center gap-2 text-[27px] font-extrabold tracking-[-0.03em]">
               LilStick <LevelBadge level={9} size={26} />
