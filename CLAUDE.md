@@ -140,8 +140,16 @@ Des skills committés dans `.claude/skills/` encapsulent les formats/process (pa
 - **open-pr** — PR propre : vert, 1 commit, changelog/`[NO-CHANGELOG]`, `Closes #n`.
 - **migration** — changer le schéma DB (Drizzle) sans casser : schema.ts → migration SQL versionnée → commit → apply.
 - **review-pr** — relire la PR de l'autre : diff, DoD, CI, format.
+- **repo-catchup** — au `/resume`/reprise : résume l'activité récente du repo, par personne (toi vs l'autre).
 
 Les skills gèrent le **format** ; la **sécurité** reste garantie par la machine (protection `main`, CI, `pnpm doctor`).
+
+### Comment un skill se déclenche
+
+- **Automatique** : Claude lit la `description` de chaque skill et le déclenche **tout seul** quand ta demande correspond — **pas besoin de taper `/`**.
+- **Explicite** : tu peux forcer avec `/<nom-du-skill>`.
+- Donc en écrivant un skill, la **`description` doit dire QUAND l'utiliser** (situations), pas juste ce qu'il fait — c'est ça le déclencheur.
+- `/resume` est une commande **native** de Claude Code, pas un skill : pour un lancement **garanti** au démarrage de session, il faut un **hook `SessionStart`** dans `settings.json` (exécute un script, pas un skill).
 
 ## Conventions (à respecter)
 
