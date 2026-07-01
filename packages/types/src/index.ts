@@ -34,3 +34,80 @@ export interface EloCurveResponse {
   source: EloSource;
   points: EloPoint[];
 }
+
+/** Normalized per-match player stats (from Faceit /matches/{id}/stats, CS2). */
+export interface FaceitMatchStats {
+  kills: number;
+  deaths: number;
+  assists: number;
+  kd: number;
+  kr: number;
+  adr: number;
+  damage: number;
+  hsPercent: number;
+  mvps: number;
+  doubleKills: number;
+  tripleKills: number;
+  quadroKills: number;
+  pentaKills: number;
+  clutch1v1Count: number;
+  clutch1v1Wins: number;
+  clutch1v2Count: number;
+  clutch1v2Wins: number;
+  clutchKills: number;
+  entryCount: number;
+  entryWins: number;
+  firstKills: number;
+  utilityDamage: number;
+  utilityCount: number;
+  flashCount: number;
+  enemiesFlashed: number;
+  flashSuccesses: number;
+  sniperKills: number;
+}
+
+/** One stored match for a player (API shape). */
+export interface MatchSummary {
+  matchId: string;
+  map: string;
+  playedAt: string; // ISO
+  result: number; // 1 win, 0 loss
+  eloAfter: number | null;
+  stats: FaceitMatchStats;
+}
+
+export interface MatchesResponse {
+  items: MatchSummary[];
+  total: number;
+}
+
+export type StatsRange = "7d" | "30d" | "3m" | "all";
+
+/** Aggregated stats over a time window, computed from stored matches. */
+export interface StatsAggregate {
+  range: StatsRange;
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+  kd: number;
+  adr: number;
+  hsPercent: number;
+  clutchWinRate: number; // 0-100
+  entrySuccessRate: number; // 0-100
+  utilityDamagePerMatch: number;
+}
+
+export interface MapStat {
+  map: string;
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+  kd: number;
+  adr: number;
+}
+
+export interface PlayerStatsResponse {
+  range: StatsRange;
+  overall: StatsAggregate;
+  maps: MapStat[];
+}
