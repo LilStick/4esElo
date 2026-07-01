@@ -9,9 +9,10 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --import tsx --test --test-force-exit \"src/**/*.test.ts\""
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
+    "@4eselo/types": "workspace:*",
     "zod": "^3.24.1"
   }
 }

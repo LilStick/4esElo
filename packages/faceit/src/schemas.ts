@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { FaceitMatchStats } from "@4eselo/types";
 
 /**
  * Raw shapes from the Faceit Data API v4 (https://open.faceit.com/data/v4).
@@ -85,4 +86,95 @@ export function normalizeHistory(raw: z.infer<typeof rawHistorySchema>): FaceitM
     startedAt: new Date(it.started_at * 1000),
     finishedAt: it.finished_at ? new Date(it.finished_at * 1000) : null,
   }));
+}
+
+/** Match stats: values come as strings; player_stats keys vary, so we keep them loose. */
+export const rawMatchStatsSchema = z.object({
+  rounds: z.array(
+    z.object({
+      round_stats: z.record(z.string(), z.string()),
+      teams: z.array(
+        z.object({
+          players: z.array(
+            z.object({
+              player_id: z.string(),
+              nickname: z.string(),
+              player_stats: z.record(z.string(), z.string()),
+            }),
+          ),
+        }),
+      ),
+    }),
+  ),
+});
+
+export interface FaceitMatchPlayer {
+  playerId: string;
+  nickname: string;
+  result: number; // 1 win, 0 loss
+  stats: FaceitMatchStats;
+}
+
+export interface FaceitMatchDetail {
+  matchId: string;
+  map: string;
+  players: FaceitMatchPlayer[];
+}
+
+const num = (r: Record<string, string>, key: string): number => {
+  const n = Number(r[key]);
+  return Number.isFinite(n) ? n : 0;
+};
+
+function toStats(s: Record<string, string>): FaceitMatchStats {
+  return {
+    kills: num(s, "Kills"),
+    deaths: num(s, "Deaths"),
+    assists: num(s, "Assists"),
+    kd: num(s, "K/D Ratio"),
+    kr: num(s, "K/R Ratio"),
+    adr: num(s, "ADR"),
+    damage: num(s, "Damage"),
+    hsPercent: num(s, "Headshots %"),
+    mvps: num(s, "MVPs"),
+    doubleKills: num(s, "Double Kills"),
+    tripleKills: num(s, "Triple Kills"),
+    quadroKills: num(s, "Quadro Kills"),
+    pentaKills: num(s, "Penta Kills"),
+    clutch1v1Count: num(s, "1v1Count"),
+    clutch1v1Wins: num(s, "1v1Wins"),
+    clutch1v2Count: num(s, "1v2Count"),
+    clutch1v2Wins: num(s, "1v2Wins"),
+    clutchKills: num(s, "Clutch Kills"),
+    entryCount: num(s, "Entry Count"),
+    entryWins: num(s, "Entry Wins"),
+    firstKills: num(s, "First Kills"),
+    utilityDamage: num(s, "Utility Damage"),
+    utilityCount: num(s, "Utility Count"),
+    flashCount: num(s, "Flash Count"),
+    enemiesFlashed: num(s, "Enemies Flashed"),
+    flashSuccesses: num(s, "Flash Successes"),
+    sniperKills: num(s, "Sniper Kills"),
+  };
+}
+
+/** Normalize a match's stats. A CS2 match = one map (rounds[0]). */
+export function normalizeMatchStats(
+  matchId: string,
+  raw: z.infer<typeof rawMatchStatsSchema>,
+): FaceitMatchDetail | null {
+  const round = raw.rounds[0];
+  if (!round) return null;
+  const players: FaceitMatchPlayer[] = [];
+  for (const team of round.teams) {
+    for (const p of team.players) {
+      players.push({
+        playerId: p.player_id,
+        nickname: p.nickname,
+        result: num(p.player_stats, "Result"),
+        stats: toStats(p.player_stats),
+      });
+    }
+  }
+  return { matchId, map: round.round_stats["Map"] ?? "unknown", players };
 }

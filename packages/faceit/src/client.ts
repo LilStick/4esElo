@@ -1,10 +1,13 @@
 import {
   rawPlayerSchema,
   rawHistorySchema,
+  rawMatchStatsSchema,
   normalizePlayer,
   normalizeHistory,
+  normalizeMatchStats,
   type FaceitPlayer,
   type FaceitMatchRef,
+  type FaceitMatchDetail,
 } from "./schemas";
 
 const DATA_API = "https://open.faceit.com/data/v4";
@@ -75,5 +78,11 @@ export class FaceitClient {
       offset,
     });
     return normalizeHistory(rawHistorySchema.parse(json));
+  }
+
+  /** Detailed per-player stats for a match (all players, both teams). */
+  async getMatchStats(matchId: string): Promise<FaceitMatchDetail | null> {
+    const json = await this.get(`/matches/${matchId}/stats`);
+    return normalizeMatchStats(matchId, rawMatchStatsSchema.parse(json));
   }
 }
