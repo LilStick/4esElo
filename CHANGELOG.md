@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-01
 
+- Web : page 404 + états vides soignés (aucun joueur, joueur introuvable) via composant `EmptyState`. (#44)
 - Web : skeletons de chargement (classement + page joueur), remplacent les "Chargement…". (#43)
 - Web : app shell — sidebar desktop + header/drawer mobile (spring), nav, charte retirée du nav. (#42)
 - Web : refonte page joueur — header (avatar, niveau, ELO), jauge de palier, courbe d'ELO habillée (recharts), repères pic/plus bas/points. (#37)

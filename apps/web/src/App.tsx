@@ -3,6 +3,7 @@ import { AppShell } from "./components/AppShell";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Player } from "./pages/Player";
 import { Styleguide } from "./pages/Styleguide";
+import { NotFound } from "./pages/NotFound";
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/player/:id" element={<Player />} />
           {/* Charte / styleguide : accessible en direct, volontairement absente du nav. */}
           <Route path="/charte" element={<Styleguide />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AppShell>
     </>
