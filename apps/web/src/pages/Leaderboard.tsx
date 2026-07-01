@@ -6,6 +6,7 @@ import { getLeaderboard } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { cn } from "../lib/cn";
+import { useTitle } from "../lib/useTitle";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
 
@@ -74,6 +75,7 @@ function LeaderboardSkeleton() {
 }
 
 export function Leaderboard() {
+  useTitle("Classement");
   const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["leaderboard", "faceit"],
