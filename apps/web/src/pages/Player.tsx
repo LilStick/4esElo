@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
-import { TbArrowLeft, TbExternalLink } from "react-icons/tb";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { TbArrowLeft, TbExternalLink, TbUserQuestion } from "react-icons/tb";
 import { getPlayer } from "../lib/api";
-import { Avatar, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
+import { Avatar, Button, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
+import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
@@ -72,6 +73,7 @@ function PlayerSkeleton() {
 
 export function Player() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["player", id],
     queryFn: () => getPlayer(id),
@@ -93,7 +95,15 @@ export function Player() {
       </Link>
 
       {isLoading && <PlayerSkeleton />}
-      {isError && <p className="mt-8 text-loss">Joueur introuvable.</p>}
+      {isError && (
+        <EmptyState
+          icon={TbUserQuestion}
+          title="Joueur introuvable"
+          action={<Button onClick={() => navigate("/")}>Retour au classement</Button>}
+        >
+          Ce joueur n'existe pas ou n'est plus suivi.
+        </EmptyState>
+      )}
 
       {data && (
         <div className="mt-6 flex flex-col gap-4">

@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { TbArrowRight, TbCrown } from "react-icons/tb";
+import { TbArrowRight, TbCrown, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { EmptyState } from "../components/EmptyState";
 import { cn } from "../lib/cn";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -121,7 +122,11 @@ export function Leaderboard() {
         </Card>
       )}
 
-      {data && board.length === 0 && <p className="text-ink-dim">Aucun joueur pour l'instant.</p>}
+      {data && board.length === 0 && (
+        <EmptyState icon={TbUsersGroup} title="Aucun joueur pour l'instant">
+          Ajoute des membres du pôle (via le worker) et leur ELO apparaîtra ici.
+        </EmptyState>
+      )}
     </div>
   );
 }
