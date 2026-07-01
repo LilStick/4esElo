@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: 4eselo
+          POSTGRES_PASSWORD: 4eselo
+          POSTGRES_DB: 4eselo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U 4eselo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://4eselo:4eselo@localhost:5432/4eselo
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from package.json "packageManager" — do not pass `version`.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply DB schema
+        run: pnpm db:push
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests (unit + intégration)
+        run: pnpm test
+
+  changelog:
+    # Une PR liée à un ticket doit mettre à jour CHANGELOG.md.
+    # Exception : "[NO-CHANGELOG]" dans le titre de la PR ou d'un commit.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require CHANGELOG update
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE" --depth=1
+          if echo "$PR_TITLE" | grep -q '\[NO-CHANGELOG\]' \
+            || git log "origin/$BASE..HEAD" --format=%s | grep -q '\[NO-CHANGELOG\]'; then
+            echo "Marqué [NO-CHANGELOG] — check ignoré."
+            exit 0
+          fi
+          if git diff --name-only "origin/$BASE...HEAD" | grep -qx 'CHANGELOG.md'; then
+            echo "CHANGELOG.md mis à jour ✓"
+            exit 0
+          fi
+          echo "::error::Cette PR doit mettre à jour CHANGELOG.md (ou ajouter [NO-CHANGELOG] au titre si elle n'est pas liée à un ticket)."
+          exit 1
