@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-02
 
+- Process : format de ticket durci dans le skill refine (Contexte lisible / Quoi / DoD + exemple canonique) — même sortie quel que soit l'agent. (#80)
 - Garde-fous machine : hook SessionStart (preflight auto), hook PreToolUse qui bloque les commandes dépendant de Postgres quand il est down, ESLint anti-`fetch` dans les apps et anti-`process.env` hors `env.ts`. (#79)
 - Docs : règles d'architecture (pattern provider, zod aux frontières, catch commenté, DB par défaut) et règles de tests gravées dans CLAUDE.md. (#78)
 - CI : le format Prettier est vérifié (`format:check`) ; `pnpm format` avant chaque commit (skill open-pr à jour, 5 fichiers web reformatés). (#76)
