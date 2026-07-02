@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Cross-platform environment check. Run before working on the project.
-//   pnpm doctor
+//   pnpm preflight
 // Exits non-zero if a CRITICAL check fails, so agents/scripts can gate on it.
 
 import { spawnSync } from "node:child_process";
