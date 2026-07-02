@@ -51,6 +51,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 - **Premier Mode (CS Rating)** — 2ᵉ source d'ELO. Pas d'API Valve officielle → via Leetify (non officiel) ou snapshots réguliers. **Le multi-compte par personne sera introduit uniquement ici** (Faceit interdit les smurfs). Nécessitera : SteamID par membre, provider Premier, courbe/leaderboard par source, sélecteur Faceit/Premier sur le front.
 - **Stats mécaniques (façon Leetify)** — placement de viseur, temps de réaction, spray, counter-strafe. **Nécessite de parser les démos** (pipeline lourd, séparé). Gros effort, à évaluer si un jour on veut ce niveau.
 - **Highlights** — clips CS2 (allstar.gg / Medal). Zone grise ToS → viser l'embed officiel `allstar.gg/iframe` ou la Partner API. Voir bloc B8.
+- **Audit de sécurité** — à faire **avant l'ouverture publique** (pendant/juste avant B12) : surfaces API, secrets, deps. Le skill natif `/security-review` de Claude Code fait le gros du travail en une session ; à ticketer au moment de B12.
 - _(ajoute tes idées ici…)_
 
 > Déploiement / hébergement : ticketé → **bloc B12** (epic #59).
