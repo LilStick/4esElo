@@ -1,11 +1,11 @@
-import "./env";
+import { FACEIT_API_KEY, WORKER_INTERVAL_MS } from "./env";
 import { db, players } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient } from "@4eselo/faceit";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { dbStore } from "./store";
 
-const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 10 * 60 * 1000);
+const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -44,9 +44,8 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
 }
 
 async function main() {
-  const key = process.env.FACEIT_API_KEY;
-  if (!key) throw new Error("FACEIT_API_KEY is not set");
-  const faceit = new FaceitClient(key);
+  if (!FACEIT_API_KEY) throw new Error("FACEIT_API_KEY is not set");
+  const faceit = new FaceitClient(FACEIT_API_KEY);
 
   if (process.argv.includes("--once")) {
     await runOnce(faceit);

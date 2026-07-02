@@ -1,4 +1,4 @@
-import "./env";
+import { FACEIT_API_KEY } from "./env";
 import { eq } from "drizzle-orm";
 import { db, players } from "@4eselo/db";
 import { FaceitClient, FaceitError, FaceitNotFoundError } from "@4eselo/faceit";
@@ -15,9 +15,8 @@ async function main() {
     process.exit(1);
   }
 
-  const key = process.env.FACEIT_API_KEY;
-  if (!key) throw new Error("FACEIT_API_KEY is not set");
-  const faceit = new FaceitClient(key);
+  if (!FACEIT_API_KEY) throw new Error("FACEIT_API_KEY is not set");
+  const faceit = new FaceitClient(FACEIT_API_KEY);
 
   const player = await faceit.getPlayerByNickname(nickname);
   if (!player.cs2) {

@@ -5,3 +5,6 @@ import { fileURLToPath } from "node:url";
 // Load the monorepo-root .env regardless of the process cwd.
 const here = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(here, "../../../.env") });
+
+// Single access point for env vars — `process.env` is forbidden elsewhere (lint).
+export const API_PORT = Number(process.env.API_PORT ?? 3001);
