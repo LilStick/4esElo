@@ -25,8 +25,20 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 | B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)      | ✅ fait (Arthur) |
 | B11  | Durcissement (validation API, retry Faceit, CI build web, tests)     | à faire          |
 | B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)          | à faire          |
+| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)  | à faire (Arthur) |
+| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA) | à faire (Arthur) |
+| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live) | à faire (Arthur) |
 
 > **Profil "complet" (stats avancées) = épic B3**, data-gated : il dépend des données B2 (matches + stats). Le front B10 (shell + polish) avance sans attendre ; l'enrichissement du profil se fera sur B3 dès que B2.6/B2.7 sont mergés.
+
+## Ce qui fait une app « complète » (principes — Layout / UI / UX)
+
+> Au-delà des features : ce qui fait qu'une app paraît **finie et premium**. Nord de conception, pas des tickets.
+
+- **Layout** — aucune impasse : Dashboard, Classement, Profil, Détail match, Compare, Recherche, « L'asso ». Chaque vue = une URL partageable. La home est un **dashboard vivant**, pas le classement brut.
+- **UI** — chaque chiffre a un **contexte** (vs moyenne asso / semaine dernière / percentile) · charts traités comme first-class · tous les états couverts (loading, vide, erreur, **zéro-data / première visite**) · identité noir & bleu tenue partout.
+- **UX** — tout cliquable et recoupé (joueur ↔ match ↔ map ↔ coéquipier, zéro cul-de-sac) · filtres qui persistent (URL) · perceived-perf (skeletons) · tout **partageable** (image OG → Discord) · command palette (Ctrl+K).
+- **Notre moat (innovation)** — on est un **groupe fermé**, pas un site solo mondial : **boucles sociales** (« X t'a dépassé », « ton duo est chaud ce soir »), **benchmark = l'asso**, **présence live** (qui est en game maintenant), **recap de soirée**, Discord-natif. C'est notre différence défendable.
 
 ## Vivier d'idées (parking) — piocher / compléter librement
 
@@ -36,9 +48,13 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Social (le + différenciant)** : meilleurs duos (winrate ensemble) · "avec qui je win le +" · head-to-head entre membres · stats de 5-stack · nemesis/victime · graphe "qui joue avec qui" · table `matches` match-level (clé `matchId` seule : score, équipes, lobby commun) — base propre pour détecter les 5-stacks/duos, cf. note de B2.8 (#60).
 
-**Engagement** : heatmap d'activité (matchs/jour, style GitHub) · Player of the Day (+ gros gain / grosse perte 24h) · streaks + mouvements de classement · recap hebdo · **Wrapped annuel** (percentiles vs asso, façon Calibrum) · badges emoji (🔥 streak, 🎯 HS, 💣 entry, 🧠 clutch, 🚿 grind-day) · awards de la semaine · match of the week · carte de stats partageable (OG image).
+**Engagement** : heatmap d'activité (matchs/jour, style GitHub) · Player of the Day (+ gros gain / grosse perte 24h) · streaks + mouvements de classement · recap hebdo · **Wrapped annuel** (percentiles vs asso, façon Calibrum) · badges emoji (🔥 streak, 🎯 HS, 💣 entry, 🧠 clutch, 🚿 grind-day) · awards de la semaine · match of the week · carte de stats partageable (OG image) · **présence live** (qui est en match / en queue Faceit maintenant — « 3 membres en game 👀 ») · **recap de soirée** (résumé d'une session jouée en groupe) · **boucles sociales** (relances douces : « X t'a dépassé », « ton duo avec Y est chaud ce soir », « tu affrontes Z demain ») · **benchmark = l'asso** (percentiles intra-asso plutôt que mondiaux : « top 10 % de l'asso en clutch »).
 
-**Comparaisons & filtres** : filtres 7j/30j/3m/saison partout · stats par map (winrate/KD) · leaderboard par map · compare 2 membres (radar) · split T/CT · form last-10.
+**Comparaisons & filtres** : filtres 7j/30j/3m/saison partout · stats par map (winrate/KD) · leaderboard par map · compare 2 membres (radar) · split T/CT · form last-10 · **mouvement de rang** (▲▼ depuis 7j) · **mini-sparkline d'ELO** par ligne du classement · **recherche / filtre membre** · career highs (pic d'ELO, meilleur match) · **page détail d'un match** (scoreboard, stats par joueur).
+
+**Layout & navigation** : **home / dashboard asso** (feed vivant — POTD, mouvements, ta forme, présence live — plutôt qu'un simple classement) · **recherche globale (Ctrl+K)** façon DPM · page **« L'asso »** (à propos + règles + comment rejoindre le classement) · **carte accent-bar** (soulignement dégradé en bas de carte, façon DPM) · **PWA installable** (manifest + icône).
+
+**Contexte & feel (UX premium)** : **du contexte sur chaque stat** (vs moyenne asso, vs semaine dernière, percentile) · **moment signature** (tick d'ELO qui s'incrémente, transition partagée classement→profil, podium qui pulse) · cross-linking dense (tout cliquable, zéro cul-de-sac) · états **première visite / zéro-data** soignés.
 
 **Discord** : notifs repo → salon (PR ouverte, CI échouée…) via webhook `/github` (gratuit, immédiat) · auto-post après match · /stats & /leaderboard · sync de rôles par niveau · digest quotidien · **proposition validée par emote** (réagir ✅ pour créer un ticket / merger — nécessite un bot custom, voir B6).
 
