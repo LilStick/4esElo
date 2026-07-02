@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-02
 
+- Docs : règles d'architecture (pattern provider, zod aux frontières, catch commenté, DB par défaut) et règles de tests gravées dans CLAUDE.md. (#78)
 - CI : le format Prettier est vérifié (`format:check`) ; `pnpm format` avant chaque commit (skill open-pr à jour, 5 fichiers web reformatés). (#76)
 - DX : `pnpm doctor` → `pnpm preflight` — la commande native `doctor` de pnpm masquait le script et rendait un faux vert. (#74)
 - DB : suppression de la table `faceit_matches`, doublon jamais alimenté de `faceit_match_stats` (migration 0002). (#60)
