@@ -151,12 +151,37 @@ Les skills gèrent le **format** ; la **sécurité** reste garantie par la machi
 - Donc en écrivant un skill, la **`description` doit dire QUAND l'utiliser** (situations), pas juste ce qu'il fait — c'est ça le déclencheur.
 - `/resume` est une commande **native** de Claude Code, pas un skill : pour un lancement **garanti** au démarrage de session, il faut un **hook `SessionStart`** dans `settings.json` (exécute un script, pas un skill).
 
+## Règles d'architecture (DURES — pas des conseils)
+
+Enforced par ESLint/hooks quand c'est possible (voir #79) ; le reste se rejette en review sans débat.
+
+1. **Pattern provider — toute I/O réseau vit dans `packages/<provider>`** (client typé,
+   validation zod des réponses, gestion d'erreurs, tests). Les apps (`api`, `worker`, `bot`)
+   ne font **jamais** de `fetch` direct : elles consomment ces clients via des **interfaces
+   injectables** (cf. `apps/worker/src/sync.ts`) → la logique se teste sans I/O. Côté web,
+   tout fetch passe par `src/lib/api.ts`. Ajouter une source (Leetify, allstar…) = créer un
+   nouveau package qui suit le pattern — aucune règle à modifier.
+2. **Validation zod aux frontières.** Obligatoire : inputs API (params/query), env vars
+   (au démarrage, via le `env.ts` de chaque app), réponses d'API externes. Recommandé :
+   réponses de notre propre API côté front.
+3. **Aucune erreur avalée.** Une erreur est gérée, propagée, ou loggée avec contexte.
+   Un `catch` vide/no-op doit contenir un **commentaire** qui dit pourquoi et jusqu'à quand
+   (ex. `// TODO(B2.4): géré quand la courbe arrive`) — sans commentaire, le lint le refuse.
+4. **DB par défaut** : colonnes dédiées + index pour les clés de requête (filtres, tris,
+   jointures), JSONB pour le variable. S'en écarter est possible mais **se justifie dans la PR**.
+5. **Endpoint non officiel = isolé derrière une interface** + commenté comme fragile, pour
+   pouvoir le remplacer sans toucher au métier (cf. historique ELO Faceit).
+
+## Règles de tests
+
+- **Tester au fil de l'eau**, pas après coup.
+- Toute **logique métier** nouvelle → test **unitaire** avec mocks (zéro I/O).
+- Tout **endpoint** nouveau ou modifié → test d'**intégration** (vraie DB, skip auto si Postgres absent).
+- Tout **bugfix de comportement** → test de **non-régression écrit AVANT le fix** (reproduire le bug, puis corriger). Les corrections cosmétiques (typo, format) en sont dispensées.
+- E2e : rare, seulement pour les parcours critiques.
+
 ## Conventions (à respecter)
 
-- **I/O aux extrémités, logique pure au milieu.** Le réseau (Faceit) et la DB sont des
-  interfaces injectables (cf. `apps/worker/src/sync.ts`) → la logique se teste sans I/O.
-- **Tester au fil de l'eau**, pas après coup. Unit massivement (mocks), intégration pour
-  les endpoints (vraie DB, skip auto si Postgres absent), e2e rare.
 - **Valider chaque incrément** : `pnpm typecheck` + `pnpm test` doivent rester verts.
 - **Formater avant chaque commit** : `pnpm format` (la CI bloque sur `format:check`).
 - **Migrations Drizzle** : modifier `packages/db/src/schema.ts` puis `pnpm db:generate`
@@ -184,8 +209,8 @@ Les skills gèrent le **format** ; la **sécurité** reste garantie par la machi
 - `players` — identité (Discord / Faceit / Steam), un compte Faceit par personne.
 - `elo_snapshots` — série temporelle (`source` = faceit|premier) → **la courbe**.
   Le worker n'insère un point que si l'ELO a **changé** (évite de noyer la courbe).
-- `faceit_matches` — table posée (détail par match, non encore alimentée).
-- `faceit_match_stats` — **à créer (ticket B2.1)** : une ligne par match/membre (colonnes clés indexées + stats en JSONB). C'est la brique qui débloque stats avancées, social, filtres, heatmap.
+- `faceit_match_stats` — une ligne par match/membre (colonnes clés indexées + stats en JSONB, ticket B2.1). C'est la brique qui débloque stats avancées, social, filtres, heatmap. Alimentation : ticket B2.3.
+- (`faceit_matches` a été supprimée — doublon, cf. #60. Un éventuel besoin match-level (score, équipes) sera une nouvelle table `matches` à clé `matchId` seule.)
 
 ## État d'avancement
 
