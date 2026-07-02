@@ -22,7 +22,9 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 | B6   | Bot Discord (/register, auto-post, commandes)                        | à faire          |
 | B7   | Splashy (Wrapped annuel, achievements, compare radar, AI roast)      | à faire          |
 | B8   | Highlights (allstar.gg / Medal)                                      | à faire          |
-| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)      | 🔜 en cours (Arthur) |
+| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)      | ✅ fait (Arthur) |
+| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)     | à faire          |
+| B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)          | à faire          |
 
 > **Profil "complet" (stats avancées) = épic B3**, data-gated : il dépend des données B2 (matches + stats). Le front B10 (shell + polish) avance sans attendre ; l'enrichissement du profil se fera sur B3 dès que B2.6/B2.7 sont mergés.
 
@@ -32,7 +34,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Stats profil** : ADR · K/D · HS% · KAST (approx) · clutch % (1v1/1v2) · entry frags & first kills · utility damage / flashs · sniper kills · multi-kills · consistency (variance du rating) · avg ELO swing · career highs (meilleur match, plus gros ELO).
 
-**Social (le + différenciant)** : meilleurs duos (winrate ensemble) · "avec qui je win le +" · head-to-head entre membres · stats de 5-stack · nemesis/victime · graphe "qui joue avec qui".
+**Social (le + différenciant)** : meilleurs duos (winrate ensemble) · "avec qui je win le +" · head-to-head entre membres · stats de 5-stack · nemesis/victime · graphe "qui joue avec qui" · table `matches` match-level (clé `matchId` seule : score, équipes, lobby commun) — base propre pour détecter les 5-stacks/duos, cf. note de B2.8 (#60).
 
 **Engagement** : heatmap d'activité (matchs/jour, style GitHub) · Player of the Day (+ gros gain / grosse perte 24h) · streaks + mouvements de classement · recap hebdo · **Wrapped annuel** (percentiles vs asso, façon Calibrum) · badges emoji (🔥 streak, 🎯 HS, 💣 entry, 🧠 clutch, 🚿 grind-day) · awards de la semaine · match of the week · carte de stats partageable (OG image).
 
@@ -49,8 +51,9 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 - **Premier Mode (CS Rating)** — 2ᵉ source d'ELO. Pas d'API Valve officielle → via Leetify (non officiel) ou snapshots réguliers. **Le multi-compte par personne sera introduit uniquement ici** (Faceit interdit les smurfs). Nécessitera : SteamID par membre, provider Premier, courbe/leaderboard par source, sélecteur Faceit/Premier sur le front.
 - **Stats mécaniques (façon Leetify)** — placement de viseur, temps de réaction, spray, counter-strafe. **Nécessite de parser les démos** (pipeline lourd, séparé). Gros effort, à évaluer si un jour on veut ce niveau.
 - **Highlights** — clips CS2 (allstar.gg / Medal). Zone grise ToS → viser l'embed officiel `allstar.gg/iframe` ou la Partner API. Voir bloc B8.
-- **Déploiement / hébergement** — choisir l'hébergeur (pas OVH), CI/CD de déploiement, cron du worker en prod.
 - _(ajoute tes idées ici…)_
+
+> Déploiement / hébergement : ticketé → **bloc B12** (epic #59).
 
 ## Comment contribuer à ce fichier
 
