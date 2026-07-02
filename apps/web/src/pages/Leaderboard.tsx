@@ -20,7 +20,8 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
       <Card
         outerClassName={cn(
           "transition-[border-color] duration-200 group-hover:border-white/20",
-          first && "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]",
+          first &&
+            "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]",
         )}
         className="relative p-4 text-center sm:p-5"
       >
@@ -30,7 +31,9 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
             size={22}
           />
         )}
-        <span className="absolute top-1.5 left-2 font-mono text-xs font-bold text-ink-faint">#{entry.rank}</span>
+        <span className="absolute top-1.5 left-2 font-mono text-xs font-bold text-ink-faint">
+          #{entry.rank}
+        </span>
         <div className="mx-auto mt-1.5 mb-3 w-fit">
           <Avatar name={nameOf(entry)} size={60} />
         </div>
@@ -51,7 +54,11 @@ function LeaderboardSkeleton() {
     <>
       <div className="mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
         {[0, 1, 2].map((i) => (
-          <Card key={i} outerClassName={i === 1 ? "-translate-y-4" : undefined} className="flex flex-col items-center gap-3 p-5">
+          <Card
+            key={i}
+            outerClassName={i === 1 ? "-translate-y-4" : undefined}
+            className="flex flex-col items-center gap-3 p-5"
+          >
             <Skeleton className="size-[60px] rounded-full" />
             <Skeleton className="h-4 w-20" />
             <Skeleton className="size-[26px] rounded-lg" />
@@ -116,7 +123,9 @@ export function Leaderboard() {
                 <Avatar name={nameOf(e)} size={34} />
                 <LevelBadge level={e.level} size={24} />
                 <span className="flex-1 truncate font-semibold">{nameOf(e)}</span>
-                <span className="font-mono text-[15px] font-bold text-brand tabular-nums">{e.elo ?? "—"}</span>
+                <span className="font-mono text-[15px] font-bold text-brand tabular-nums">
+                  {e.elo ?? "—"}
+                </span>
                 <TbArrowRight className="text-ink-faint" size={17} />
               </>
             )}

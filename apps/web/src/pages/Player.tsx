@@ -92,7 +92,10 @@ export function Player() {
 
   return (
     <div>
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink"
+      >
         <TbArrowLeft size={16} /> Classement
       </Link>
 
@@ -152,7 +155,9 @@ export function Player() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="flex flex-col items-center justify-center gap-3 p-5">
               <EloGauge elo={data.elo ?? 0} pct={eloPct(data.elo, data.level)} size={140} />
-              <div className="text-[11px] tracking-[0.12em] text-ink-faint uppercase">Progression du palier</div>
+              <div className="text-[11px] tracking-[0.12em] text-ink-faint uppercase">
+                Progression du palier
+              </div>
             </Card>
 
             <Card className="p-5 sm:col-span-2">

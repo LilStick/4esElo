@@ -158,6 +158,7 @@ Les skills gèrent le **format** ; la **sécurité** reste garantie par la machi
 - **Tester au fil de l'eau**, pas après coup. Unit massivement (mocks), intégration pour
   les endpoints (vraie DB, skip auto si Postgres absent), e2e rare.
 - **Valider chaque incrément** : `pnpm typecheck` + `pnpm test` doivent rester verts.
+- **Formater avant chaque commit** : `pnpm format` (la CI bloque sur `format:check`).
 - **Migrations Drizzle** : modifier `packages/db/src/schema.ts` puis `pnpm db:generate`
   (SQL versionné) ; `pnpm db:push` en dev.
 - **Ne jamais commit `.env`** (déjà gitignoré). La clé Faceit est une _server-side key_.

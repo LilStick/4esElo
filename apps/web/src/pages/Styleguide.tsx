@@ -55,16 +55,16 @@ export function Styleguide() {
           qui a l'air cher.
         </h1>
         <p className="mt-4 max-w-[56ch] text-[15px] text-ink-dim">
-          OLED noir, verre dépoli, cartes à double bordure usinée. Une seule couleur, le bleu électrique, posée
-          uniquement sur ce qui compte. Le vert et le rouge ne servent qu'aux victoires et défaites.
+          OLED noir, verre dépoli, cartes à double bordure usinée. Une seule couleur, le bleu électrique,
+          posée uniquement sur ce qui compte. Le vert et le rouge ne servent qu'aux victoires et défaites.
         </p>
       </section>
 
       {/* Palette */}
       <section>
         <SectionHead label="Fondations" title="Palette & tokens">
-          Variables CSS comme source de vérité (Tailwind v4). Règle des cartes : radius enfant = radius parent − bezel,
-          donc tout reste concentrique.
+          Variables CSS comme source de vérité (Tailwind v4). Règle des cartes : radius enfant = radius parent
+          − bezel, donc tout reste concentrique.
         </SectionHead>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
           {SWATCHES.map((s) => (
@@ -85,8 +85,8 @@ export function Styleguide() {
       {/* Levels */}
       <section>
         <SectionHead label="Signalétique" title="Niveaux 1 à 10">
-          Ici en placeholder coloré. Les vrais logos officiels Faceit seront intégrés au ticket B1.3 ; le code couleur
-          (gris, teal, bleu, violet) restera notre habillage.
+          Ici en placeholder coloré. Les vrais logos officiels Faceit seront intégrés au ticket B1.3 ; le code
+          couleur (gris, teal, bleu, violet) restera notre habillage.
         </SectionHead>
         <div className="flex flex-wrap gap-3">
           {Array.from({ length: 10 }, (_, i) => (
@@ -98,7 +98,8 @@ export function Styleguide() {
       {/* Components */}
       <section>
         <SectionHead label="Composants" title="Briques réutilisables">
-          Jauge d'ELO animée, boutons (feedback au press, icône Tabler nichée), carte double-bezel. Base du ticket B1.2.
+          Jauge d'ELO animée, boutons (feedback au press, icône Tabler nichée), carte double-bezel. Base du
+          ticket B1.2.
         </SectionHead>
         <Card className="flex flex-wrap items-center gap-10 p-5">
           <EloGauge elo={2510} pct={78} />
@@ -118,21 +119,30 @@ export function Styleguide() {
       {/* Leaderboard */}
       <section>
         <SectionHead label="Écran principal" title="Classement">
-          Podium top 3 (1er surélevé, couronne bleue), puis la liste : une barre unique glisse derrière la ligne
-          survolée, comme les projets du portfolio.
+          Podium top 3 (1er surélevé, couronne bleue), puis la liste : une barre unique glisse derrière la
+          ligne survolée, comme les projets du portfolio.
         </SectionHead>
 
         <div className="mb-4 grid grid-cols-3 items-end gap-4">
           {PODIUM.map((p) => (
             <Card
               key={p.rank}
-              outerClassName={p.rank === 1 ? "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]" : undefined}
+              outerClassName={
+                p.rank === 1
+                  ? "-translate-y-4 shadow-[0_0_40px_-14px_rgba(94,139,255,0.45),0_24px_60px_-30px_rgba(0,0,0,0.9)]"
+                  : undefined
+              }
               className="relative p-4 text-center sm:p-5"
             >
               {p.rank === 1 && (
-                <TbCrown className="absolute -top-3 left-1/2 -translate-x-1/2 text-brand drop-shadow-[0_0_8px_rgba(94,139,255,0.5)]" size={22} />
+                <TbCrown
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-brand drop-shadow-[0_0_8px_rgba(94,139,255,0.5)]"
+                  size={22}
+                />
               )}
-              <span className="absolute top-1.5 left-2 font-mono text-xs font-bold text-ink-faint">#{p.rank}</span>
+              <span className="absolute top-1.5 left-2 font-mono text-xs font-bold text-ink-faint">
+                #{p.rank}
+              </span>
               <div className="mx-auto mt-1.5 mb-3 w-fit">
                 <Avatar name={p.name} size={60} />
               </div>
@@ -171,70 +181,77 @@ export function Styleguide() {
         </SectionHead>
 
         <div className="flex flex-col gap-4">
-        <Card className="flex flex-wrap items-center gap-5 p-5">
-          <Avatar name="LilStick" size={78} />
-          <div>
-            <h3 className="flex items-center gap-2 text-[27px] font-extrabold tracking-[-0.03em]">
-              LilStick <LevelBadge level={9} size={26} />
-            </h3>
-            <div className="mt-2 flex gap-4 text-[13px] text-ink-dim">
-              <a href="#" className="inline-flex items-center gap-1 hover:text-brand-hi">
-                Faceit <TbExternalLink size={13} />
-              </a>
-              <a href="#" className="inline-flex items-center gap-1 hover:text-brand-hi">
-                Steam <TbExternalLink size={13} />
-              </a>
+          <Card className="flex flex-wrap items-center gap-5 p-5">
+            <Avatar name="LilStick" size={78} />
+            <div>
+              <h3 className="flex items-center gap-2 text-[27px] font-extrabold tracking-[-0.03em]">
+                LilStick <LevelBadge level={9} size={26} />
+              </h3>
+              <div className="mt-2 flex gap-4 text-[13px] text-ink-dim">
+                <a href="#" className="inline-flex items-center gap-1 hover:text-brand-hi">
+                  Faceit <TbExternalLink size={13} />
+                </a>
+                <a href="#" className="inline-flex items-center gap-1 hover:text-brand-hi">
+                  Steam <TbExternalLink size={13} />
+                </a>
+              </div>
+              <div className="mt-3.5 flex gap-1.5">
+                {["W", "W", "L", "W", "W", "L", "W", "W"].map((r, i) => (
+                  <span key={i} className={cnForm(r)}>
+                    {r}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="mt-3.5 flex gap-1.5">
-              {["W", "W", "L", "W", "W", "L", "W", "W"].map((r, i) => (
-                <span
-                  key={i}
-                  className={cnForm(r)}
-                >
-                  {r}
-                </span>
-              ))}
+            <div className="ml-auto text-right">
+              <div className="font-mono text-[42px] font-extrabold tracking-[-0.03em] text-brand [text-shadow:0_0_24px_rgba(94,139,255,0.4)]">
+                2510
+              </div>
+              <div className="text-[11px] tracking-[0.16em] text-ink-faint uppercase">ELO</div>
             </div>
-          </div>
-          <div className="ml-auto text-right">
-            <div className="font-mono text-[42px] font-extrabold tracking-[-0.03em] text-brand [text-shadow:0_0_24px_rgba(94,139,255,0.4)]">
-              2510
-            </div>
-            <div className="text-[11px] tracking-[0.16em] text-ink-faint uppercase">ELO</div>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="mb-4 flex items-baseline justify-between">
-            <Eyebrow>Évolution sur 30 derniers matchs</Eyebrow>
-            <div className="inline-flex items-center gap-1.5 font-mono text-[13px] font-bold text-win">
-              <TbTrendingUp size={15} />
-              <span className="tabular-nums">+210</span>
-            </div>
-          </div>
-          <p className="text-sm text-ink-dim">La courbe (recharts, habillée aux tokens) est branchée dans la page joueur réelle.</p>
-        </Card>
-
-        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-          <Card className="col-span-2 p-[18px]">
-            <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">Win rate</div>
-            <div className="mt-2 font-mono text-[28px] font-extrabold tracking-tight text-win tabular-nums">61%</div>
-            <div className="mt-1 text-xs text-ink-dim">90 V · 58 D sur 148 matchs</div>
           </Card>
-          {[
-            ["K/D", "1.24"],
-            ["ADR", "86.4"],
-            ["HS %", "52%"],
-            ["Clutch", "38%"],
-            ["Entry", "1.4"],
-            ["Matchs", "148"],
-          ].map(([k, v]) => (
-            <Card key={k} className="p-[18px]">
-              <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{k}</div>
-              <div className="mt-2 font-mono text-[28px] font-extrabold tracking-tight tabular-nums">{v}</div>
+
+          <Card className="p-5">
+            <div className="mb-4 flex items-baseline justify-between">
+              <Eyebrow>Évolution sur 30 derniers matchs</Eyebrow>
+              <div className="inline-flex items-center gap-1.5 font-mono text-[13px] font-bold text-win">
+                <TbTrendingUp size={15} />
+                <span className="tabular-nums">+210</span>
+              </div>
+            </div>
+            <p className="text-sm text-ink-dim">
+              La courbe (recharts, habillée aux tokens) est branchée dans la page joueur réelle.
+            </p>
+          </Card>
+
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+            <Card className="col-span-2 p-[18px]">
+              <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">
+                Win rate
+              </div>
+              <div className="mt-2 font-mono text-[28px] font-extrabold tracking-tight text-win tabular-nums">
+                61%
+              </div>
+              <div className="mt-1 text-xs text-ink-dim">90 V · 58 D sur 148 matchs</div>
             </Card>
-          ))}
-        </div>
+            {[
+              ["K/D", "1.24"],
+              ["ADR", "86.4"],
+              ["HS %", "52%"],
+              ["Clutch", "38%"],
+              ["Entry", "1.4"],
+              ["Matchs", "148"],
+            ].map(([k, v]) => (
+              <Card key={k} className="p-[18px]">
+                <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">
+                  {k}
+                </div>
+                <div className="mt-2 font-mono text-[28px] font-extrabold tracking-tight tabular-nums">
+                  {v}
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
     </div>
@@ -242,7 +259,8 @@ export function Styleguide() {
 }
 
 function cnForm(r: string): string {
-  const base = "grid size-[22px] place-items-center rounded-[6px] border font-mono text-[11px] font-extrabold";
+  const base =
+    "grid size-[22px] place-items-center rounded-[6px] border font-mono text-[11px] font-extrabold";
   return r === "W"
     ? `${base} border-win/30 bg-win/15 text-win`
     : `${base} border-loss/30 bg-loss/15 text-loss`;

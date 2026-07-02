@@ -10,7 +10,18 @@ import l9 from "../assets/9.svg";
 import l10 from "../assets/10.svg";
 
 /** Icônes officielles Faceit, niveaux 1 à 10 (SVG avec leurs couleurs d'origine). */
-const ICONS: Record<number, string> = { 1: l1, 2: l2, 3: l3, 4: l4, 5: l5, 6: l6, 7: l7, 8: l8, 9: l9, 10: l10 };
+const ICONS: Record<number, string> = {
+  1: l1,
+  2: l2,
+  3: l3,
+  4: l4,
+  5: l5,
+  6: l6,
+  7: l7,
+  8: l8,
+  9: l9,
+  10: l10,
+};
 
 export function LevelBadge({ level, size = 28 }: { level: number | null; size?: number }) {
   const src = level != null ? ICONS[level] : undefined;

@@ -10,7 +10,12 @@ export function Avatar({ name, size = 34 }: { name: string; size?: number }) {
     <span
       aria-hidden
       className="grid shrink-0 place-items-center rounded-full font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]"
-      style={{ width: size, height: size, fontSize: size * 0.42, background: `linear-gradient(140deg, ${from}, ${to})` }}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.42,
+        background: `linear-gradient(140deg, ${from}, ${to})`,
+      }}
     >
       {letter}
     </span>

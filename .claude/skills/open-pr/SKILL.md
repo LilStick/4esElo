@@ -1,13 +1,16 @@
 ---
 name: open-pr
-description: Ouvre une PR 4esElo propre — vérifie typecheck/test/lint verts, un seul commit, met à jour le changelog (ou [NO-CHANGELOG]), et crée la PR vers main avec Closes #n. À utiliser quand un ticket est terminé et prêt à merger.
+description: Ouvre une PR 4esElo propre — formate (pnpm format), vérifie typecheck/test/lint verts, un seul commit, met à jour le changelog (ou [NO-CHANGELOG]), et crée la PR vers main avec Closes #n. À utiliser quand un ticket est terminé et prêt à merger.
 ---
 
 # Skill: open-pr — ouvrir une PR propre
 
-## 1. Vert local
+## 1. Formater + vert local
+
+**Toujours formater AVANT de committer** — la CI bloque sur `format:check` :
 
 ```bash
+pnpm format
 pnpm typecheck && pnpm test && pnpm lint
 ```
 

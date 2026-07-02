@@ -50,6 +50,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Format (Prettier)
+        run: pnpm format:check
+
       - name: Tests (unit + intégration)
         run: pnpm test
 
