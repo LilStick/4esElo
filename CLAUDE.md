@@ -111,25 +111,10 @@ La vision large + le vivier d'idées (features "to-do later", Premier Mode…) v
 
 Tout le monde (LilStick, Arthur) peut proposer des features et créer des tickets — **toujours dans ce format**, pour que le suivi reste cohérent quel que soit qui (ou quel Claude) les crée :
 
-- **Milestone** = 1 epic/bloc, titre `Bloc <n> — <Nom>`.
-- **Epic** = issue labellée `epic`, titre **`EPIC B<n> · <Nom>`** ; corps = checklist des tickets :
-  `- [ ] **B<n>.<x>** · #<id> — <titre>`.
-- **Ticket** = issue titre **`B<n>.<x> · <titre court>`** ; corps commençant par :
-  ```
-  **Epic :** #<id epic> · EPIC B<n> · <Nom>
-  **Branche :** `feat/B<n>.<x>-<slug>`
-  **Dépendances :** 🔗 dépend de #<id>   —OU—   ✅ Autonome
-
-  ---
-  <description> + **Definition of Done** (critères vérifiables)
-  ```
+- **Le format détaillé (corps Contexte/Quoi/DoD, exemple canonique) vit dans le skill [`refine`](.claude/skills/refine/SKILL.md)** — source de vérité unique, à suivre pour toute création d'epic/ticket.
+- L'essentiel : milestone = `Bloc <n> — <Nom>` · epic = `EPIC B<n> · <Nom>` (label `epic`, corps = résumé lisible + checklist) · ticket = `B<n>.<x> · <titre court>` avec **contexte lisible par un humain sans ouvrir le code**, puis Quoi, puis DoD vérifiable.
 - **Labels obligatoires** : un `type:*` (feature/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
 - Feature hors blocs → soit la rattacher à un bloc, soit créer un nouveau bloc (milestone + epic). Noter l'idée dans [ROADMAP.md](./ROADMAP.md) si pas encore ticketée.
-
-```bash
-gh issue create --milestone "Bloc 3 — Profil enrichi" --label "type:feature,area:web,arthur" \
-  --title "B3.4 · Radar de comparaison" --body $'**Epic :** #11 · EPIC B3 · Profil enrichi\n**Branche :** `feat/B3.4-compare-radar`\n\n---\n…\n\n**DoD:** …'
-```
 
 ## Skills (Claude Code)
 
