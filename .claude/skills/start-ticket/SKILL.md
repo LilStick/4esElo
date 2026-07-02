@@ -10,7 +10,7 @@ Entrée : un ID logique de ticket (ex. `B2.1`).
 ## 1. Env OK (RÈGLE N°1)
 
 ```bash
-pnpm doctor    # doit être tout vert, sinon corriger avant de continuer
+pnpm preflight    # doit être tout vert, sinon corriger avant de continuer
 ```
 
 ## 2. Retrouver le ticket + vérifier les dépendances

@@ -8,12 +8,12 @@ des pages joueur avec courbe d'ELO.
 
 ## ⚠️ RÈGLE N°1 — Preflight obligatoire avant toute action
 
-**Au début de CHAQUE session, lance `pnpm doctor` et NE FAIS RIEN d'autre tant que tout
+**Au début de CHAQUE session, lance `pnpm preflight` et NE FAIS RIEN d'autre tant que tout
 n'est pas ✓.** Si un check est ✗, corrige-le (ou demande à l'utilisateur) AVANT de coder,
 lancer, ou tester quoi que ce soit. Ne suppose jamais que l'environnement est prêt.
 
 ```bash
-pnpm doctor
+pnpm preflight
 ```
 
 Ça vérifie : Node ≥ 20, pnpm, **le daemon Docker**, les deps installées, `.env` présent
@@ -49,7 +49,7 @@ pnpm install
 cp .env.example .env          # Windows: copy .env.example .env  (puis renseigner FACEIT_API_KEY)
 pnpm db:up                    # Postgres via Docker
 pnpm db:push                  # applique le schéma
-pnpm doctor                   # doit être tout vert
+pnpm preflight                # doit être tout vert
 ```
 
 ## Cross-platform (macOS / Windows)
@@ -77,7 +77,7 @@ Monorepo **pnpm** en **TypeScript** (ESM).
 ## Commandes utiles
 
 ```bash
-pnpm doctor                       # preflight (À FAIRE EN PREMIER)
+pnpm preflight                    # preflight (À FAIRE EN PREMIER)
 pnpm dev                          # ⭐ API + front ensemble (watch) — le plus simple pour bosser
 pnpm dev:api                      # API seule sur :3001
 pnpm dev:worker                   # worker en boucle (10 min)
@@ -142,7 +142,7 @@ Des skills committés dans `.claude/skills/` encapsulent les formats/process (pa
 - **review-pr** — relire la PR de l'autre : diff, DoD, CI, format.
 - **repo-catchup** — au `/resume`/reprise : résume l'activité récente du repo, par personne (toi vs l'autre).
 
-Les skills gèrent le **format** ; la **sécurité** reste garantie par la machine (protection `main`, CI, `pnpm doctor`).
+Les skills gèrent le **format** ; la **sécurité** reste garantie par la machine (protection `main`, CI, `pnpm preflight`).
 
 ### Comment un skill se déclenche
 
@@ -195,7 +195,7 @@ Les skills gèrent le **format** ; la **sécurité** reste garantie par la machi
 - `apps/worker` : sync ELO snapshot-on-change + add-player (smoke-test réel OK)
 - `apps/api` : `/leaderboard`, `/players/:id`, `/players/:id/elo` (tests d'intégration)
 - `apps/web` : classement + page joueur + courbe (design encore basique)
-- Outillage : `pnpm doctor`, ESLint + Prettier, tests, CLAUDE.md, CONTRIBUTING
+- Outillage : `pnpm preflight`, ESLint + Prettier, tests, CLAUDE.md, CONTRIBUTING
 - Repo git privé + epics/tickets GitHub
 
 **Roadmap (epics GitHub, blocs B1→B8)** — le détail vit dans les issues :

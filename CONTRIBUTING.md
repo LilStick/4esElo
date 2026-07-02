@@ -3,7 +3,7 @@
 ## Avant de commencer (obligatoire)
 
 ```bash
-pnpm doctor   # doit être tout vert (voir CLAUDE.md)
+pnpm preflight   # doit être tout vert (voir CLAUDE.md)
 ```
 
 ## Numérotation logique (epics & tickets)
