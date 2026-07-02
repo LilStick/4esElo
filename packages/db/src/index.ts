@@ -4,13 +4,11 @@ export * as schema from "./schema";
 export {
   players,
   eloSnapshots,
-  faceitMatches,
   faceitMatchStats,
   eloSource,
   type Player,
   type NewPlayer,
   type EloSnapshot,
-  type FaceitMatch,
   type FaceitMatchStat,
   type NewFaceitMatchStat,
 } from "./schema";

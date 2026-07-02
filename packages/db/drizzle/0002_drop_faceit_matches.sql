@@ -1,0 +1,1 @@
+DROP TABLE "faceit_matches" CASCADE;

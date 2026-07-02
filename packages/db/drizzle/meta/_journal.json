@@ -15,6 +15,13 @@
       "when": 1782921451117,
       "tag": "0001_match_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782988974059,
+      "tag": "0002_drop_faceit_matches",
+      "breakpoints": true
     }
   ]
 }
