@@ -8,6 +8,7 @@ import { Avatar, Button, Card, EloGauge, LevelBadge, RangeTabs, Skeleton } from 
 import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
 import { StatsBento } from "../components/StatsBento";
+import { RadarPerf } from "../components/RadarPerf";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { useTitle } from "../lib/useTitle";
@@ -201,6 +202,14 @@ export function Player() {
               <RangeTabs value={range} onChange={setRange} />
             </div>
             <StatsBento id={id} range={range} />
+          </div>
+
+          {/* Radar de performance */}
+          <div>
+            <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+              Profil de performance
+            </div>
+            <RadarPerf id={id} range={range} />
           </div>
 
           {/* Stats par map */}
