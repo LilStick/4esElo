@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { TbChartLine } from "react-icons/tb";
 import type { EloPoint } from "@4eselo/types";
 import { getPlayerMatches } from "../lib/api";
-import { Card, EloGauge, Skeleton } from "../ui";
+import { Card, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { EloChart } from "./EloChart";
 
@@ -27,12 +28,10 @@ export function RecentPerformance({
   id,
   history,
   elo,
-  gaugePct,
 }: {
   id: string;
   history: EloPoint[];
   elo: number | null;
-  gaugePct: number;
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["matches", id, 30],
@@ -55,8 +54,9 @@ export function RecentPerformance({
 
   return (
     <div>
-      <div className="mb-3 flex items-baseline justify-between">
-        <div className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+          <TbChartLine size={14} className="text-brand" />
           Performances récentes
         </div>
         {items.length > 0 && <div className="text-xs text-ink-faint">{items.length} derniers matchs</div>}
@@ -81,13 +81,11 @@ export function RecentPerformance({
           </div>
 
           {/* Récap */}
-          <div className="flex shrink-0 flex-col items-center gap-4 lg:w-60">
-            <EloGauge elo={elo ?? 0} pct={gaugePct} size={116} />
-
+          <div className="flex shrink-0 flex-col justify-center gap-4 lg:w-56">
             {isLoading ? (
               <Skeleton className="h-24 w-full" />
             ) : (
-              <div className="w-full border-t border-white/[0.06] pt-4 text-sm">
+              <div className="w-full text-sm">
                 <div className="mb-3 flex justify-center gap-2 font-mono font-bold">
                   <span className="rounded-md bg-win/12 px-2 py-0.5 text-win">V {wins}</span>
                   <span className="rounded-md bg-loss/12 px-2 py-0.5 text-loss">D {losses}</span>
