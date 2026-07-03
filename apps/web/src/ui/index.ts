@@ -4,4 +4,5 @@ export { Button } from "./Button";
 export { EloGauge } from "./EloGauge";
 export { LevelBadge } from "./LevelBadge";
 export { HoverBarList } from "./HoverBarList";
+export { RangeTabs } from "./RangeTabs";
 export { Skeleton } from "./Skeleton";

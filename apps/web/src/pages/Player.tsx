@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TbArrowLeft, TbExternalLink, TbUserQuestion } from "react-icons/tb";
+import type { StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
-import { Avatar, Button, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
+import { Avatar, Button, Card, EloGauge, LevelBadge, RangeTabs, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
 import { StatsBento } from "../components/StatsBento";
@@ -76,6 +78,7 @@ function PlayerSkeleton() {
 export function Player() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const [range, setRange] = useState<StatsRange>("all");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["player", id],
     queryFn: () => getPlayer(id),
@@ -187,12 +190,15 @@ export function Player() {
             <Stat label="Points" value={data.history.length} />
           </div>
 
-          {/* Statistiques agrégées (depuis les matchs) */}
+          {/* Statistiques agrégées (depuis les matchs), filtrables par période */}
           <div>
-            <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-              Statistiques · toutes périodes
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+                Statistiques
+              </div>
+              <RangeTabs value={range} onChange={setRange} />
             </div>
-            <StatsBento id={id} />
+            <StatsBento id={id} range={range} />
           </div>
         </div>
       )}
