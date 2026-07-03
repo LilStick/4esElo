@@ -3,6 +3,7 @@ export { Card } from "./Card";
 export { Button } from "./Button";
 export { EloGauge } from "./EloGauge";
 export { LevelBadge } from "./LevelBadge";
+export { MapIcon } from "./MapIcon";
 export { HoverBarList } from "./HoverBarList";
 export { RangeTabs } from "./RangeTabs";
 export { Skeleton } from "./Skeleton";
