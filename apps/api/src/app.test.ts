@@ -2,9 +2,43 @@ import "./env";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, eq } from "drizzle-orm";
-import { db, players, eloSnapshots } from "@4eselo/db";
-import type { PlayerDetail, EloCurveResponse } from "@4eselo/types";
+import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import type { PlayerDetail, EloCurveResponse, MatchesResponse, FaceitMatchStats } from "@4eselo/types";
 import { app } from "./app";
+
+/** All-zero stats, overridable per test — matches the FaceitMatchStats shape. */
+function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
+  return {
+    kills: 0,
+    deaths: 0,
+    assists: 0,
+    kd: 0,
+    kr: 0,
+    adr: 0,
+    damage: 0,
+    hsPercent: 0,
+    mvps: 0,
+    doubleKills: 0,
+    tripleKills: 0,
+    quadroKills: 0,
+    pentaKills: 0,
+    clutch1v1Count: 0,
+    clutch1v1Wins: 0,
+    clutch1v2Count: 0,
+    clutch1v2Wins: 0,
+    clutchKills: 0,
+    entryCount: 0,
+    entryWins: 0,
+    firstKills: 0,
+    utilityDamage: 0,
+    utilityCount: 0,
+    flashCount: 0,
+    enemiesFlashed: 0,
+    flashSuccesses: 0,
+    sniperKills: 0,
+    ...over,
+  };
+}
 
 // Integration tests hit a real Postgres. Skip cleanly if it isn't reachable
 // (e.g. someone ran `pnpm test` without `pnpm db:up`).
@@ -31,6 +65,35 @@ before(async () => {
   await db.insert(eloSnapshots).values([
     { playerId, source: "faceit", elo: 1000, level: 3, capturedAt: new Date("2026-01-01T00:00:00Z") },
     { playerId, source: "faceit", elo: 1100, level: 4, capturedAt: new Date("2026-01-02T00:00:00Z") },
+  ]);
+  await db.insert(faceitMatchStats).values([
+    {
+      matchId: "it-m1",
+      playerId,
+      map: "de_mirage",
+      playedAt: new Date("2026-06-01T20:00:00Z"),
+      result: 1,
+      eloAfter: 1050,
+      stats: makeStats({ kills: 20, deaths: 10, adr: 90 }),
+    },
+    {
+      matchId: "it-m2",
+      playerId,
+      map: "de_dust2",
+      playedAt: new Date("2026-06-02T20:00:00Z"),
+      result: 0,
+      eloAfter: null,
+      stats: makeStats({ kills: 10, deaths: 20, adr: 60 }),
+    },
+    {
+      matchId: "it-m3",
+      playerId,
+      map: "de_mirage",
+      playedAt: new Date("2026-06-03T20:00:00Z"),
+      result: 1,
+      eloAfter: 1080,
+      stats: makeStats({ kills: 30, deaths: 15, adr: 110 }),
+    },
   ]);
 });
 
@@ -69,4 +132,43 @@ test("GET /players/:id/elo is empty for a source with no snapshots", { skip }, a
   const res = await app.request(`/players/${playerId}/elo?source=premier`);
   const body = await res.json();
   assert.deepEqual(body, { source: "premier", points: [] });
+});
+
+test("GET /players/:id/matches lists stored matches, newest first, with total", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/matches`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as MatchesResponse;
+
+  assert.equal(body.total, 3);
+  assert.deepEqual(
+    body.items.map((m) => m.matchId),
+    ["it-m3", "it-m2", "it-m1"],
+  );
+  const top = body.items[0]!;
+  assert.equal(top.map, "de_mirage");
+  assert.equal(top.result, 1);
+  assert.equal(top.eloAfter, 1080);
+  assert.equal(top.stats.kills, 30);
+  assert.equal(top.playedAt, "2026-06-03T20:00:00.000Z");
+});
+
+test("GET /players/:id/matches paginates with limit/offset (total unchanged)", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/matches?limit=1&offset=1`);
+  const body = (await res.json()) as MatchesResponse;
+
+  assert.equal(body.total, 3);
+  assert.equal(body.items.length, 1);
+  assert.equal(body.items[0]!.matchId, "it-m2");
+});
+
+test("GET /players/:id/matches returns 404 for an unknown player", { skip }, async () => {
+  const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/matches`);
+  assert.equal(res.status, 404);
+});
+
+test("GET /players/:id/matches rejects an invalid limit with 400", { skip }, async () => {
+  for (const q of ["limit=abc", "limit=0", "limit=999", "offset=-1"]) {
+    const res = await app.request(`/players/${playerId}/matches?${q}`);
+    assert.equal(res.status, 400, q);
+  }
 });
