@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : stats agrégées du profil en bento (win rate, K/D, ADR, HS%, clutch, entry, utility) depuis `/players/:id/stats`, avec skeleton et état vide. (#52)
 - Worker : `elo_after` par match en forward — quand un tick voit l'ELO changer et exactement un nouveau match, il lui attribue l'ELO courant (l'historique rétroactif n'est plus récupérable, cf. Décisions). (#93)
 - API : `GET /players/:id/stats?range=7d|30d|3m|all` — agrégats (winrate, K/D, ADR, HS%, clutch, entry, utility) + détail par map. (#7)
 - API : `GET /players/:id/matches` — liste paginée des matchs stockés (map, résultat, stats), zod sur la pagination. (#6)

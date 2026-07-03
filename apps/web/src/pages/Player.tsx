@@ -5,6 +5,7 @@ import { getPlayer } from "../lib/api";
 import { Avatar, Button, Card, EloGauge, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
+import { StatsBento } from "../components/StatsBento";
 import { useTitle } from "../lib/useTitle";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
@@ -178,12 +179,20 @@ export function Player() {
             </Card>
           </div>
 
-          {/* Repères */}
+          {/* Repères ELO */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat label="ELO actuel" value={data.elo ?? "—"} />
             <Stat label="Pic" value={peak ?? "—"} />
             <Stat label="Plus bas" value={low ?? "—"} />
             <Stat label="Points" value={data.history.length} />
+          </div>
+
+          {/* Statistiques agrégées (depuis les matchs) */}
+          <div>
+            <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+              Statistiques · toutes périodes
+            </div>
+            <StatsBento id={id} />
           </div>
         </div>
       )}
