@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : stats par map sur le profil — tableau winrate/K/D/ADR par carte, aligné et cohérent avec les matchs récents (barre-hover partagée). (#55)
 - Web : matchs récents sur le profil — carte par match (map, résultat V/D coloré, K/D, ADR), barre-hover qui glisse, lien room Faceit. (#54)
 - Web : filtres temporels (7j/30j/3m/tout) sur les stats du profil — segmented control qui repilote le bento. (#53)
 - Web : stats agrégées du profil en bento (win rate, K/D, ADR, HS%, clutch, entry, utility) depuis `/players/:id/stats`, avec skeleton et état vide. (#52)

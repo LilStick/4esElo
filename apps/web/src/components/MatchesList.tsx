@@ -28,27 +28,33 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
         <div className="truncate font-semibold">{prettyMap(m.map)}</div>
         <div className="text-xs text-ink-dim">{fmtDate(m.playedAt)}</div>
       </div>
-      <div className="flex items-center gap-5 text-right font-mono text-sm tabular-nums">
-        <div>
-          <div className="font-semibold">
-            {m.stats.kills}
-            <span className="text-ink-faint"> / </span>
-            {m.stats.deaths}
-          </div>
-          <div className="text-[10px] tracking-wider text-ink-faint uppercase">K / D</div>
-        </div>
-        <div className="hidden sm:block">
-          <div className={cn("font-semibold", m.stats.kd >= 1 ? "text-win" : "")}>
-            {m.stats.kd.toFixed(2)}
-          </div>
-          <div className="text-[10px] tracking-wider text-ink-faint uppercase">Ratio</div>
-        </div>
-        <div className="hidden sm:block">
-          <div className="font-semibold">{m.stats.adr.toFixed(0)}</div>
-          <div className="text-[10px] tracking-wider text-ink-faint uppercase">ADR</div>
-        </div>
+      <div className="flex shrink-0 items-center gap-6 font-mono text-sm font-semibold tabular-nums sm:gap-9">
+        <span className="w-16 text-right">
+          {m.stats.kills}
+          <span className="text-ink-faint"> / </span>
+          {m.stats.deaths}
+        </span>
+        <span className={cn("hidden w-12 text-right sm:block", m.stats.kd >= 1 ? "text-win" : "")}>
+          {m.stats.kd.toFixed(2)}
+        </span>
+        <span className="hidden w-12 text-right sm:block">{m.stats.adr.toFixed(0)}</span>
       </div>
     </>
+  );
+}
+
+/** Header aligné sur la structure exacte des lignes (mêmes gaps et largeurs). */
+function Header() {
+  return (
+    <div className="mb-1 flex items-center gap-4 px-4 text-[10px] font-semibold tracking-wider text-ink-faint uppercase">
+      <span className="w-9 shrink-0 text-center">W/L</span>
+      <span className="min-w-0 flex-1">Match</span>
+      <span className="flex shrink-0 items-center gap-6 sm:gap-9">
+        <span className="w-16 text-right">K / D</span>
+        <span className="hidden w-12 text-right sm:block">Ratio</span>
+        <span className="hidden w-12 text-right sm:block">ADR</span>
+      </span>
+    </div>
   );
 }
 
@@ -60,7 +66,7 @@ export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) 
 
   if (isLoading) {
     return (
-      <Card className="flex flex-col gap-1 p-[var(--bezel)]">
+      <Card className="flex flex-col gap-1 p-2">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center gap-4 px-4 py-3">
             <Skeleton className="h-9 w-9 rounded-lg" />
@@ -68,7 +74,7 @@ export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) 
               <Skeleton className="h-4 w-24" />
               <Skeleton className="mt-1.5 h-3 w-14" />
             </div>
-            <Skeleton className="h-8 w-28" />
+            <Skeleton className="h-5 w-28" />
           </div>
         ))}
       </Card>
@@ -88,7 +94,8 @@ export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) 
   }
 
   return (
-    <Card className="p-[var(--bezel)]">
+    <Card className="p-2">
+      <Header />
       <HoverBarList
         items={data.items}
         rowHeight={60}
