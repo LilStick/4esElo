@@ -4,8 +4,17 @@ import type { EloPoint } from "@4eselo/types";
 export function EloChart({ points }: { points: EloPoint[] }) {
   if (points.length < 2) {
     return (
-      <div className="flex h-56 items-center justify-center text-sm text-ink-dim">
-        Pas encore assez de données pour tracer la courbe — elle se remplira au fil des parties.
+      <div className="relative h-56 w-full overflow-hidden">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="absolute inset-x-0 border-t border-white/[0.05]"
+            style={{ top: `${8 + i * 20}%` }}
+          />
+        ))}
+        <div className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-ink-dim">
+          La courbe d'ELO se trace dès que ton ELO évolue — les matchs stockés ne portent pas encore leur ELO.
+        </div>
       </div>
     );
   }
