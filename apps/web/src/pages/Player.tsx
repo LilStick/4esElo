@@ -8,6 +8,7 @@ import { Avatar, Button, Card, EloGauge, LevelBadge, RangeTabs, Skeleton } from 
 import { EmptyState } from "../components/EmptyState";
 import { EloChart } from "../components/EloChart";
 import { StatsBento } from "../components/StatsBento";
+import { MatchesList } from "../components/MatchesList";
 import { useTitle } from "../lib/useTitle";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
@@ -199,6 +200,14 @@ export function Player() {
               <RangeTabs value={range} onChange={setRange} />
             </div>
             <StatsBento id={id} range={range} />
+          </div>
+
+          {/* Matchs récents */}
+          <div>
+            <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+              Matchs récents
+            </div>
+            <MatchesList id={id} />
           </div>
         </div>
       )}

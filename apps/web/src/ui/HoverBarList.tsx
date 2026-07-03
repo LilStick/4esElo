@@ -6,6 +6,10 @@ type Props<T> = {
   keyOf: (item: T, index: number) => string;
   children: (item: T, index: number) => ReactNode;
   onSelect?: (item: T, index: number) => void;
+  /** Si fourni, chaque ligne est un lien `<a href>` (sinon un `<button>`). */
+  hrefOf?: (item: T, index: number) => string;
+  /** Ouvre le lien dans un nouvel onglet (avec hrefOf). */
+  external?: boolean;
   /** Hauteur d'une ligne, en px. La barre s'aligne dessus. */
   rowHeight?: number;
 };
@@ -15,7 +19,15 @@ type Props<T> = {
  * plutôt qu'un effet appliqué à chaque ligne. Reprend le mécanisme des projets
  * du portfolio d'Arthur : une seule surface animée en `y`, les lignes au-dessus.
  */
-export function HoverBarList<T>({ items, keyOf, children, onSelect, rowHeight = 56 }: Props<T>) {
+export function HoverBarList<T>({
+  items,
+  keyOf,
+  children,
+  onSelect,
+  hrefOf,
+  external,
+  rowHeight = 56,
+}: Props<T>) {
   const [hovered, setHovered] = useState<number | null>(null);
   const y = useMotionValue(0);
 
@@ -39,20 +51,38 @@ export function HoverBarList<T>({ items, keyOf, children, onSelect, rowHeight = 
           scale: { duration: 0.22, ease: "easeOut" },
         }}
       />
-      {items.map((item, index) => (
-        <li key={keyOf(item, index)}>
-          <button
-            type="button"
-            onMouseEnter={() => enter(index)}
-            onFocus={() => enter(index)}
-            onClick={() => onSelect?.(item, index)}
-            style={{ height: rowHeight }}
-            className="relative z-10 flex w-full cursor-pointer items-center gap-4 rounded-[10px] px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-          >
-            {children(item, index)}
-          </button>
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const rowClass =
+          "relative z-10 flex w-full cursor-pointer items-center gap-4 rounded-[10px] px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60";
+        return (
+          <li key={keyOf(item, index)}>
+            {hrefOf ? (
+              <a
+                href={hrefOf(item, index)}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noreferrer" : undefined}
+                onMouseEnter={() => enter(index)}
+                onFocus={() => enter(index)}
+                style={{ height: rowHeight }}
+                className={rowClass}
+              >
+                {children(item, index)}
+              </a>
+            ) : (
+              <button
+                type="button"
+                onMouseEnter={() => enter(index)}
+                onFocus={() => enter(index)}
+                onClick={() => onSelect?.(item, index)}
+                style={{ height: rowHeight }}
+                className={rowClass}
+              >
+                {children(item, index)}
+              </button>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

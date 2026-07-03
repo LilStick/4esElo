@@ -1,6 +1,7 @@
 import type {
   EloSource,
   LeaderboardResponse,
+  MatchesResponse,
   PlayerDetail,
   PlayerStatsResponse,
   StatsRange,
@@ -24,4 +25,8 @@ export function getPlayer(id: string, source: EloSource = "faceit") {
 
 export function getPlayerStats(id: string, range: StatsRange = "all") {
   return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}`);
+}
+
+export function getPlayerMatches(id: string, limit = 10) {
+  return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
 }
