@@ -100,7 +100,7 @@ export function Player() {
   return (
     <div>
       <Link
-        to="/"
+        to="/classement"
         className="inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink"
       >
         <TbArrowLeft size={16} /> Classement
@@ -111,7 +111,7 @@ export function Player() {
         <EmptyState
           icon={TbUserQuestion}
           title="Joueur introuvable"
-          action={<Button onClick={() => navigate("/")}>Retour au classement</Button>}
+          action={<Button onClick={() => navigate("/classement")}>Retour au classement</Button>}
         >
           Ce joueur n'existe pas ou n'est plus suivi.
         </EmptyState>
