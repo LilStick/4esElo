@@ -3,7 +3,7 @@ import { TbMap2 } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
 import type { MapStat } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
-import { Card, HoverBarList, Skeleton } from "../ui";
+import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { EmptyState } from "./EmptyState";
 
@@ -12,7 +12,10 @@ const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.t
 function MapRowContent({ m }: { m: MapStat }) {
   return (
     <>
-      <span className="min-w-0 flex-1 truncate font-semibold">{prettyMap(m.map)}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-2.5">
+        <MapIcon map={m.map} size={24} />
+        <span className="truncate font-semibold">{prettyMap(m.map)}</span>
+      </span>
       <span className="flex shrink-0 items-center gap-6 font-mono text-sm tabular-nums sm:gap-9">
         <span className="hidden w-14 text-right text-ink-dim sm:block">{m.matches}</span>
         <span className="flex w-24 items-center gap-2 sm:w-28">

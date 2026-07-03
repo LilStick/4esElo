@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TbSwords } from "react-icons/tb";
 import type { MatchSummary } from "@4eselo/types";
 import { getPlayerMatches } from "../lib/api";
-import { Card, HoverBarList, Skeleton } from "../ui";
+import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { EmptyState } from "./EmptyState";
 
@@ -24,6 +24,7 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
       >
         {win ? "V" : "D"}
       </span>
+      <MapIcon map={m.map} size={30} />
       <div className="min-w-0 flex-1">
         <div className="truncate font-semibold">{prettyMap(m.map)}</div>
         <div className="text-xs text-ink-dim">{fmtDate(m.playedAt)}</div>
