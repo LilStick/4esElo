@@ -1,6 +1,7 @@
-import { db, eloSnapshots } from "@4eselo/db";
-import { and, desc, eq } from "drizzle-orm";
+import { db, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
+import type { MatchStatsStore } from "./ingest";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
 export const dbStore: SnapshotStore = {
@@ -16,5 +17,23 @@ export const dbStore: SnapshotStore = {
 
   async insertSnapshot(input) {
     await db.insert(eloSnapshots).values(input);
+  },
+};
+
+/** Real MatchStatsStore backed by Postgres via Drizzle. */
+export const dbMatchStatsStore: MatchStatsStore = {
+  async getStoredMatchIds(playerId, matchIds) {
+    if (matchIds.length === 0) return new Set();
+    const rows = await db
+      .select({ matchId: faceitMatchStats.matchId })
+      .from(faceitMatchStats)
+      .where(and(eq(faceitMatchStats.playerId, playerId), inArray(faceitMatchStats.matchId, matchIds)));
+    return new Set(rows.map((r) => r.matchId));
+  },
+
+  async insertMatchStats(row) {
+    // The (matchId, playerId) PK already dedups; onConflictDoNothing makes a
+    // concurrent or re-run insert a no-op instead of an error.
+    await db.insert(faceitMatchStats).values(row).onConflictDoNothing();
   },
 };

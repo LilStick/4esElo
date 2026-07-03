@@ -3,7 +3,8 @@ import { db, players } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient } from "@4eselo/faceit";
 import { syncPlayer, type PlayerToSync } from "./sync";
-import { dbStore } from "./store";
+import { ingestPlayerMatches } from "./ingest";
+import { dbStore, dbMatchStatsStore } from "./store";
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
@@ -38,6 +39,16 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
       console.log(`[worker] ${p.faceitId}: ${res.status}${suffix}`);
     } catch (err) {
       console.error(`[worker] ${p.faceitId} failed:`, err instanceof Error ? err.message : err);
+    }
+    try {
+      const ing = await ingestPlayerMatches(faceit, dbMatchStatsStore, p);
+      if (ing.inserted > 0 || ing.failed > 0) {
+        console.log(
+          `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
+        );
+      }
+    } catch (err) {
+      console.error(`[worker] ${p.faceitId} ingest failed:`, err instanceof Error ? err.message : err);
     }
     await sleep(DELAY_BETWEEN_PLAYERS_MS);
   }
