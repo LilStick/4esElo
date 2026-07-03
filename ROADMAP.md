@@ -80,6 +80,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 - **2026-07-01 — Stats de match : colonnes clés + JSONB** (`faceit_match_stats`) : colonnes dédiées et indexées pour ce qu'on filtre/trie (map, date, résultat), JSONB pour le reste → un nouveau champ Faceit ne demande pas de migration.
 - **2026-07-02 — Pattern provider** : toute I/O réseau vit dans `packages/<provider>` (client typé + zod + tests), les apps consomment via interfaces injectables — enforced par ESLint. Ajouter une source (Premier, allstar…) = un nouveau package, zéro refactor.
 - **2026-07-02 — Décisions tracées ici** : Discord = salle de débat, le repo = source de vérité. Voté ✅ 2/0.
+- **2026-07-03 — Courbe ELO forward-only** : l'endpoint non officiel d'historique ELO est mort (Cloudflare bot management, 403 serveur — vérifié) et l'API officielle n'expose aucun historique. La courbe de chaque membre se construit depuis son arrivée sur le site via nos snapshots (10 min, on-change) ; le ±ELO par match est estimé en forward par heuristique au tick (#93). Pas de contournement anti-bot : fragile et zone grise ToS.
 
 ## Comment contribuer à ce fichier
 

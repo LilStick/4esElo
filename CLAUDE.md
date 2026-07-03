@@ -155,7 +155,8 @@ Enforced par ESLint/hooks quand c'est possible (voir #79) ; le reste se rejette 
 4. **DB par défaut** : colonnes dédiées + index pour les clés de requête (filtres, tris,
    jointures), JSONB pour le variable. S'en écarter est possible mais **se justifie dans la PR**.
 5. **Endpoint non officiel = isolé derrière une interface** + commenté comme fragile, pour
-   pouvoir le remplacer sans toucher au métier (cf. historique ELO Faceit).
+   pouvoir le remplacer sans toucher au métier. (Leçon vécue : l'endpoint interne d'historique
+   ELO est mort du jour au lendemain — cf. ROADMAP → Décisions 2026-07-03.)
 
 ## Règles de tests
 
@@ -184,7 +185,7 @@ Enforced par ESLint/hooks quand c'est possible (voir #79) ; le reste se rejette 
 
 - **Faceit** (V1) : API officielle, ELO = nombre unique directement comparable. Clé serveur requise.
   - Les stats **par match** (`GET /matches/{id}/stats`) sont riches pour CS2 : ADR, clutch 1v1/1v2, entry frags, utility, flashs, HS%, multi-kills. La plupart des features avancées se calculent en stockant ces matchs (Bloc 2).
-  - Pas d'endpoint officiel pour l'historique d'ELO → endpoint **interne non officiel** `api.faceit.com/stats/api/v1/stats/time/users/{id}/games/csgo` (elo + eloDiff par match), à isoler derrière une interface.
+  - **Aucun historique d'ELO disponible** : l'API officielle n'expose que l'ELO courant, et l'endpoint interne non officiel est mort (Cloudflare bot management — décision 2026-07-03, cf. ROADMAP → Décisions). La courbe = **nos snapshots**, construits en avant depuis l'arrivée du membre ; `elo_after` par match = heuristique au tick (#93).
   - Pas dispo via API : ADR/rating _lifetime_, teammates, filtres temporels → on les **calcule** depuis les matchs stockés.
 - **Premier** (plus tard) : pas d'API Valve officielle → Leetify (non officiel) ou snapshots.
   Le multi-compte par personne sera introduit **uniquement** pour Premier (Faceit interdit les smurfs).
