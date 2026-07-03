@@ -101,19 +101,30 @@ export function Styleguide() {
           Jauge d'ELO animée, boutons (feedback au press, icône Tabler nichée), carte double-bezel. Base du
           ticket B1.2.
         </SectionHead>
-        <Card className="flex flex-wrap items-center gap-10 p-5">
-          <EloGauge elo={2510} pct={78} />
-          <div>
-            <Eyebrow>Actions</Eyebrow>
-            <div className="mt-3.5 flex flex-wrap items-center gap-3">
-              <Button icon={TbArrowRight}>Voir le profil</Button>
-              <Button variant="ghost">Comparer</Button>
+        <div className="flex flex-col gap-4">
+          <Card className="flex flex-wrap items-center gap-10 p-5">
+            <EloGauge elo={2510} pct={78} />
+            <div>
+              <Eyebrow>Actions</Eyebrow>
+              <div className="mt-3.5 flex flex-wrap items-center gap-3">
+                <Button icon={TbArrowRight}>Voir le profil</Button>
+                <Button variant="ghost">Comparer</Button>
+              </div>
+              <p className="mt-4 max-w-[36ch] text-[13px] text-ink-dim">
+                L'anneau se remplit en bleu. L'ELO est ce qui compte, donc c'est ce qui brille.
+              </p>
             </div>
-            <p className="mt-4 max-w-[36ch] text-[13px] text-ink-dim">
-              L'anneau se remplit en bleu. L'ELO est ce qui compte, donc c'est ce qui brille.
+          </Card>
+
+          <Card accent className="p-5">
+            <Eyebrow>Variante accent-bar</Eyebrow>
+            <p className="mt-2 max-w-[52ch] text-sm text-ink-dim">
+              Carte avec un soulignement dégradé en bas (prop{" "}
+              <code className="font-mono text-ink">accent</code>), façon DPM — pour mettre en avant une carte
+              clé.
             </p>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </section>
 
       {/* Leaderboard */}
