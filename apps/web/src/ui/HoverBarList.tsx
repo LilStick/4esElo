@@ -1,5 +1,6 @@
 import { animate, motion, useMotionValue } from "motion/react";
 import { useState, type ReactNode } from "react";
+import { cn } from "../lib/cn";
 
 type Props<T> = {
   items: T[];
@@ -52,33 +53,40 @@ export function HoverBarList<T>({
         }}
       />
       {items.map((item, index) => {
-        const rowClass =
-          "relative z-10 flex w-full cursor-pointer items-center gap-4 rounded-[10px] px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60";
+        const interactive = Boolean(hrefOf || onSelect);
+        const rowClass = cn(
+          "relative z-10 flex w-full items-center gap-4 rounded-[10px] px-4 text-left",
+          interactive &&
+            "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+        );
+        const style = { height: rowHeight };
         return (
-          <li key={keyOf(item, index)}>
+          <li key={keyOf(item, index)} onMouseEnter={() => enter(index)}>
             {hrefOf ? (
               <a
                 href={hrefOf(item, index)}
                 target={external ? "_blank" : undefined}
                 rel={external ? "noreferrer" : undefined}
-                onMouseEnter={() => enter(index)}
                 onFocus={() => enter(index)}
-                style={{ height: rowHeight }}
+                style={style}
                 className={rowClass}
               >
                 {children(item, index)}
               </a>
-            ) : (
+            ) : onSelect ? (
               <button
                 type="button"
-                onMouseEnter={() => enter(index)}
                 onFocus={() => enter(index)}
-                onClick={() => onSelect?.(item, index)}
-                style={{ height: rowHeight }}
+                onClick={() => onSelect(item, index)}
+                style={style}
                 className={rowClass}
               >
                 {children(item, index)}
               </button>
+            ) : (
+              <div style={style} className={rowClass}>
+                {children(item, index)}
+              </div>
             )}
           </li>
         );
