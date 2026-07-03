@@ -1,7 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { TbCrosshair, TbLayoutDashboard, TbMenu2, TbSearch, TbTrophy, TbX } from "react-icons/tb";
+import {
+  TbCrosshair,
+  TbInfoCircle,
+  TbLayoutDashboard,
+  TbMenu2,
+  TbSearch,
+  TbTrophy,
+  TbX,
+} from "react-icons/tb";
 import { cn } from "../lib/cn";
 import { CommandPalette } from "./CommandPalette";
 
@@ -29,6 +37,7 @@ function SearchTrigger({ onClick, className }: { onClick: () => void; className?
 const NAV = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard, end: true },
   { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
+  { to: "/asso", label: "L'asso", icon: TbInfoCircle, end: false },
 ];
 
 function Brand() {
