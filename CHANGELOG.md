@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : tri du classement (ELO / niveau) — bascule client, podium conservé sur le tri ELO. (#105)
 - Web : recherche globale (Ctrl/Cmd+K) — palette de commande pour sauter à un joueur, nav clavier + barre-hover qui glisse. (#110)
 - Web : home transformée en tableau de bord (widgets à venir + aperçu top classement) ; classement déplacé sur `/classement`, nav mise à jour. (#114)
 - Web : radar de performance sur le profil — 6 axes (aim, impact, clutch, entry, utility, win) normalisés + breakdown chiffré, suit le filtre de période. (#56)
