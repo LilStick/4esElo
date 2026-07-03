@@ -1,13 +1,13 @@
-import l1 from "../assets/1.svg";
-import l2 from "../assets/2.svg";
-import l3 from "../assets/3.svg";
-import l4 from "../assets/4.svg";
-import l5 from "../assets/5.svg";
-import l6 from "../assets/6.svg";
-import l7 from "../assets/7.svg";
-import l8 from "../assets/8.svg";
-import l9 from "../assets/9.svg";
-import l10 from "../assets/10.svg";
+import l1 from "../assets/faceit-ranks/1.svg";
+import l2 from "../assets/faceit-ranks/2.svg";
+import l3 from "../assets/faceit-ranks/3.svg";
+import l4 from "../assets/faceit-ranks/4.svg";
+import l5 from "../assets/faceit-ranks/5.svg";
+import l6 from "../assets/faceit-ranks/6.svg";
+import l7 from "../assets/faceit-ranks/7.svg";
+import l8 from "../assets/faceit-ranks/8.svg";
+import l9 from "../assets/faceit-ranks/9.svg";
+import l10 from "../assets/faceit-ranks/10.svg";
 
 /** Icônes officielles Faceit, niveaux 1 à 10 (SVG avec leurs couleurs d'origine). */
 const ICONS: Record<number, string> = {
