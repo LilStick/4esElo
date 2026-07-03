@@ -15,7 +15,7 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 | ---- | -------------------------------------------------------------------------- | ---------------- |
 | V1   | Fondations (DB, API, worker, web, courbe ELO)                              | ✅ fait          |
 | B1   | Design & assets (charte, design system, refonte pages)                     | ✅ fait (Arthur) |
-| B2   | **Fondation data** : ingestion matchs + backfill courbe ELO                | 🔜 en cours      |
+| B2   | **Fondation data** : ingestion matchs + APIs data (courbe = forward-only)  | ✅ fait          |
 | B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)       | à faire          |
 | B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                      | à faire          |
 | B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)           | à faire          |
