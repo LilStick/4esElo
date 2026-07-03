@@ -1,7 +1,8 @@
 import { db, eloSnapshots, faceitMatchStats } from "@4eselo/db";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
+import type { EloAfterStore } from "./eloAfter";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
 export const dbStore: SnapshotStore = {
@@ -21,7 +22,20 @@ export const dbStore: SnapshotStore = {
 };
 
 /** Real MatchStatsStore backed by Postgres via Drizzle. */
-export const dbMatchStatsStore: MatchStatsStore = {
+export const dbMatchStatsStore: MatchStatsStore & EloAfterStore = {
+  async setEloAfter(playerId, matchId, elo) {
+    await db
+      .update(faceitMatchStats)
+      .set({ eloAfter: elo })
+      .where(
+        and(
+          eq(faceitMatchStats.playerId, playerId),
+          eq(faceitMatchStats.matchId, matchId),
+          isNull(faceitMatchStats.eloAfter),
+        ),
+      );
+  },
+
   async getStoredMatchIds(playerId, matchIds) {
     if (matchIds.length === 0) return new Set();
     const rows = await db

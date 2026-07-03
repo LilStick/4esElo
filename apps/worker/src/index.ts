@@ -4,6 +4,7 @@ import { isNotNull } from "drizzle-orm";
 import { FaceitClient } from "@4eselo/faceit";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
+import { attributeEloAfter } from "./eloAfter";
 import { dbStore, dbMatchStatsStore } from "./store";
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
@@ -33,10 +34,11 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
 
   console.log(`[worker] syncing ${toSync.length} player(s)`);
   for (const p of toSync) {
+    let syncRes = null;
     try {
-      const res = await syncPlayer(faceit, dbStore, p);
-      const suffix = "elo" in res ? ` (elo=${res.elo})` : "";
-      console.log(`[worker] ${p.faceitId}: ${res.status}${suffix}`);
+      syncRes = await syncPlayer(faceit, dbStore, p);
+      const suffix = "elo" in syncRes ? ` (elo=${syncRes.elo})` : "";
+      console.log(`[worker] ${p.faceitId}: ${syncRes.status}${suffix}`);
     } catch (err) {
       console.error(`[worker] ${p.faceitId} failed:`, err instanceof Error ? err.message : err);
     }
@@ -46,6 +48,11 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
         console.log(
           `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
         );
+      }
+      const attr = syncRes && attributeEloAfter(syncRes, ing);
+      if (attr) {
+        await dbMatchStatsStore.setEloAfter(p.id, attr.matchId, attr.elo);
+        console.log(`[worker] ${p.faceitId}: eloAfter=${attr.elo} → ${attr.matchId}`);
       }
     } catch (err) {
       console.error(`[worker] ${p.faceitId} ingest failed:`, err instanceof Error ? err.message : err);
