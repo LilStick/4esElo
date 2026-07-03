@@ -1,11 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { TbCrosshair, TbMenu2, TbTrophy, TbX } from "react-icons/tb";
+import { TbCrosshair, TbLayoutDashboard, TbMenu2, TbTrophy, TbX } from "react-icons/tb";
 import { cn } from "../lib/cn";
 
 /** Entrées de navigation. La charte (/charte) n'y figure pas volontairement. */
-const NAV = [{ to: "/", label: "Classement", icon: TbTrophy, end: true }];
+const NAV = [
+  { to: "/", label: "Accueil", icon: TbLayoutDashboard, end: true },
+  { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
+];
 
 function Brand() {
   return (

@@ -11,9 +11,9 @@ export function NotFound() {
     <EmptyState
       icon={TbError404}
       title="Page introuvable"
-      action={<Button onClick={() => navigate("/")}>Retour au classement</Button>}
+      action={<Button onClick={() => navigate("/")}>Retour à l'accueil</Button>}
     >
-      Cette page n'existe pas (ou plus). Reviens au classement pour continuer.
+      Cette page n'existe pas (ou plus). Reviens à l'accueil pour continuer.
     </EmptyState>
   );
 }
