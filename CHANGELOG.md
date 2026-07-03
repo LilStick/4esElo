@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-03
+
+- Worker : ingestion des matchs Faceit — backfill borné (90 j / 100 matchs) puis incrémental à chaque tick, dédup par `(match_id, player_id)`, throttle sous le rate-limit. Premier backfill réel : 202 matchs. (#3)
+
 ## 2026-07-02
 
 - Process : format de ticket durci dans le skill refine (Contexte lisible / Quoi / DoD + exemple canonique) — même sortie quel que soit l'agent. (#80)
