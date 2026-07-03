@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : icône retirée du header du bloc « Activité » sur le profil. (#144)
 - Web : profil refondu façon Faceit — layout 2 colonnes (rail identité + heatmap d'activité 90 jours à gauche, colonne principale centrée et large), carte ELO (logo de niveau + ELO teinté par palier). Heatmap type GitHub avec labels jours/mois et tooltip au survol. (#135)
 - Web : bloc « Performances récentes » sur le profil (façon Faceit) — courbe ELO + bandeau V/D, récap V/L, min/actuel/max, Δ ELO, plus longue série. (#136)
 - Web : icônes officielles de map dans les matchs récents et les stats par map (repli générique si inconnue). (#137)

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TbCalendarStats } from "react-icons/tb";
 import { getPlayerMatches } from "../lib/api";
 import { Card, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
@@ -74,8 +73,7 @@ export function ActivityHeatmap({ id }: { id: string }) {
   return (
     <Card className="p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-          <TbCalendarStats size={14} className="text-brand" />
+        <span className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
           Activité · 90 jours
         </span>
         <span className="text-xs text-ink-dim">{total} matchs</span>
