@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import {
   TbCrosshair,
@@ -115,10 +115,46 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 
 const FOOTER = <div className="px-3 text-xs text-ink-faint">Pôle CS2 · données Faceit</div>;
 
+const GOTO: Record<string, string> = { h: "/", c: "/classement", a: "/asso" };
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const reduce = useReducedMotion();
+  const navigate = useNavigate();
+
+  // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
+  useEffect(() => {
+    let gHeld = false;
+    const isTyping = () => {
+      const el = document.activeElement as HTMLElement | null;
+      return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping()) return;
+      const k = e.key.toLowerCase();
+      if (k === "g") {
+        gHeld = true;
+        return;
+      }
+      if (gHeld && GOTO[k]) {
+        e.preventDefault();
+        navigate(GOTO[k]);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "g") gHeld = false;
+    };
+    const reset = () => (gHeld = false);
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", reset);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", reset);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     if (!open) return;

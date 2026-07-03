@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : raccourcis clavier de nav (G maintenu + h/c/a) + la palette Ctrl+K cherche aussi les pages. (#127, #130)
 - Web : transitions douces entre les pages (fondu + glissement, reduced-motion respecté). (#126)
 - Web : barre-hover qui glisse sur la sidebar (suit le survol, revient sur l'actif). (#124)
 - Web : page « L'asso » (à propos 4eSport/Efrei, règles, rejoindre via Discord) + entrée nav. (#112)
