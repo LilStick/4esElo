@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { TbArrowRight, TbCrown, TbUsersGroup } from "react-icons/tb";
+import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
@@ -10,6 +10,11 @@ import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
 
 function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
   const first = entry.rank === 1;
@@ -92,6 +97,7 @@ export function Leaderboard() {
   useTitle("Classement");
   const navigate = useNavigate();
   const [sort, setSort] = useState<Sort>("elo");
+  const [q, setQ] = useState("");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["leaderboard", "faceit"],
     queryFn: () => getLeaderboard("faceit"),
@@ -99,14 +105,20 @@ export function Leaderboard() {
 
   const board = data?.leaderboard ?? [];
   const byLevel = sort === "level";
-  // Podium = toujours le top 3 ELO ; le tri par niveau donne une liste plate.
-  const [first, second, third] = board;
-  const hasPodium = !byLevel && Boolean(first && second && third);
-  const listItems = byLevel
+  const searching = q.trim() !== "";
+  // Podium = toujours le top 3 ELO ; tri par niveau ou recherche → liste plate.
+  const ordered = byLevel
     ? [...board].sort((a, b) => (b.level ?? -1) - (a.level ?? -1) || (b.elo ?? -1) - (a.elo ?? -1))
-    : hasPodium
-      ? board.slice(3)
-      : board;
+    : board;
+  const [first, second, third] = board;
+  const hasPodium = !byLevel && !searching && Boolean(first && second && third);
+  const listItems = searching
+    ? ordered.filter((e) => norm(nameOf(e)).includes(norm(q.trim())))
+    : byLevel
+      ? ordered
+      : hasPodium
+        ? board.slice(3)
+        : board;
 
   return (
     <div>
@@ -136,11 +148,26 @@ export function Leaderboard() {
         </div>
       </div>
 
+      {!isLoading && !isError && board.length > 0 && (
+        <div className="relative mb-4">
+          <TbSearch
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint"
+            size={16}
+          />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Rechercher un membre…"
+            className="w-full rounded-xl border border-white/[0.09] bg-white/[0.02] py-2.5 pr-3 pl-9 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand/60"
+          />
+        </div>
+      )}
+
       {isLoading && <LeaderboardSkeleton />}
       {isError && <p className="text-loss">Impossible de charger le classement. L'API tourne-t-elle ?</p>}
 
       {hasPodium && first && second && third && (
-        <div className="mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
+        <div className="mt-5 mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
           <PodiumCard entry={second} />
           <PodiumCard entry={first} />
           <PodiumCard entry={third} />
@@ -168,6 +195,12 @@ export function Leaderboard() {
             )}
           />
         </Card>
+      )}
+
+      {searching && board.length > 0 && listItems.length === 0 && (
+        <EmptyState icon={TbSearch} title="Aucun membre trouvé">
+          Aucun pseudo ne correspond à « {q.trim()} ».
+        </EmptyState>
       )}
 
       {data && board.length === 0 && (
