@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbUsersGroup } from "react-icons/tb";
@@ -81,23 +82,59 @@ function LeaderboardSkeleton() {
   );
 }
 
+const SORTS = [
+  { key: "elo", label: "ELO" },
+  { key: "level", label: "Niveau" },
+] as const;
+type Sort = (typeof SORTS)[number]["key"];
+
 export function Leaderboard() {
   useTitle("Classement");
   const navigate = useNavigate();
+  const [sort, setSort] = useState<Sort>("elo");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["leaderboard", "faceit"],
     queryFn: () => getLeaderboard("faceit"),
   });
 
   const board = data?.leaderboard ?? [];
+  const byLevel = sort === "level";
+  // Podium = toujours le top 3 ELO ; le tri par niveau donne une liste plate.
   const [first, second, third] = board;
-  const hasPodium = Boolean(first && second && third);
-  const listItems = hasPodium ? board.slice(3) : board;
+  const hasPodium = !byLevel && Boolean(first && second && third);
+  const listItems = byLevel
+    ? [...board].sort((a, b) => (b.level ?? -1) - (a.level ?? -1) || (b.elo ?? -1) - (a.elo ?? -1))
+    : hasPodium
+      ? board.slice(3)
+      : board;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
-      <p className="mt-1 mb-8 text-sm text-ink-dim">Membres du pôle CS2, triés par ELO Faceit.</p>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
+          <p className="mt-1 text-sm text-ink-dim">
+            Membres du pôle CS2, triés par {byLevel ? "niveau" : "ELO"} Faceit.
+          </p>
+        </div>
+        <div className="inline-flex gap-1 rounded-full border border-white/[0.09] bg-white/[0.03] p-1">
+          {SORTS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setSort(s.key)}
+              aria-pressed={sort === s.key}
+              className={cn(
+                "cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+                sort === s.key ? "bg-brand text-[#060a18]" : "text-ink-dim hover:text-ink",
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {isLoading && <LeaderboardSkeleton />}
       {isError && <p className="text-loss">Impossible de charger le classement. L'API tourne-t-elle ?</p>}
