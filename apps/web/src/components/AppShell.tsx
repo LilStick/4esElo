@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import {
   TbCrosshair,
   TbInfoCircle,
@@ -52,20 +52,52 @@ function Brand() {
   );
 }
 
+const NAV_ROW = 40; // hauteur d'un item (h-10)
+const NAV_STEP = NAV_ROW + 4; // + gap-1
+
+/** Nav vertical avec une barre unique qui glisse derrière l'item survolé, et
+ *  revient sur l'item actif au repos — comme les listes du site. */
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  const { pathname } = useLocation();
+  const reduce = useReducedMotion();
+  const [hovered, setHovered] = useState<number | null>(null);
+
+  const activeIndex = NAV.findIndex((i) => (i.end ? pathname === i.to : pathname.startsWith(i.to)));
+  const barIndex = hovered ?? (activeIndex >= 0 ? activeIndex : 0);
+  const barVisible = hovered !== null || activeIndex >= 0;
+
+  const y = useMotionValue(barIndex * NAV_STEP);
+  useEffect(() => {
+    const target = barIndex * NAV_STEP;
+    if (reduce) {
+      y.set(target);
+      return;
+    }
+    const controls = animate(y, target, { type: "spring", stiffness: 420, damping: 38 });
+    return () => controls.stop();
+  }, [barIndex, reduce, y]);
+
   return (
-    <nav className="flex flex-col gap-1">
-      {NAV.map((item) => (
+    <nav className="relative flex flex-col gap-1" onMouseLeave={() => setHovered(null)}>
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 rounded-xl bg-brand/12"
+        style={{ y, height: NAV_ROW }}
+        animate={{ opacity: barVisible ? 1 : 0 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+      />
+      {NAV.map((item, i) => (
         <NavLink
           key={item.to}
           to={item.to}
           end={item.end}
           onClick={onNavigate}
+          onMouseEnter={() => setHovered(i)}
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+              "relative z-10 flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
-              isActive ? "bg-brand/12 text-ink" : "text-ink-dim hover:bg-white/[0.03] hover:text-ink",
+              isActive ? "text-ink" : "text-ink-dim hover:text-ink",
             )
           }
         >
