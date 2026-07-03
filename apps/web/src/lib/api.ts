@@ -1,4 +1,10 @@
-import type { EloSource, LeaderboardResponse, PlayerDetail } from "@4eselo/types";
+import type {
+  EloSource,
+  LeaderboardResponse,
+  PlayerDetail,
+  PlayerStatsResponse,
+  StatsRange,
+} from "@4eselo/types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
@@ -14,4 +20,8 @@ export function getLeaderboard(source: EloSource = "faceit") {
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
   return get<PlayerDetail>(`/players/${id}?source=${source}`);
+}
+
+export function getPlayerStats(id: string, range: StatsRange = "all") {
+  return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}`);
 }
