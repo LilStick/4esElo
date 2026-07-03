@@ -111,6 +111,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState(false);
   const reduce = useReducedMotion();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  // Le profil adopte une mise en page large (2 colonnes façon Faceit) ; le reste reste compact.
+  const wide = pathname.startsWith("/player/");
 
   // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
   useEffect(() => {
@@ -243,7 +246,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Contenu */}
       <div className="lg:pl-60">
-        <main className="mx-auto max-w-4xl px-4 py-8 lg:px-8 lg:py-10">{children}</main>
+        <main className={cn("mx-auto px-4 py-8 lg:px-8 lg:py-10", wide ? "max-w-[1560px]" : "max-w-4xl")}>
+          {children}
+        </main>
       </div>
 
       <CommandPalette open={search} onClose={() => setSearch(false)} />
