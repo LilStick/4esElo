@@ -60,6 +60,8 @@ export interface IngestResult {
   skipped: number;
   /** Stats fetch failed or member missing from the match — retried next run. */
   failed: number;
+  /** Ids of the matches inserted by THIS run (feeds the eloAfter heuristic). */
+  insertedMatchIds: string[];
 }
 
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -84,7 +86,13 @@ export async function ingestPlayerMatches(
   const now = opts.now ?? (() => new Date());
 
   const cutoff = new Date(now().getTime() - windowDays * 24 * 60 * 60 * 1000);
-  const result: IngestResult = { scanned: 0, inserted: 0, skipped: 0, failed: 0 };
+  const result: IngestResult = {
+    scanned: 0,
+    inserted: 0,
+    skipped: 0,
+    failed: 0,
+    insertedMatchIds: [],
+  };
   const toFetch: FaceitMatchRef[] = [];
 
   // 1. Walk the history newest-first, page by page, inside the window.
@@ -140,6 +148,7 @@ export async function ingestPlayerMatches(
         stats: me.stats,
       });
       result.inserted += 1;
+      result.insertedMatchIds.push(ref.matchId);
     } catch (err) {
       if (err instanceof FaceitNotFoundError) {
         result.failed += 1;

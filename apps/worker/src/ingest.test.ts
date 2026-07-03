@@ -85,7 +85,13 @@ test("backfill: empty store → every match in the window is inserted, oldest fi
   const store = makeStore();
   const res = await ingestPlayerMatches(reader, store, player, noSleep);
 
-  assert.deepEqual(res, { scanned: 5, inserted: 5, skipped: 0, failed: 0 });
+  assert.deepEqual(res, {
+    scanned: 5,
+    inserted: 5,
+    skipped: 0,
+    failed: 0,
+    insertedMatchIds: ["m5", "m4", "m3", "m2", "m1"],
+  });
   assert.deepEqual(
     store.inserts.map((r) => r.matchId),
     ["m5", "m4", "m3", "m2", "m1"],
@@ -117,7 +123,13 @@ test("dedup: already-stored matches are skipped, only new ones fetched", async (
   const store = makeStore(["m2", "m4"]);
   const res = await ingestPlayerMatches(reader, store, player, noSleep);
 
-  assert.deepEqual(res, { scanned: 4, inserted: 2, skipped: 2, failed: 0 });
+  assert.deepEqual(res, {
+    scanned: 4,
+    inserted: 2,
+    skipped: 2,
+    failed: 0,
+    insertedMatchIds: ["m3", "m1"],
+  });
   assert.deepEqual(reader.statsCalls.sort(), ["m1", "m3"]);
 });
 
@@ -168,7 +180,13 @@ test("stats permanently missing (404) → counted failed, newer matches still in
   const store = makeStore();
   const res = await ingestPlayerMatches(reader, store, player, noSleep);
 
-  assert.deepEqual(res, { scanned: 3, inserted: 2, skipped: 0, failed: 1 });
+  assert.deepEqual(res, {
+    scanned: 3,
+    inserted: 2,
+    skipped: 0,
+    failed: 1,
+    insertedMatchIds: ["m3", "m1"],
+  });
   assert.deepEqual(
     store.inserts.map((r) => r.matchId),
     ["m3", "m1"],
@@ -183,7 +201,13 @@ test("transient failure (5xx) → stop there so the next run retries this match 
   const res = await ingestPlayerMatches(reader, store, player, noSleep);
 
   // oldest-first: m3 inserted, m2 fails transiently, m1 NOT attempted
-  assert.deepEqual(res, { scanned: 3, inserted: 1, skipped: 0, failed: 1 });
+  assert.deepEqual(res, {
+    scanned: 3,
+    inserted: 1,
+    skipped: 0,
+    failed: 1,
+    insertedMatchIds: ["m3"],
+  });
   assert.deepEqual(
     store.inserts.map((r) => r.matchId),
     ["m3"],
@@ -198,7 +222,13 @@ test("member missing from the match detail → failed, no insert, run continues"
   const store = makeStore();
   const res = await ingestPlayerMatches(reader, store, player, noSleep);
 
-  assert.deepEqual(res, { scanned: 2, inserted: 1, skipped: 0, failed: 1 });
+  assert.deepEqual(res, {
+    scanned: 2,
+    inserted: 1,
+    skipped: 0,
+    failed: 1,
+    insertedMatchIds: ["m2"],
+  });
 });
 
 test("throttle: sleeps between Faceit calls", async () => {
