@@ -98,7 +98,7 @@ Repo : **LilStick/4esElo** (privé). Le suivi vit sur GitHub, lisible via `gh` :
 - **Epics** = blocs, titrés `EPIC B<n> · …` ; **tickets** = `B<n>.<x> · …` (ID logique dans le titre).
 - **Labels de propriété** : `lilstick` (back/API/data) · `arthur` (front/UI/design).
 - Workflow branches + pilotage via Claude Code : voir [CONTRIBUTING.md](./CONTRIBUTING.md).
-- Prochain bloc : **B2 — Fondation data** (tickets B2.1 → B2.7).
+- Prochain bloc : **B3 — Profil enrichi** (Arthur, débloqué) · côté back : B11 (durcissement) puis B12 (mise en ligne).
 
 ```bash
 gh issue list --label lilstick --state open
@@ -212,7 +212,7 @@ Enforced par ESLint/hooks quand c'est possible (voir #79) ; le reste se rejette 
 
 **Roadmap (epics GitHub, blocs B1→B8)** — le détail vit dans les issues :
 
-- 🔜 **B2 — Fondation data** (prochain) : ingestion matchs + backfill courbe ELO
-- B1 — Design & assets (front, Arthur) · B3 — Profil enrichi · B4 — Social (asso)
+- ✅ **B2 — Fondation data** : ingestion matchs (backfill + incrémental), APIs `/matches` & `/stats`, eloAfter forward. Courbe ELO = forward-only (cf. Décisions).
+- B1 — Design & assets (front, Arthur) · B3 — Profil enrichi (**débloqué**) · B4 — Social (asso)
 - B5 — Engagement · B6 — Bot Discord · B7 — Features splashy · B8 — Highlights
 - Ultérieur : **Premier Mode** (pas d'API Valve → Leetify/snapshots ; multi-compte par membre uniquement pour Premier)
