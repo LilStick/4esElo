@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { z } from "zod";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
 import type {
   EloSource,
@@ -11,7 +11,9 @@ import type {
   MatchesResponse,
   MatchSummary,
   PlayerDetail,
+  PlayerStatsResponse,
 } from "@4eselo/types";
+import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 
 const SOURCES: EloSource[] = ["faceit", "premier"];
 
@@ -142,4 +144,36 @@ app.get("/players/:id/matches", async (c) => {
   }));
 
   return c.json<MatchesResponse>({ items, total: counted?.total ?? 0 });
+});
+
+const rangeSchema = z.enum(RANGES).default("all");
+
+app.get("/players/:id/stats", async (c) => {
+  const id = c.req.param("id");
+  const parsed = rangeSchema.safeParse(c.req.query("range"));
+  if (!parsed.success) return c.json({ error: "invalid range (7d|30d|3m|all)" }, 400);
+  const range = parsed.data;
+
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  const cutoff = rangeCutoff(range, new Date());
+  const rows = await db
+    .select({
+      map: faceitMatchStats.map,
+      result: faceitMatchStats.result,
+      stats: faceitMatchStats.stats,
+    })
+    .from(faceitMatchStats)
+    .where(
+      cutoff
+        ? and(eq(faceitMatchStats.playerId, id), gte(faceitMatchStats.playedAt, cutoff))
+        : eq(faceitMatchStats.playerId, id),
+    );
+
+  return c.json<PlayerStatsResponse>({
+    range,
+    overall: computeAggregate(range, rows),
+    maps: computeMapStats(rows),
+  });
 });

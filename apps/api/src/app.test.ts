@@ -3,7 +3,13 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, eq } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
-import type { PlayerDetail, EloCurveResponse, MatchesResponse, FaceitMatchStats } from "@4eselo/types";
+import type {
+  PlayerDetail,
+  EloCurveResponse,
+  MatchesResponse,
+  FaceitMatchStats,
+  PlayerStatsResponse,
+} from "@4eselo/types";
 import { app } from "./app";
 
 /** All-zero stats, overridable per test — matches the FaceitMatchStats shape. */
@@ -171,4 +177,41 @@ test("GET /players/:id/matches rejects an invalid limit with 400", { skip }, asy
     const res = await app.request(`/players/${playerId}/matches?${q}`);
     assert.equal(res.status, 400, q);
   }
+});
+
+test("GET /players/:id/stats aggregates stored matches (default range=all)", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/stats`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as PlayerStatsResponse;
+
+  assert.equal(body.range, "all");
+  assert.equal(body.overall.matches, 3);
+  assert.equal(body.overall.wins, 2);
+  assert.equal(body.overall.winRate, 66.7);
+  assert.equal(body.overall.kd, 1.3); // 60 kills / 45 deaths
+  const mirage = body.maps.find((m) => m.map === "de_mirage");
+  assert.ok(mirage);
+  assert.equal(mirage.matches, 2);
+  assert.equal(mirage.winRate, 100);
+});
+
+test("GET /players/:id/stats?range=7d excludes matches older than the window", { skip }, async () => {
+  // seeded matches are dated 2026-06-01..03 → outside a 7d window from now
+  const res = await app.request(`/players/${playerId}/stats?range=7d`);
+  const body = (await res.json()) as PlayerStatsResponse;
+
+  assert.equal(body.range, "7d");
+  assert.equal(body.overall.matches, 0);
+  assert.equal(body.overall.winRate, 0);
+  assert.deepEqual(body.maps, []);
+});
+
+test("GET /players/:id/stats rejects an unknown range with 400", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/stats?range=1y`);
+  assert.equal(res.status, 400);
+});
+
+test("GET /players/:id/stats returns 404 for an unknown player", { skip }, async () => {
+  const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/stats`);
+  assert.equal(res.status, 404);
 });

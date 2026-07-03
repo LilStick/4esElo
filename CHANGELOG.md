@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- API : `GET /players/:id/stats?range=7d|30d|3m|all` — agrégats (winrate, K/D, ADR, HS%, clutch, entry, utility) + détail par map. (#7)
 - API : `GET /players/:id/matches` — liste paginée des matchs stockés (map, résultat, stats), zod sur la pagination. (#6)
 - DX : brief de session — à l'ouverture, chacun voit ses tickets débloqués par l'autre (🔓/⛔, calculé depuis les lignes « dépend de #x »). (#89)
 - Worker : ingestion des matchs Faceit — backfill borné (90 j / 100 matchs) puis incrémental à chaque tick, dédup par `(match_id, player_id)`, throttle sous le rate-limit. Premier backfill réel : 202 matchs. (#3)
