@@ -1,8 +1,29 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { TbCrosshair, TbLayoutDashboard, TbMenu2, TbTrophy, TbX } from "react-icons/tb";
+import { TbCrosshair, TbLayoutDashboard, TbMenu2, TbSearch, TbTrophy, TbX } from "react-icons/tb";
 import { cn } from "../lib/cn";
+import { CommandPalette } from "./CommandPalette";
+
+/** Déclencheur de la recherche globale (Ctrl/Cmd+K). */
+function SearchTrigger({ onClick, className }: { onClick: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2 rounded-xl border border-white/[0.09] bg-white/[0.02] px-3 py-2 text-sm text-ink-dim transition-colors hover:border-white/[0.16] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+        className,
+      )}
+    >
+      <TbSearch size={16} />
+      <span className="flex-1 text-left">Rechercher</span>
+      <kbd className="rounded border border-white/[0.12] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">
+        ⌘K
+      </kbd>
+    </button>
+  );
+}
 
 /** Entrées de navigation. La charte (/charte) n'y figure pas volontairement. */
 const NAV = [
@@ -55,6 +76,7 @@ const FOOTER = <div className="px-3 text-xs text-ink-faint">Pôle CS2 · donnée
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState(false);
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -68,6 +90,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [open]);
 
+  // Recherche globale : Ctrl/Cmd + K
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearch((s) => !s);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const off = reduce ? 0 : "-100%";
 
   return (
@@ -77,7 +111,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-2">
           <Brand />
         </div>
-        <div className="mt-8 flex-1">
+        <SearchTrigger onClick={() => setSearch(true)} className="mt-6 w-full" />
+        <div className="mt-4 flex-1">
           <NavList />
         </div>
         {FOOTER}
@@ -93,6 +128,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <TbMenu2 size={20} />
         </button>
         <Brand />
+        <button
+          onClick={() => setSearch(true)}
+          aria-label="Rechercher"
+          className="ml-auto grid size-10 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+        >
+          <TbSearch size={19} />
+        </button>
       </header>
 
       {/* Drawer mobile */}
@@ -137,6 +179,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="lg:pl-60">
         <main className="mx-auto max-w-4xl px-4 py-8 lg:px-8 lg:py-10">{children}</main>
       </div>
+
+      <CommandPalette open={search} onClose={() => setSearch(false)} />
     </div>
   );
 }
