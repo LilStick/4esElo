@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-03
 
+- Web : bloc « Performances récentes » sur le profil (façon Faceit) — courbe ELO + bandeau V/D, récap V/L, min/actuel/max, Δ ELO, plus longue série. (#136)
 - Web : icônes officielles de map dans les matchs récents et les stats par map (repli générique si inconnue). (#137)
 - Web : PWA installable (manifest, icônes, theme-color) + vrai logo 4esElo partout (favicon mark blanc, icône app tile, lockup sidebar, carte OG de partage). (#113)
 - Web : raccourcis clavier de nav (G maintenu + h/c/a) + la palette Ctrl+K cherche aussi les pages. (#127, #130)

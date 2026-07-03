@@ -4,13 +4,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { TbArrowLeft, TbExternalLink, TbUserQuestion } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
-import { Avatar, Button, Card, EloGauge, LevelBadge, RangeTabs, Skeleton } from "../ui";
+import { Avatar, Button, Card, LevelBadge, RangeTabs, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
-import { EloChart } from "../components/EloChart";
 import { StatsBento } from "../components/StatsBento";
 import { RadarPerf } from "../components/RadarPerf";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
+import { RecentPerformance } from "../components/RecentPerformance";
 import { useTitle } from "../lib/useTitle";
 
 /** Bornes ELO → niveau Faceit, pour situer l'ELO dans son palier. */
@@ -33,15 +33,6 @@ function eloPct(elo: number | null, level: number | null): number {
   if (!band) return 0;
   const [lo, hi] = band;
   return Math.min(100, Math.max(6, ((elo - lo) / (hi - lo)) * 100));
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <Card className="p-[18px]">
-      <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{label}</div>
-      <div className="mt-2 font-mono text-2xl font-extrabold tracking-tight tabular-nums">{value}</div>
-    </Card>
-  );
 }
 
 function PlayerSkeleton() {
@@ -90,12 +81,6 @@ export function Player() {
 
   const name = data?.faceitNickname ?? data?.discordName ?? "Joueur";
   useTitle(name);
-  const elos = data?.history.map((h) => h.elo) ?? [];
-  const peak = elos.length ? Math.max(...elos) : null;
-  const low = elos.length ? Math.min(...elos) : null;
-  const first = elos.at(0);
-  const last = elos.at(-1);
-  const delta = first != null && last != null ? last - first : null;
 
   return (
     <div>
@@ -158,40 +143,13 @@ export function Player() {
             </div>
           </Card>
 
-          {/* Jauge + courbe */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="flex flex-col items-center justify-center gap-3 p-5">
-              <EloGauge elo={data.elo ?? 0} pct={eloPct(data.elo, data.level)} size={140} />
-              <div className="text-[11px] tracking-[0.12em] text-ink-faint uppercase">
-                Progression du palier
-              </div>
-            </Card>
-
-            <Card className="p-5 sm:col-span-2">
-              <div className="mb-4 flex items-baseline justify-between">
-                <div className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-                  Évolution de l'ELO
-                </div>
-                {delta != null && (
-                  <span
-                    className={`font-mono text-[13px] font-bold tabular-nums ${delta >= 0 ? "text-win" : "text-loss"}`}
-                  >
-                    {delta >= 0 ? "+" : ""}
-                    {delta}
-                  </span>
-                )}
-              </div>
-              <EloChart points={data.history} />
-            </Card>
-          </div>
-
-          {/* Repères ELO */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat label="ELO actuel" value={data.elo ?? "—"} />
-            <Stat label="Pic" value={peak ?? "—"} />
-            <Stat label="Plus bas" value={low ?? "—"} />
-            <Stat label="Points" value={data.history.length} />
-          </div>
+          {/* Performances récentes — courbe + forme + récap (façon Faceit) */}
+          <RecentPerformance
+            id={id}
+            history={data.history}
+            elo={data.elo}
+            gaugePct={eloPct(data.elo, data.level)}
+          />
 
           {/* Statistiques agrégées (depuis les matchs), filtrables par période */}
           <div>
