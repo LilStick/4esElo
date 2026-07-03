@@ -1,17 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
-import {
-  TbCrosshair,
-  TbInfoCircle,
-  TbLayoutDashboard,
-  TbMenu2,
-  TbSearch,
-  TbTrophy,
-  TbX,
-} from "react-icons/tb";
+import { TbInfoCircle, TbLayoutDashboard, TbMenu2, TbSearch, TbTrophy, TbX } from "react-icons/tb";
 import { cn } from "../lib/cn";
 import { CommandPalette } from "./CommandPalette";
+import lockup from "../assets/logo/4esElo_lockup_transparent.png";
 
 /** Déclencheur de la recherche globale (Ctrl/Cmd+K). */
 function SearchTrigger({ onClick, className }: { onClick: () => void; className?: string }) {
@@ -42,12 +35,8 @@ const NAV = [
 
 function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-2.5 font-extrabold tracking-tight">
-      <span className="grid size-8 place-items-center rounded-[9px] bg-gradient-to-br from-brand-hi to-brand-deep shadow-[0_6px_18px_-6px_rgba(94,139,255,0.5),inset_0_1px_0_rgba(255,255,255,0.4)]">
-        <TbCrosshair className="size-[18px] text-white" />
-      </span>
-      <span className="text-[17px]">4esElo</span>
-      <span className="text-sm font-medium text-ink-faint">· CS2</span>
+    <Link to="/" className="flex items-center">
+      <img src={lockup} alt="4esElo" className="h-9 w-auto invert" />
     </Link>
   );
 }
