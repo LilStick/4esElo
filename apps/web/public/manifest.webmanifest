@@ -1,0 +1,15 @@
+{
+  "name": "4esElo — Classement CS2",
+  "short_name": "4esElo",
+  "description": "Classement ELO Faceit du pôle CS2 de 4eSport (Efrei Paris).",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#060709",
+  "theme_color": "#060709",
+  "lang": "fr",
+  "icons": [
+    { "src": "/icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
