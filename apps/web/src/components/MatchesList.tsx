@@ -39,6 +39,15 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
           {m.stats.kd.toFixed(2)}
         </span>
         <span className="hidden w-12 text-right sm:block">{m.stats.adr.toFixed(0)}</span>
+        <span
+          className={cn(
+            "w-12 text-right",
+            m.eloDelta == null ? "text-ink-faint" : m.eloDelta > 0 ? "text-win" : "text-loss",
+          )}
+          title="±ELO du match"
+        >
+          {m.eloDelta == null ? "—" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
+        </span>
       </div>
     </>
   );
@@ -54,6 +63,7 @@ function Header() {
         <span className="w-16 text-right">K / D</span>
         <span className="hidden w-12 text-right sm:block">Ratio</span>
         <span className="hidden w-12 text-right sm:block">ADR</span>
+        <span className="w-12 text-right">±ELO</span>
       </span>
     </div>
   );
