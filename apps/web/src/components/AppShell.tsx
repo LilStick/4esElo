@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import {
   TbConfetti,
+  TbGitCompare,
   TbInfoCircle,
   TbLayoutDashboard,
   TbMenu2,
@@ -41,6 +42,7 @@ function SearchTrigger({ onClick, className }: { onClick: () => void; className?
 const NAV = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard, end: true },
   { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
+  { to: "/compare", label: "Comparer", icon: TbGitCompare, end: false },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle, end: false },
   { to: `/wrapped/${currentPeriod()}`, label: "Wrapped", icon: TbConfetti, end: false },
   { to: "/changelog", label: "Nouveautés", icon: TbSparkles, end: false },
@@ -257,7 +259,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col lg:pl-60">
         <main className="flex w-full flex-1 flex-col px-4 py-8 lg:px-8 lg:py-10">
           <div className="flex-1">{children}</div>
-          <div className="mx-auto w-full max-w-[1560px]">
+          <div className="mx-auto w-full max-w-[1400px]">
             <Footer />
           </div>
         </main>

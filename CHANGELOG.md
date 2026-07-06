@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Web : page « Comparer » (/compare) — deux joueurs face à face : radar superposé + tableau comparatif (ELO, winrate, K/D, ADR, HS%, clutch, entry), meilleur surligné ; sélection dans l'URL (partageable). (#203)
 - Web : Wrapped — page vitrine des awards du pôle (`/wrapped/juillet-2026`) + Wrapped perso (`/wrapped/juillet-2026/:player` : matchs, winrate, Δ ELO, temps de jeu, map signature, percentiles vs pôle, awards) ; entrée nav. (#155)
 
 ## 2026-07-06
