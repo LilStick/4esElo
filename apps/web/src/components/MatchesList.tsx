@@ -6,6 +6,7 @@ import { getPlayerMatches } from "../lib/api";
 import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
+import { matchRating, ratingColor } from "../lib/rating";
 import { EmptyState } from "./EmptyState";
 import { MatchDetailModal } from "./MatchDetailModal";
 
@@ -13,6 +14,7 @@ const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.t
 
 function MatchRowContent({ m }: { m: MatchSummary }) {
   const win = m.result === 1;
+  const r = matchRating(m.stats);
   return (
     <>
       <span
@@ -32,6 +34,12 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-6 font-mono text-sm font-semibold tabular-nums sm:gap-9">
+        <span
+          className={cn("w-11 text-right font-extrabold", r != null ? ratingColor(r) : "text-ink-faint")}
+          title="Rating (façon HLTV)"
+        >
+          {r != null ? r.toFixed(2) : "—"}
+        </span>
         <span className="w-16 text-right">
           {m.stats.kills}
           <span className="text-ink-faint"> / </span>
@@ -62,6 +70,7 @@ function Header() {
       <span className="w-9 shrink-0 text-center">W/L</span>
       <span className="min-w-0 flex-1">Match</span>
       <span className="flex shrink-0 items-center gap-6 sm:gap-9">
+        <span className="w-11 text-right">Rating</span>
         <span className="w-16 text-right">K / D</span>
         <span className="hidden w-12 text-right sm:block">Ratio</span>
         <span className="hidden w-12 text-right sm:block">ADR</span>
