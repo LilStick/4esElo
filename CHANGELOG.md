@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : widget « Mouvements récents » sur la home — plus grosses montées/descentes d'ELO sur 7 jours (▲▼ + delta coloré, cliquable), état vide si semaine calme. (#116)
 - Web : widget « Joueur du jour » sur la home — plus gros gain d'ELO sur 24h (avatar, pseudo, +ELO, cliquable) + mention de la plus grosse chute, état vide si personne n'a bougé. (#115)
 - CI : le front est buildé sur chaque PR (un import cassé ne passe plus en vert) + Dependabot activé (deps npm groupées hebdo + GitHub Actions). (#65)
 - Tests : l'endpoint principal `/leaderboard` couvert en intégration (tri, dernier snapshot, joueurs sans ELO en fin, source vide). (#64)
