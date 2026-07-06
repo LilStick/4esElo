@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TbSwords } from "react-icons/tb";
 import type { MatchSummary } from "@4eselo/types";
@@ -6,9 +7,9 @@ import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
 import { EmptyState } from "./EmptyState";
+import { MatchDetailModal } from "./MatchDetailModal";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
-const faceitRoom = (id: string) => `https://www.faceit.com/fr/cs2/room/${id}`;
 
 function MatchRowContent({ m }: { m: MatchSummary }) {
   const win = m.result === 1;
@@ -71,6 +72,7 @@ function Header() {
 }
 
 export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) {
+  const [selected, setSelected] = useState<MatchSummary | null>(null);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["matches", id, limit],
     queryFn: () => getPlayerMatches(id, limit),
@@ -112,10 +114,10 @@ export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) 
         items={data.items}
         rowHeight={60}
         keyOf={(m) => m.matchId}
-        hrefOf={(m) => faceitRoom(m.matchId)}
-        external
+        onSelect={(m) => setSelected(m)}
         children={(m) => <MatchRowContent m={m} />}
       />
+      <MatchDetailModal match={selected} onClose={() => setSelected(null)} />
     </Card>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { TbX } from "react-icons/tb";
+import { cn } from "../lib/cn";
 
 /**
  * Modale centrée en double-bezel (comme la Card) : coque en verre dépoli qui
@@ -12,11 +13,13 @@ export function Modal({
   onClose,
   title,
   children,
+  size = "md",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  size?: "md" | "lg";
 }) {
   const reduce = useReducedMotion();
 
@@ -49,7 +52,10 @@ export function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="relative flex max-h-[78vh] w-full max-w-md flex-col border border-white/[0.09] bg-white/[0.045] shadow-[0_48px_120px_-30px_rgba(0,0,0,0.95)]"
+            className={cn(
+              "relative flex max-h-[78vh] w-full flex-col border border-white/[0.09] bg-white/[0.045] shadow-[0_48px_120px_-30px_rgba(0,0,0,0.95)]",
+              size === "lg" ? "max-w-2xl" : "max-w-md",
+            )}
             style={{ borderRadius: "var(--r-card)", padding: "var(--bezel)" }}
             initial={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

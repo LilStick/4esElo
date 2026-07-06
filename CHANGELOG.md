@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : détail de match en modale (clic sur un match) — K/D/A, ADR, HS%, clutch 1v1/1v2, entry, multi-kills, utilitaire, ±ELO + lien room Faceit. (#201)
 - Web : dates des matchs en relatif (« il y a 2 h », « hier »…) sur le profil, date complète au survol. (#206)
 - Web : bouton « Partager » sur le profil — copie le lien du joueur + feedback « Lien copié » animé. (#202)
 - Wrapped : le moteur d'awards mensuels (🐀💨🧀📉🔥🧠🌙⏰👻, punchlines incluses) + `GET /wrapped/:year/:month` (awards du pôle) et `/wrapped/:year/:month/:playerId` (récap perso : top map, temps de jeu, ELO, percentiles). La carte partageable (#155) est débloquée. (#154)
