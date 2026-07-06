@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : section « Records du pôle » sur le home — plus haut ELO, meilleur K/D, meilleur winrate, plus de matchs (joueur + valeur, cliquable). (#204)
 - Web : hint « heures de jeu privées » sur le profil (si Steam en privé) avec lien vers le réglage. (#162)
 - Web : colonne Rating (façon HLTV, calculé en front, coloré) dans les matchs récents du profil + en vedette dans la modale de détail. (#138)
 - Web : détail de match en modale (clic sur un match) — K/D/A, ADR, HS%, clutch 1v1/1v2, entry, multi-kills, utilitaire, ±ELO + lien room Faceit. (#201)
