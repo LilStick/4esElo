@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : page « Nouveautés » (`/changelog`) — rend le CHANGELOG groupé par date, badges par domaine, tickets liés à GitHub ; entrée nav + palette. (#172)
 - Web : palette de commande (Ctrl/Cmd+K) réécrite sur cmdk — groupes Pages/Joueurs, filtrage fuzzy et nav clavier natifs, style double-bezel + aide clavier. (#190)
 - Web : mini-sparkline d'ELO par ligne du classement (12 derniers points, colorée selon la pente, dégradé discret), via `?sparkline=N`. (#108)
 - Web : home transformée en landing — hero identité + stats du pôle (membres, ELO moyen, top ELO, niveau moyen), podium top 3, rail de blocs (Joueur du jour, Grimpeur de la semaine, En jeu, Mouvements, CTA Discord) et aperçu classement, en pleine largeur. (#193)

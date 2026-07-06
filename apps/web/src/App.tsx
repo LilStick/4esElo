@@ -5,6 +5,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Asso } from "./pages/Asso";
 import { Player } from "./pages/Player";
+import { Changelog } from "./pages/Changelog";
 import { Styleguide } from "./pages/Styleguide";
 import { NotFound } from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ function AnimatedRoutes() {
           <Route path="/classement" element={<Leaderboard />} />
           <Route path="/asso" element={<Asso />} />
           <Route path="/player/:id" element={<Player />} />
+          <Route path="/changelog" element={<Changelog />} />
           {/* Charte / styleguide : accessible en direct, volontairement absente du nav. */}
           <Route path="/charte" element={<Styleguide />} />
           <Route path="*" element={<NotFound />} />

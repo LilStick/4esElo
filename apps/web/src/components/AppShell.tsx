@@ -1,7 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { TbInfoCircle, TbLayoutDashboard, TbMenu2, TbSearch, TbTrophy, TbX } from "react-icons/tb";
+import {
+  TbInfoCircle,
+  TbLayoutDashboard,
+  TbMenu2,
+  TbSearch,
+  TbSparkles,
+  TbTrophy,
+  TbX,
+} from "react-icons/tb";
 import { cn } from "../lib/cn";
 import { CommandPalette } from "./CommandPalette";
 import lockup from "../assets/logo/4esElo_lockup_transparent.png";
@@ -31,6 +39,7 @@ const NAV = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard, end: true },
   { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle, end: false },
+  { to: "/changelog", label: "Nouveautés", icon: TbSparkles, end: false },
 ];
 
 function Brand() {
