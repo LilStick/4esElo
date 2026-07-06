@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : home refondue — hero cinématique (fond de_Ancient + CTA), 4 widgets côte à côte (Joueur du jour, Grimpeur, En jeu, Mouvements), aperçu classement (top 5 + « voir les autres »), bannière Discord ; transition de page sans flicker (largeur portée par la page, scroll remis en haut). (#211)
 - Web : ±ELO par match dans les matchs récents du profil (colonne colorée, « – » si non récupéré). (#200)
 - Web : classement en ladder par paliers de niveau (bandeaux « Niveau 10/9/8… » + compteur), #1 mis en avant (couronne) ; podium et bascule ELO/Niveau retirés (redondants avec les paliers). (#199)
 - Web : footer global (collé en bas du viewport) — crédits (LilStick & luminescence, liens GitHub) + réseaux de l'asso (Discord, Instagram, X, site 4eSport). (#171)
