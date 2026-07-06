@@ -99,7 +99,7 @@ Repo : **LilStick/4esElo** (privé). Le suivi vit sur GitHub, lisible via `gh` :
 - **Epics** = blocs, titrés `EPIC B<n> · …` ; **tickets** = `B<n>.<x> · …` (ID logique dans le titre).
 - **Labels de propriété** : `lilstick` (back/API/data) · `arthur` (front/UI/design).
 - Workflow branches + pilotage via Claude Code : voir [CONTRIBUTING.md](./CONTRIBUTING.md).
-- Prochain bloc : **B3 — Profil enrichi** (Arthur, débloqué) · côté back : B11 (durcissement) puis B12 (mise en ligne).
+- En cours : **B11** (durcissement, back) · **B13-B16** (front, Arthur) · **B7** (Wrapped). La frise live : `node scripts/timeline.mjs`.
 
 ```bash
 gh issue list --label lilstick --state open
