@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : mini-sparkline d'ELO par ligne du classement (12 derniers points, colorée selon la pente, dégradé discret), via `?sparkline=N`. (#108)
 - Web : home transformée en landing — hero identité + stats du pôle (membres, ELO moyen, top ELO, niveau moyen), podium top 3, rail de blocs (Joueur du jour, Grimpeur de la semaine, En jeu, Mouvements, CTA Discord) et aperçu classement, en pleine largeur. (#193)
 - Web : delta d'ELO sur 7 j par ligne du classement — ±points colorés entre le rang et l'avatar (« – » si stable/non suivi), via `/leaderboard/movers`. (#107)
 - Web : widget « En jeu maintenant » sur la home — membres actifs (en jeu CS2 / match Faceit / en ligne) via `/presence`, auto-refresh 60 s ; widgets home resserrés à 1 vedette + « Voir tout » vers une modale double-bezel scrollable. (#117)

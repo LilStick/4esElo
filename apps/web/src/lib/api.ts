@@ -18,8 +18,9 @@ async function get<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export function getLeaderboard(source: EloSource = "faceit") {
-  return get<LeaderboardResponse>(`/leaderboard?source=${source}`);
+export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
+  const spark = sparkline ? `&sparkline=${sparkline}` : "";
+  return get<LeaderboardResponse>(`/leaderboard?source=${source}${spark}`);
 }
 
 export function getMovers(window: MoversWindow = "24h", source: EloSource = "faceit") {
