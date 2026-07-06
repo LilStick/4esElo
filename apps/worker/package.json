@@ -13,6 +13,7 @@
   "dependencies": {
     "@4eselo/db": "workspace:*",
     "@4eselo/faceit": "workspace:*",
+    "@4eselo/steam": "workspace:*",
     "@4eselo/types": "workspace:*",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.36.4"

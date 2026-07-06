@@ -2,7 +2,7 @@ import "./env";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, eq } from "drizzle-orm";
-import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
   PlayerDetail,
   EloCurveResponse,
@@ -140,6 +140,15 @@ test("GET /players/:id returns profile, latest elo and chronological history", {
   assert.equal(body.history.length, 2);
   assert.equal(body.history[0]!.elo, 1000); // oldest first
   assert.equal(body.history[1]!.elo, 1100);
+  assert.equal(body.playtimePrivate, null); // jamais échantillonné
+});
+
+test("GET /players/:id flags private playtime from the last snapshot", { skip }, async () => {
+  await db.insert(playtimeSnapshots).values({ playerId, minutesForever: null });
+  const res = await app.request(`/players/${playerId}`);
+  const body = (await res.json()) as PlayerDetail;
+  assert.equal(body.playtimePrivate, true);
+  await db.delete(playtimeSnapshots).where(eq(playtimeSnapshots.playerId, playerId));
 });
 
 test("GET /players/:id returns 404 for an unknown id", { skip }, async () => {

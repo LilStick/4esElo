@@ -1,11 +1,13 @@
-import { FACEIT_API_KEY, WORKER_INTERVAL_MS } from "./env";
+import { FACEIT_API_KEY, STEAM_API_KEY, WORKER_INTERVAL_MS } from "./env";
 import { db, players } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient } from "@4eselo/faceit";
+import { SteamClient } from "@4eselo/steam";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
 import { attributeEloAfter } from "./eloAfter";
-import { dbStore, dbMatchStatsStore } from "./store";
+import { samplePlaytime } from "./playtime";
+import { dbStore, dbMatchStatsStore, dbPlaytimeStore } from "./store";
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
@@ -22,6 +24,26 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 async function runOnce(faceit: FaceitClient): Promise<void> {
+  if (STEAM_API_KEY) {
+    try {
+      const withSteam = await db
+        .select({ id: players.id, steamId64: players.steamId64 })
+        .from(players)
+        .where(isNotNull(players.steamId64));
+      const steam = new SteamClient({ apiKey: STEAM_API_KEY });
+      const pt = await samplePlaytime(
+        steam,
+        dbPlaytimeStore,
+        withSteam.map((r) => ({ id: r.id, steamId64: r.steamId64 as string })),
+      );
+      if (pt.sampled > 0 || pt.failed > 0) {
+        console.log(`[worker] playtime: +${pt.sampled} (privés ${pt.failed}, déjà fait ${pt.skipped})`);
+      }
+    } catch (err) {
+      console.error("[worker] playtime failed:", err instanceof Error ? err.message : err);
+    }
+  }
+
   const rows = await db
     .select({ id: players.id, faceitId: players.faceitId })
     .from(players)

@@ -13,6 +13,7 @@ import { z } from "zod";
 
 const CS2_APP_ID = "730";
 const API = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/";
+const OWNED_GAMES = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/";
 const COMMUNITY = "https://steamcommunity.com/profiles";
 
 export class SteamError extends Error {
@@ -37,6 +38,22 @@ export interface SteamPresence {
 export interface PresenceReader {
   getPresence(steamIds: string[]): Promise<SteamPresence[]>;
 }
+
+export interface SteamPlaytime {
+  steamId64: string;
+  /** Lifetime CS2 minutes; null when unreadable (private profile, error). */
+  minutesForever: number | null;
+}
+
+export interface PlaytimeReader {
+  getPlaytime(steamIds: string[]): Promise<SteamPlaytime[]>;
+}
+
+const ownedGamesSchema = z.object({
+  response: z.object({
+    games: z.array(z.object({ appid: z.number(), playtime_forever: z.number() })).optional(),
+  }),
+});
 
 const summariesSchema = z.object({
   response: z.object({
@@ -69,6 +86,28 @@ export class SteamClient implements PresenceReader {
   async getPresence(steamIds: string[]): Promise<SteamPresence[]> {
     if (steamIds.length === 0) return [];
     return this.apiKey ? this.viaApi(steamIds, this.apiKey) : this.viaXml(steamIds);
+  }
+
+  /** Lifetime CS2 playtime, one call per id (no batch on this endpoint). Requires a key. */
+  async getPlaytime(steamIds: string[]): Promise<SteamPlaytime[]> {
+    if (!this.apiKey) throw new SteamError(401, "getPlaytime requires STEAM_API_KEY");
+    const out: SteamPlaytime[] = [];
+    for (const id of steamIds) {
+      try {
+        const url = new URL(OWNED_GAMES);
+        url.searchParams.set("key", this.apiKey);
+        url.searchParams.set("steamid", id);
+        url.searchParams.set("appids_filter[0]", CS2_APP_ID);
+        const res = await this.fetchImpl(url);
+        if (!res.ok) throw new SteamError(res.status);
+        const { response } = ownedGamesSchema.parse(await res.json());
+        const cs2 = response.games?.find((g) => String(g.appid) === CS2_APP_ID);
+        out.push({ steamId64: id, minutesForever: cs2?.playtime_forever ?? null });
+      } catch {
+        out.push({ steamId64: id, minutesForever: null });
+      }
+    }
+    return out;
   }
 
   private async viaApi(steamIds: string[], apiKey: string): Promise<SteamPresence[]> {

@@ -148,6 +148,9 @@ importers:
       '@4eselo/faceit':
         specifier: workspace:*
         version: link:../../packages/faceit
+      '@4eselo/steam':
+        specifier: workspace:*
+        version: link:../../packages/steam
       '@4eselo/types':
         specifier: workspace:*
         version: link:../../packages/types

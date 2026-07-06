@@ -59,6 +59,8 @@ export interface EloPoint {
 export interface PlayerDetail extends PlayerSummary {
   createdAt: string;
   history: EloPoint[];
+  /** true = ses heures de jeu Steam sont privées (hint front) ; null = pas encore échantillonné. */
+  playtimePrivate?: boolean | null;
 }
 
 export interface LeaderboardResponse {
