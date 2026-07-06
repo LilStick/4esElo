@@ -21,7 +21,7 @@ export function PlayerOfTheDay() {
   const worst = losers.at(-1);
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <Card className="flex h-full flex-col gap-3 p-4">
       <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
         <TbFlame size={14} className="text-brand" />
         Joueur du jour
@@ -37,7 +37,7 @@ export function PlayerOfTheDay() {
         </div>
       ) : best ? (
         <>
-          <Link to={`/player/${best.id}`} className="group flex items-center gap-3">
+          <Link to={`/player/${best.id}`} className="group flex cursor-pointer items-center gap-3">
             <Avatar name={nameOf(best)} size={40} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
@@ -52,11 +52,11 @@ export function PlayerOfTheDay() {
           </Link>
 
           {worst && (
-            <div className="border-t border-white/[0.06] pt-2 text-xs text-ink-dim">
+            <div className="mt-auto border-t border-white/[0.06] pt-2 text-xs text-ink-dim">
               Plus grosse chute :{" "}
               <Link
                 to={`/player/${worst.id}`}
-                className="font-semibold text-ink transition-colors hover:text-brand-hi"
+                className="cursor-pointer font-semibold text-ink transition-colors hover:text-brand-hi"
               >
                 {nameOf(worst)}
               </Link>{" "}

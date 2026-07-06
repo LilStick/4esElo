@@ -4,6 +4,7 @@ export { Button } from "./Button";
 export { EloGauge } from "./EloGauge";
 export { LevelBadge } from "./LevelBadge";
 export { MapIcon } from "./MapIcon";
+export { Modal } from "./Modal";
 export { HoverBarList } from "./HoverBarList";
 export { RangeTabs } from "./RangeTabs";
 export { Skeleton } from "./Skeleton";
