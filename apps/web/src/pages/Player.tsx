@@ -6,6 +6,7 @@ import {
   TbArrowLeft,
   TbChartBar,
   TbExternalLink,
+  TbLock,
   TbMap2,
   TbRadar2,
   TbSwords,
@@ -135,6 +136,24 @@ export function Player() {
                 </div>
               </div>
               <ShareButton className="w-full" />
+
+              {data.playtimePrivate === true && (
+                <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
+                  <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
+                  <span>
+                    Heures de jeu privées — passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
+                    <a
+                      href="https://steamcommunity.com/my/edit/settings"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-loss underline-offset-2 hover:underline"
+                    >
+                      Steam
+                    </a>{" "}
+                    pour apparaître dans les stats de temps de jeu.
+                  </span>
+                </div>
+              )}
             </Card>
 
             <ActivityHeatmap id={id} />
