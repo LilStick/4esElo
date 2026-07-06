@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { TbArrowRight, TbDeviceGamepad2, TbFlame, TbTrendingUp } from "react-icons/tb";
+import { TbArrowRight, TbDeviceGamepad2, TbTrendingUp } from "react-icons/tb";
 import type { IconType } from "react-icons";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { PlayerOfTheDay } from "../components/PlayerOfTheDay";
 import { useTitle } from "../lib/useTitle";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -41,7 +42,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <SoonWidget icon={TbFlame} title="Joueur du jour" />
+        <PlayerOfTheDay />
         <SoonWidget icon={TbTrendingUp} title="Mouvements récents" />
         <SoonWidget icon={TbDeviceGamepad2} title="En jeu maintenant" />
       </div>

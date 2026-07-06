@@ -2,6 +2,8 @@ import type {
   EloSource,
   LeaderboardResponse,
   MatchesResponse,
+  MoversResponse,
+  MoversWindow,
   PlayerDetail,
   PlayerStatsResponse,
   StatsRange,
@@ -17,6 +19,10 @@ async function get<T>(path: string): Promise<T> {
 
 export function getLeaderboard(source: EloSource = "faceit") {
   return get<LeaderboardResponse>(`/leaderboard?source=${source}`);
+}
+
+export function getMovers(window: MoversWindow = "24h", source: EloSource = "faceit") {
+  return get<MoversResponse>(`/leaderboard/movers?window=${window}&source=${source}`);
 }
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
