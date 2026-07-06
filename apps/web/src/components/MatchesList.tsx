@@ -4,12 +4,11 @@ import type { MatchSummary } from "@4eselo/types";
 import { getPlayerMatches } from "../lib/api";
 import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
+import { relativeTime, fullDate } from "../lib/relativeTime";
 import { EmptyState } from "./EmptyState";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
 const faceitRoom = (id: string) => `https://www.faceit.com/fr/cs2/room/${id}`;
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 
 function MatchRowContent({ m }: { m: MatchSummary }) {
   const win = m.result === 1;
@@ -27,7 +26,9 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
       <MapIcon map={m.map} size={30} />
       <div className="min-w-0 flex-1">
         <div className="truncate font-semibold">{prettyMap(m.map)}</div>
-        <div className="text-xs text-ink-dim">{fmtDate(m.playedAt)}</div>
+        <div className="text-xs text-ink-dim" title={fullDate(m.playedAt)}>
+          {relativeTime(m.playedAt)}
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-6 font-mono text-sm font-semibold tabular-nums sm:gap-9">
         <span className="w-16 text-right">
