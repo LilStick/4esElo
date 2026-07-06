@@ -22,6 +22,7 @@ import { MatchesList } from "../components/MatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { EloSummaryCard } from "../components/EloSummaryCard";
+import { ShareButton } from "../components/ShareButton";
 import { useTitle } from "../lib/useTitle";
 
 function PlayerSkeleton() {
@@ -133,6 +134,7 @@ export function Player() {
                   )}
                 </div>
               </div>
+              <ShareButton className="w-full" />
             </Card>
 
             <ActivityHeatmap id={id} />
