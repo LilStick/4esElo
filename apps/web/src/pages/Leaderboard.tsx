@@ -1,15 +1,35 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
-import { getLeaderboard } from "../lib/api";
+import { getLeaderboard, getMovers } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+
+/** Delta d'ELO sur 7 j (±points), entre le rang et l'avatar — « – » si nul / non suivi. */
+function EloDelta({ delta }: { delta: number | null | undefined }) {
+  if (delta == null || delta === 0) {
+    return <span className="w-10 text-center font-mono text-xs text-ink-faint">–</span>;
+  }
+  const up = delta > 0;
+  return (
+    <span
+      className={cn(
+        "w-10 text-center font-mono text-xs font-bold tabular-nums",
+        up ? "text-win" : "text-loss",
+      )}
+      title="Δ ELO sur 7 j"
+    >
+      {up ? "+" : ""}
+      {delta}
+    </span>
+  );
+}
 const norm = (s: string) =>
   s
     .toLowerCase()
@@ -102,6 +122,11 @@ export function Leaderboard() {
     queryKey: ["leaderboard", "faceit"],
     queryFn: () => getLeaderboard("faceit"),
   });
+  const { data: moversData } = useQuery({ queryKey: ["movers", "7d"], queryFn: () => getMovers("7d") });
+  const eloMove = useMemo(
+    () => new Map((moversData?.movers ?? []).map((m) => [m.id, m.delta])),
+    [moversData],
+  );
 
   const board = data?.leaderboard ?? [];
   const byLevel = sort === "level";
@@ -184,6 +209,7 @@ export function Leaderboard() {
             children={(e) => (
               <>
                 <span className="w-5 text-center font-mono font-bold text-ink-faint">{e.rank}</span>
+                <EloDelta delta={eloMove.get(e.id)} />
                 <Avatar name={nameOf(e)} size={34} />
                 <LevelBadge level={e.level} size={24} />
                 <span className="flex-1 truncate font-semibold">{nameOf(e)}</span>
