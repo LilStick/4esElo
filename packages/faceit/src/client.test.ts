@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FaceitClient, FaceitNotFoundError } from "./client";
+import { FaceitClient, FaceitError, FaceitNotFoundError } from "./client";
 
 // A fake fetch that returns a canned Response and records the last request.
 function fakeFetch(response: Response) {
@@ -85,4 +85,86 @@ test("getMatchHistory normalizes items and converts timestamps", async () => {
   assert.equal(matches[0]!.startedAt.getTime(), 1_700_000_000 * 1000);
   assert.equal(matches[0]!.finishedAt?.getTime(), 1_700_003_600 * 1000);
   assert.equal(matches[1]!.finishedAt, null);
+});
+
+// ——— B11.2 : timeout, retry & backoff ———
+
+function flaky(responses: (Response | Error)[]): { fetch: typeof fetch; calls: number } {
+  const state = { calls: 0 };
+  const f = (async () => {
+    const r = responses[Math.min(state.calls, responses.length - 1)]!;
+    state.calls += 1;
+    if (r instanceof Error) throw r;
+    return r.clone();
+  }) as typeof fetch;
+  return {
+    fetch: f,
+    get calls() {
+      return state.calls;
+    },
+  };
+}
+
+const okPlayer = () =>
+  new Response(
+    JSON.stringify({
+      player_id: "fc-1",
+      nickname: "noe",
+      games: { cs2: { skill_level: 8, faceit_elo: 1800 } },
+    }),
+    { status: 200 },
+  );
+const noSleepOpts = { sleep: async () => {} };
+
+test("B11.2: retries a 503 then succeeds", async () => {
+  const mock = flaky([new Response("oops", { status: 503 }), okPlayer()]);
+  const client = new FaceitClient("k", { fetchImpl: mock.fetch, ...noSleepOpts });
+  const p = await client.getPlayerById("fc-1");
+  assert.equal(p.nickname, "noe");
+  assert.equal(mock.calls, 2);
+});
+
+test("B11.2: respects Retry-After on 429", async () => {
+  const sleeps: number[] = [];
+  const mock = flaky([
+    new Response("slow down", { status: 429, headers: { "Retry-After": "2" } }),
+    okPlayer(),
+  ]);
+  const client = new FaceitClient("k", {
+    fetchImpl: mock.fetch,
+    sleep: async (ms) => {
+      sleeps.push(ms);
+    },
+  });
+  await client.getPlayerById("fc-1");
+  assert.deepEqual(sleeps, [2000]);
+});
+
+test("B11.2: network errors are retried", async () => {
+  const mock = flaky([new Error("ECONNRESET"), okPlayer()]);
+  const client = new FaceitClient("k", { fetchImpl: mock.fetch, ...noSleepOpts });
+  await client.getPlayerById("fc-1");
+  assert.equal(mock.calls, 2);
+});
+
+test("B11.2: exhausted retries throw the last FaceitError", async () => {
+  const mock = flaky([new Response("down", { status: 503 })]);
+  const client = new FaceitClient("k", { fetchImpl: mock.fetch, maxAttempts: 3, ...noSleepOpts });
+  await assert.rejects(
+    () => client.getPlayerById("fc-1"),
+    (e: FaceitError) => e instanceof FaceitError && e.status === 503,
+  );
+  assert.equal(mock.calls, 3);
+});
+
+test("B11.2: 404 and other 4xx are NOT retried", async () => {
+  const notFound = flaky([new Response("nope", { status: 404 })]);
+  const c1 = new FaceitClient("k", { fetchImpl: notFound.fetch, ...noSleepOpts });
+  await assert.rejects(() => c1.getPlayerById("x"), FaceitNotFoundError);
+  assert.equal(notFound.calls, 1);
+
+  const forbidden = flaky([new Response("bad key", { status: 403 })]);
+  const c2 = new FaceitClient("k", { fetchImpl: forbidden.fetch, ...noSleepOpts });
+  await assert.rejects(() => c2.getPlayerById("x"), FaceitError);
+  assert.equal(forbidden.calls, 1);
 });
