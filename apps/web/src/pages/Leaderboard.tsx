@@ -7,6 +7,7 @@ import { getLeaderboard, getMovers } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { PodiumCard } from "../components/PodiumCard";
+import { Sparkline } from "../components/Sparkline";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 
@@ -81,8 +82,8 @@ export function Leaderboard() {
   const [sort, setSort] = useState<Sort>("elo");
   const [q, setQ] = useState("");
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["leaderboard", "faceit"],
-    queryFn: () => getLeaderboard("faceit"),
+    queryKey: ["leaderboard", "faceit", "spark12"],
+    queryFn: () => getLeaderboard("faceit", 12),
   });
   const { data: moversData } = useQuery({ queryKey: ["movers", "7d"], queryFn: () => getMovers("7d") });
   const eloMove = useMemo(
@@ -175,7 +176,10 @@ export function Leaderboard() {
                 <Avatar name={nameOf(e)} size={34} />
                 <LevelBadge level={e.level} size={24} />
                 <span className="flex-1 truncate font-semibold">{nameOf(e)}</span>
-                <span className="font-mono text-[15px] font-bold text-brand tabular-nums">
+                {e.sparkline && e.sparkline.length > 1 && (
+                  <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
+                )}
+                <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
                   {e.elo ?? "—"}
                 </span>
                 <TbArrowRight className="text-ink-faint" size={17} />
