@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : delta d'ELO sur 7 j par ligne du classement — ±points colorés entre le rang et l'avatar (« – » si stable/non suivi), via `/leaderboard/movers`. (#107)
 - Web : widget « En jeu maintenant » sur la home — membres actifs (en jeu CS2 / match Faceit / en ligne) via `/presence`, auto-refresh 60 s ; widgets home resserrés à 1 vedette + « Voir tout » vers une modale double-bezel scrollable. (#117)
 - Web : widget « Mouvements récents » sur la home — plus grosses montées/descentes d'ELO sur 7 jours (▲▼ + delta coloré, cliquable), état vide si semaine calme. (#116)
 - Web : widget « Joueur du jour » sur la home — plus gros gain d'ELO sur 24h (avatar, pseudo, +ELO, cliquable) + mention de la plus grosse chute, état vide si personne n'a bougé. (#115)
