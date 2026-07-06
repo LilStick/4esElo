@@ -61,6 +61,8 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Discord** : notifs repo → salon (PR ouverte, CI échouée…) via webhook `/github` (gratuit, immédiat) · auto-post après match · /stats & /leaderboard · sync de rôles par niveau · digest quotidien · **proposition validée par emote** (réagir ✅ pour créer un ticket / merger — nécessite un bot custom, voir B6).
 
+**Communauté** : promo EFREI à l'inscription ✅ voté (profils par promo, filtre classement, statut Alumni 🎓 auto — design dans l'epic B6 #14) · onglet « S'inscrire » (process + invite Discord).
+
 **Gamification** : succès déblocables · course au titre de saison + hall of fame · XP/level d'asso · jeu de pronostics · rivalries auto-détectées · bounties/challenges de la semaine.
 
 **Outillage (DX)** : skill **`/gen-readme`** — régénère le `README.md` pour qu'il colle **fidèlement à l'état réel du repo** (structure, commandes, endpoints, avancement) en inspectant le code + les issues. Même famille que `repo-catchup` (docs auto à jour).
