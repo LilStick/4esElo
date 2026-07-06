@@ -72,6 +72,7 @@ Monorepo **pnpm** en **TypeScript** (ESM).
 | `apps/bot`        | Bot Discord `/register` (à venir) | discord.js                                                      |
 | `packages/db`     | Schéma + client                   | Drizzle + PostgreSQL                                            |
 | `packages/faceit` | Client typé de l'API Faceit       | zod                                                             |
+| `packages/steam`  | Présence Steam (qui est en jeu)   | zod                                                             |
 | `packages/types`  | Types partagés front/back         | —                                                               |
 
 ## Commandes utiles
