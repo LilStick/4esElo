@@ -53,6 +53,9 @@ jobs:
       - name: Format (Prettier)
         run: pnpm format:check
 
+      - name: Build web
+        run: pnpm --filter @4eselo/web build
+
       - name: Tests (unit + intégration)
         run: pnpm test
 
