@@ -1,5 +1,6 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { WEB_ORIGINS } from "./env";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
@@ -18,11 +19,22 @@ import type {
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { getPresence } from "./presence";
 
-const SOURCES: EloSource[] = ["faceit", "premier"];
+const sourceSchema = z.enum(["faceit", "premier"]).default("faceit");
+const uuidSchema = z.string().uuid();
 
-function parseSource(raw: string | undefined): EloSource {
-  return SOURCES.includes(raw as EloSource) ? (raw as EloSource) : "faceit";
+/** `?source=` validé ; null → une 400 a déjà été renvoyée. */
+function readSource(c: Context): EloSource | null {
+  const parsed = sourceSchema.safeParse(c.req.query("source"));
+  return parsed.success ? parsed.data : null;
 }
+
+/** `:id` validé UUID ; null → 400 à renvoyer. */
+function readPlayerId(c: Context): string | null {
+  const parsed = uuidSchema.safeParse(c.req.param("id"));
+  return parsed.success ? parsed.data : null;
+}
+
+const badRequest = (c: Context, error: string) => c.json({ error }, 400);
 
 async function eloHistory(playerId: string, source: EloSource) {
   const rows = await db
@@ -34,9 +46,22 @@ async function eloHistory(playerId: string, source: EloSource) {
 }
 
 export const app = new Hono();
-app.use("*", cors());
+app.use("*", cors({ origin: WEB_ORIGINS }));
 
-app.get("/health", (c) => c.json({ ok: true }));
+// Une erreur imprévue (DB down…) → 500 structuré, jamais de stack trace au client.
+app.onError((err, c) => {
+  console.error(`[api] ${c.req.method} ${c.req.path} failed:`, err.message);
+  return c.json({ error: "internal error" }, 500);
+});
+
+app.get("/health", async (c) => {
+  try {
+    await db.execute(sql`select 1`);
+    return c.json({ ok: true, db: true });
+  } catch {
+    return c.json({ ok: false, db: false }, 503);
+  }
+});
 
 app.get("/presence", async (c) => {
   const rows = await db
@@ -58,7 +83,8 @@ const windowSchema = z.enum(["24h", "7d"]).default("24h");
 
 // NOTE: declared before /leaderboard so Hono matches the static path first.
 app.get("/leaderboard/movers", async (c) => {
-  const source = parseSource(c.req.query("source"));
+  const source = readSource(c);
+  if (!source) return badRequest(c, "invalid source (faceit|premier)");
   const parsed = windowSchema.safeParse(c.req.query("window"));
   if (!parsed.success) return c.json({ error: "invalid window (24h|7d)" }, 400);
   const window = parsed.data;
@@ -111,7 +137,8 @@ app.get("/leaderboard/movers", async (c) => {
 });
 
 app.get("/leaderboard", async (c) => {
-  const source = parseSource(c.req.query("source"));
+  const source = readSource(c);
+  if (!source) return badRequest(c, "invalid source (faceit|premier)");
   const sparkParsed = sparklineSchema.safeParse(c.req.query("sparkline"));
   if (!sparkParsed.success) return c.json({ error: "invalid sparkline (1-50)" }, 400);
   const sparkline = sparkParsed.data;
@@ -165,8 +192,10 @@ app.get("/leaderboard", async (c) => {
 });
 
 app.get("/players/:id", async (c) => {
-  const id = c.req.param("id");
-  const source = parseSource(c.req.query("source"));
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const source = readSource(c);
+  if (!source) return badRequest(c, "invalid source (faceit|premier)");
 
   const [player] = await db.select().from(players).where(eq(players.id, id)).limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
@@ -201,8 +230,10 @@ app.get("/players/:id", async (c) => {
 });
 
 app.get("/players/:id/elo", async (c) => {
-  const id = c.req.param("id");
-  const source = parseSource(c.req.query("source"));
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const source = readSource(c);
+  if (!source) return badRequest(c, "invalid source (faceit|premier)");
   return c.json<EloCurveResponse>({ source, points: await eloHistory(id, source) });
 });
 
@@ -212,7 +243,8 @@ const paginationSchema = z.object({
 });
 
 app.get("/players/:id/matches", async (c) => {
-  const id = c.req.param("id");
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
   const parsed = paginationSchema.safeParse({
     limit: c.req.query("limit"),
     offset: c.req.query("offset"),
@@ -252,7 +284,8 @@ app.get("/players/:id/matches", async (c) => {
 const rangeSchema = z.enum(RANGES).default("all");
 
 app.get("/players/:id/stats", async (c) => {
-  const id = c.req.param("id");
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
   const parsed = rangeSchema.safeParse(c.req.query("range"));
   if (!parsed.success) return c.json({ error: "invalid range (7d|30d|3m|all)" }, 400);
   const range = parsed.data;
