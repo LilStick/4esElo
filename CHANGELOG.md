@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Worker : client Faceit résilient — timeout 10 s, retry avec backoff exponentiel + jitter sur 429/5xx/réseau, `Retry-After` respecté, jamais de retry sur 4xx. (#62)
 - API : durcissement — zod sur `source` et les `:id` (400 explicites), CORS restreint à l'origine du front, erreurs 500 structurées sans stack trace, `/health` vérifie la DB. (#61)
 - Worker : backfill ELO opportuniste (vote ✅ 2/0) — courbes rétro reconstruites (jusqu'à mai 2024 !) et vrai ±ELO par match (`eloDelta` exposé sur `/players/:id/matches`), via transport curl. Les 6 membres backfillés au premier essai. (#141)
 - Worker : échantillonnage quotidien du temps de jeu CS2 (Steam) — base de l'award ⏰ du Wrapped ; heures privées détectées et exposées via `playtimePrivate` sur `/players/:id`. (#153)

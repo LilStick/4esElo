@@ -29,10 +29,25 @@ export class FaceitNotFoundError extends FaceitError {}
 export interface FaceitClientOptions {
   /** Injectable for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
+  /** Retries on 429/5xx/network errors (B11.2). Default 3 attempts total. */
+  maxAttempts?: number;
+  /** First backoff delay; doubles each attempt, with jitter. */
+  baseDelayMs?: number;
+  /** Per-request timeout (AbortController). */
+  timeoutMs?: number;
+  /** Injectable for tests. */
+  sleep?: (ms: number) => Promise<void>;
 }
+
+/** 429 (respecting Retry-After) and 5xx are transient; other 4xx are not. */
+const isRetryableStatus = (status: number) => status === 429 || status >= 500;
 
 export class FaceitClient {
   private readonly fetchImpl: typeof fetch;
+  private readonly maxAttempts: number;
+  private readonly baseDelayMs: number;
+  private readonly timeoutMs: number;
+  private readonly sleep: (ms: number) => Promise<void>;
 
   constructor(
     private readonly apiKey: string,
@@ -40,6 +55,10 @@ export class FaceitClient {
   ) {
     if (!apiKey) throw new Error("FaceitClient requires an API key");
     this.fetchImpl = opts.fetchImpl ?? fetch;
+    this.maxAttempts = opts.maxAttempts ?? 3;
+    this.baseDelayMs = opts.baseDelayMs ?? 500;
+    this.timeoutMs = opts.timeoutMs ?? 10_000;
+    this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 
   private async get(path: string, params: Record<string, string | number> = {}): Promise<unknown> {
@@ -47,12 +66,41 @@ export class FaceitClient {
     for (const [k, v] of Object.entries(params)) {
       url.searchParams.set(k, String(v));
     }
-    const res = await this.fetchImpl(url, {
-      headers: { Authorization: `Bearer ${this.apiKey}` },
-    });
-    if (res.status === 404) throw new FaceitNotFoundError(404, path);
-    if (!res.ok) throw new FaceitError(res.status, path, await res.text().catch(() => undefined));
-    return res.json();
+
+    let lastError: FaceitError | undefined;
+    for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
+      let res: Response;
+      try {
+        res = await this.fetchImpl(url, {
+          headers: { Authorization: `Bearer ${this.apiKey}` },
+          signal: AbortSignal.timeout(this.timeoutMs),
+        });
+      } catch (err) {
+        // Network error or timeout — transient by nature.
+        lastError = new FaceitError(0, path, err instanceof Error ? err.message : String(err));
+        await this.backoff(attempt);
+        continue;
+      }
+
+      if (res.status === 404) throw new FaceitNotFoundError(404, path);
+      if (res.ok) return res.json();
+      if (!isRetryableStatus(res.status)) {
+        throw new FaceitError(res.status, path, await res.text().catch(() => undefined));
+      }
+
+      lastError = new FaceitError(res.status, path);
+      const retryAfter = Number(res.headers.get("Retry-After"));
+      if (Number.isFinite(retryAfter) && retryAfter > 0) await this.sleep(retryAfter * 1000);
+      else await this.backoff(attempt);
+    }
+    throw lastError ?? new FaceitError(0, path, "retries exhausted");
+  }
+
+  /** Exponential backoff with jitter; no sleep after the final attempt. */
+  private async backoff(attempt: number): Promise<void> {
+    if (attempt >= this.maxAttempts) return;
+    const base = this.baseDelayMs * 2 ** (attempt - 1);
+    await this.sleep(base * (0.5 + Math.random() * 0.5));
   }
 
   /** Resolve a CS2 player by their Faceit nickname. */
