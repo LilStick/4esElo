@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Worker : backfill ELO opportuniste (vote ✅ 2/0) — courbes rétro reconstruites (jusqu'à mai 2024 !) et vrai ±ELO par match (`eloDelta` exposé sur `/players/:id/matches`), via transport curl. Les 6 membres backfillés au premier essai. (#141)
 - Worker : échantillonnage quotidien du temps de jeu CS2 (Steam) — base de l'award ⏰ du Wrapped ; heures privées détectées et exposées via `playtimePrivate` sur `/players/:id`. (#153)
 - DX : frise d'avancement des blocs (`scripts/timeline.mjs`, live depuis GitHub + ROADMAP) affichée en tête de chaque « quoi de neuf ». (#158)
 - API : `GET /presence` — qui est en ligne / en jeu CS2 / en match Faceit, via le nouveau provider `packages/steam` (clé officielle ou fallback XML) + confirmation Faceit best-effort, cache 60 s. (#147)

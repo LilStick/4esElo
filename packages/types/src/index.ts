@@ -111,6 +111,8 @@ export interface MatchSummary {
   playedAt: string; // ISO
   result: number; // 1 win, 0 loss
   eloAfter: number | null;
+  /** Vrai ±ELO du match (backfill #141) ; null tant que non récupéré. */
+  eloDelta: number | null;
   stats: FaceitMatchStats;
 }
 

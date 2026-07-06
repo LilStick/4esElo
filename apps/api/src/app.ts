@@ -242,6 +242,7 @@ app.get("/players/:id/matches", async (c) => {
     playedAt: r.playedAt.toISOString(),
     result: r.result,
     eloAfter: r.eloAfter,
+    eloDelta: r.eloDelta,
     stats: r.stats,
   }));
 

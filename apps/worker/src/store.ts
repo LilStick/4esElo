@@ -1,9 +1,10 @@
-import { db, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
 import type { EloAfterStore } from "./eloAfter";
 import type { PlaytimeStore } from "./playtime";
+import type { BackfillStore } from "./backfillElo";
 import { utcDay } from "./playtime";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
@@ -20,6 +21,50 @@ export const dbStore: SnapshotStore = {
 
   async insertSnapshot(input) {
     await db.insert(eloSnapshots).values(input);
+  },
+};
+
+/** Real BackfillStore backed by Postgres via Drizzle. */
+export const dbBackfillStore: BackfillStore = {
+  async getBackfillState(playerId) {
+    const [row] = await db
+      .select({
+        attemptedAt: players.eloBackfillAttemptedAt,
+        doneAt: players.eloBackfillDoneAt,
+      })
+      .from(players)
+      .where(eq(players.id, playerId))
+      .limit(1);
+    return row ?? { attemptedAt: null, doneAt: null };
+  },
+
+  async markAttempt(playerId, at) {
+    await db.update(players).set({ eloBackfillAttemptedAt: at }).where(eq(players.id, playerId));
+  },
+
+  async markDone(playerId, at) {
+    await db.update(players).set({ eloBackfillDoneAt: at }).where(eq(players.id, playerId));
+  },
+
+  async setMatchElo(playerId, matchId, elo, delta) {
+    await db
+      .update(faceitMatchStats)
+      .set({ eloAfter: elo, eloDelta: delta })
+      .where(and(eq(faceitMatchStats.playerId, playerId), eq(faceitMatchStats.matchId, matchId)));
+  },
+
+  async getEarliestSnapshotAt(playerId) {
+    const [row] = await db
+      .select({ capturedAt: eloSnapshots.capturedAt })
+      .from(eloSnapshots)
+      .where(and(eq(eloSnapshots.playerId, playerId), eq(eloSnapshots.source, "faceit")))
+      .orderBy(asc(eloSnapshots.capturedAt))
+      .limit(1);
+    return row?.capturedAt ?? null;
+  },
+
+  async insertSnapshots(rows) {
+    await db.insert(eloSnapshots).values(rows.map((r) => ({ ...r, source: "faceit" as const })));
   },
 };
 
