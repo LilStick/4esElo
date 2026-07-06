@@ -298,6 +298,50 @@ test("GET /leaderboard rejects an invalid sparkline with 400", { skip }, async (
   }
 });
 
+test(
+  "B11.4: /leaderboard sorts by ELO desc, latest snapshot wins, no-snapshot players last",
+  { skip },
+  async () => {
+    // ghost: no snapshot at all → elo null, ranked last
+    const [g] = await db
+      .insert(players)
+      .values({ faceitNickname: "ighost_nick", steamId64: "765_ighost" })
+      .returning({ id: players.id });
+    try {
+      const res = await app.request(`/leaderboard`);
+      assert.equal(res.status, 200);
+      const { leaderboard } = (await res.json()) as LeaderboardResponse;
+
+      const ours = leaderboard.filter((e) =>
+        ["itest_nick", "imover_nick", "ighost_nick"].includes(e.faceitNickname ?? ""),
+      );
+      // mover (1560, latest of its two snapshots) > itest (1100, latest wins over 1000) > ghost (null)
+      assert.deepEqual(
+        ours.map((e) => [e.faceitNickname, e.elo]),
+        [
+          ["imover_nick", 1560],
+          ["itest_nick", 1100],
+          ["ighost_nick", null],
+        ],
+      );
+      // ranks strictly increasing in that order, ghost after everyone with an elo
+      assert.ok(ours[0]!.rank < ours[1]!.rank && ours[1]!.rank < ours[2]!.rank);
+      const lastWithElo = Math.max(...leaderboard.filter((e) => e.elo !== null).map((e) => e.rank));
+      assert.ok(ours[2]!.rank > lastWithElo);
+    } finally {
+      await db.delete(players).where(eq(players.id, g!.id));
+    }
+  },
+);
+
+test("B11.4: /leaderboard?source=premier has no snapshots → every elo null", { skip }, async () => {
+  const res = await app.request(`/leaderboard?source=premier`);
+  const { source, leaderboard } = (await res.json()) as LeaderboardResponse;
+  assert.equal(source, "premier");
+  assert.ok(leaderboard.length >= 2);
+  assert.ok(leaderboard.every((e) => e.elo === null));
+});
+
 test("B11.1: invalid ?source= rejected with 400 everywhere", { skip }, async () => {
   for (const path of [
     `/leaderboard?source=csgo`,
