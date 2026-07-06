@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Command } from "cmdk";
-import { TbInfoCircle, TbLayoutDashboard, TbSearch, TbTrophy } from "react-icons/tb";
+import { TbInfoCircle, TbLayoutDashboard, TbSearch, TbSparkles, TbTrophy } from "react-icons/tb";
 import type { IconType } from "react-icons";
 import { useQuery } from "@tanstack/react-query";
 import type { LeaderboardEntry } from "@4eselo/types";
@@ -14,6 +14,7 @@ const PAGES: { to: string; label: string; icon: IconType }[] = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard },
   { to: "/classement", label: "Classement", icon: TbTrophy },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle },
+  { to: "/changelog", label: "Nouveautés", icon: TbSparkles },
 ];
 
 const itemCls =
