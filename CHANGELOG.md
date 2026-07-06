@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- Web : footer global (collé en bas du viewport) — crédits (LilStick & luminescence, liens GitHub) + réseaux de l'asso (Discord, Instagram, X, site 4eSport). (#171)
 - Web : page « Nouveautés » (`/changelog`) — rend le CHANGELOG groupé par date, badges par domaine, tickets liés à GitHub ; entrée nav + palette. (#172)
 - Web : palette de commande (Ctrl/Cmd+K) réécrite sur cmdk — groupes Pages/Joueurs, filtrage fuzzy et nav clavier natifs, style double-bezel + aide clavier. (#190)
 - Web : mini-sparkline d'ELO par ligne du classement (12 derniers points, colorée selon la pente, dégradé discret), via `?sparkline=N`. (#108)

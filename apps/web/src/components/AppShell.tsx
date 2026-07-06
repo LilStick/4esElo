@@ -12,6 +12,7 @@ import {
 } from "react-icons/tb";
 import { cn } from "../lib/cn";
 import { CommandPalette } from "./CommandPalette";
+import { Footer } from "./Footer";
 import lockup from "../assets/logo/4esElo_lockup_transparent.png";
 
 /** Déclencheur de la recherche globale (Ctrl/Cmd+K). */
@@ -183,7 +184,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const off = reduce ? 0 : "-100%";
 
   return (
-    <div className="min-h-full">
+    <div className="flex min-h-dvh flex-col">
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/[0.08] bg-white/[0.015] px-4 py-6 lg:flex">
         <div className="px-2">
@@ -254,9 +255,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       </AnimatePresence>
 
       {/* Contenu */}
-      <div className="lg:pl-60">
-        <main className={cn("mx-auto px-4 py-8 lg:px-8 lg:py-10", wide ? "max-w-[1560px]" : "max-w-4xl")}>
-          {children}
+      <div className="flex flex-1 flex-col lg:pl-60">
+        <main
+          className={cn(
+            "mx-auto flex w-full flex-1 flex-col px-4 py-8 lg:px-8 lg:py-10",
+            wide ? "max-w-[1560px]" : "max-w-4xl",
+          )}
+        >
+          <div className="flex-1">{children}</div>
+          <Footer />
         </main>
       </div>
 
