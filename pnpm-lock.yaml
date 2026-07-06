@@ -50,6 +50,9 @@ importers:
       '@4eselo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@4eselo/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@4eselo/faceit':
         specifier: workspace:*
         version: link:../../packages/faceit
@@ -145,6 +148,9 @@ importers:
       '@4eselo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@4eselo/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@4eselo/faceit':
         specifier: workspace:*
         version: link:../../packages/faceit
@@ -160,6 +166,9 @@ importers:
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@types/react@19.2.17)(postgres@3.4.9)(react@19.2.7)
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
 
   packages/db:
     dependencies:
@@ -179,6 +188,12 @@ importers:
       drizzle-kit:
         specifier: ^0.28.1
         version: 0.28.1
+
+  packages/env:
+    dependencies:
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
 
   packages/faceit:
     dependencies:
