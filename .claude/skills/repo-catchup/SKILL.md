@@ -7,6 +7,16 @@ description: Résume l'activité récente du repo (PR mergées, tickets, CI, com
 
 À déclencher au début d'une session (ex. après `/resume`) ou quand l'utilisateur veut faire le point.
 
+## 0. La frise d'abord (TOUJOURS)
+
+Afficher la frise d'avancement en premier — la vue d'ensemble avant le détail :
+
+```bash
+node scripts/timeline.mjs
+```
+
+(Recopier sa sortie telle quelle en tête de réponse, dans un bloc de code.)
+
 ## 1. Qui es-tu ? (auto)
 
 ```bash

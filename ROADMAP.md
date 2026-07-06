@@ -15,19 +15,20 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 | ---- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | V1   | Fondations (DB, API, worker, web, courbe ELO)                              | ✅ fait                                                                   |
 | B1   | Design & assets (charte, design system, refonte pages)                     | ✅ fait (Arthur)                                                          |
-| B2   | **Fondation data** : ingestion matchs + APIs data (courbe = forward-only)  | ✅ fait                                                                   |
-| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)       | à faire                                                                   |
+| B2   | **Fondation data** : ingestion matchs + APIs data (courbe = forward-only)  | 🔨 extension (backfill #141)                                              |
+| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)       | ✅ fait (Arthur)                                                          |
 | B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                      | à faire                                                                   |
 | B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)           | à faire                                                                   |
 | B6   | Bot Discord (/register, auto-post, commandes)                              | à faire (après B12 — inutile sans site hébergé)                           |
-| B7   | Splashy (Wrapped annuel, achievements, compare radar, AI roast)            | à faire                                                                   |
+| B7   | Splashy (Wrapped mensuel ✅ voté, achievements, AI roast)                  | 🔨 en cours                                                               |
 | B8   | Highlights (allstar.gg / Medal)                                            | à faire                                                                   |
 | B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)            | ✅ fait (Arthur)                                                          |
-| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)           | à faire                                                                   |
+| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)           | 🔨 en cours                                                               |
 | B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)                | ⏸️ en pause — hébergement décidé **avec l'asso**, on verra le moment venu |
-| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)        | à faire (Arthur)                                                          |
-| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA) | à faire (Arthur)                                                          |
-| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)      | à faire (Arthur)                                                          |
+| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)        | 🔨 en cours (Arthur)                                                      |
+| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA) | 🔨 en cours (Arthur)                                                      |
+| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)      | 🔨 en cours                                                               |
+| B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)      | 🔨 en cours (Arthur)                                                      |
 
 > **Profil "complet" (stats avancées) = épic B3**, data-gated : il dépend des données B2 (matches + stats). Le front B10 (shell + polish) avance sans attendre ; l'enrichissement du profil se fera sur B3 dès que B2.6/B2.7 sont mergés.
 

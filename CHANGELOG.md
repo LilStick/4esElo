@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- DX : frise d'avancement des blocs (`scripts/timeline.mjs`, live depuis GitHub + ROADMAP) affichée en tête de chaque « quoi de neuf ». (#158)
 - API : `GET /presence` — qui est en ligne / en jeu CS2 / en match Faceit, via le nouveau provider `packages/steam` (clé officielle ou fallback XML) + confirmation Faceit best-effort, cache 60 s. (#147)
 - API : `GET /leaderboard/movers?window=24h|7d` (deltas d'ELO par joueur, null si pas encore tracké) + `?sparkline=N` sur `/leaderboard` — la data des widgets Player of the Day, Mouvements et sparklines, sans call Faceit. (#148)
 
