@@ -7,8 +7,10 @@ import { getLeaderboard, getMovers } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
+import { MapBackdrop } from "../components/MapBackdrop";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
+import backdrop from "../assets/maps/screens/de_mirage.png";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
 
@@ -127,10 +129,15 @@ export function Leaderboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
-        <p className="mt-1 text-sm text-ink-dim">Membres du pôle CS2, par ELO Faceit et palier de niveau.</p>
-      </div>
+      <Card outerClassName="mb-6" className="relative overflow-hidden p-6">
+        <MapBackdrop src={backdrop} />
+        <div className="relative">
+          <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
+          <p className="mt-1 text-sm text-ink-dim">
+            Membres du pôle CS2, par ELO Faceit et palier de niveau.
+          </p>
+        </div>
+      </Card>
 
       {!isLoading && !isError && board.length > 0 && (
         <div className="relative mb-4">

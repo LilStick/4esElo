@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPlayerMatches } from "../lib/api";
+import { mapScreen } from "../lib/mapScreens";
 import { Card, LevelBadge } from "../ui";
 
 /** Couleur du palier façon Faceit : gris → vert → jaune → orange → rouge. */
@@ -28,12 +30,42 @@ export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | n
   const winrate = items.length ? Math.round((wins / items.length) * 100) : null;
   const color = levelColor(level);
 
+  // Map la plus jouée → screenshot en fond discret.
+  const topScreen = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const m of data?.items ?? []) c.set(m.map, (c.get(m.map) ?? 0) + 1);
+    let best: string | undefined;
+    let n = 0;
+    for (const [map, cnt] of c) {
+      if (cnt > n) {
+        n = cnt;
+        best = map;
+      }
+    }
+    return best ? mapScreen(best) : undefined;
+  }, [data]);
+
   return (
     <Card className="relative overflow-hidden p-6">
-      {/* Glow ambiant teinté par le palier */}
+      {/* Fond : map la plus jouée, très estompée */}
+      {topScreen && (
+        <>
+          <img
+            src={topScreen}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 size-full object-cover opacity-[0.18]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/10 to-bg/85"
+          />
+        </>
+      )}
+      {/* Glow ambiant teinté par le palier (léger, pour ne pas masquer la map) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-28 left-1/2 h-72 w-[560px] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+        className="pointer-events-none absolute -top-32 left-1/2 h-64 w-[460px] -translate-x-1/2 rounded-full opacity-[0.14] blur-3xl"
         style={{ background: color }}
       />
 

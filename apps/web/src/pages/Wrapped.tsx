@@ -7,7 +7,9 @@ import { getWrapped } from "../lib/api";
 import { parsePeriod, monthLabel } from "../lib/period";
 import { Avatar, Card, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
+import { MapBackdrop } from "../components/MapBackdrop";
 import { useTitle } from "../lib/useTitle";
+import heroScreen from "../assets/maps/screens/de_inferno.png";
 
 type Group = {
   award: AwardKey;
@@ -82,6 +84,7 @@ export function Wrapped() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       {/* Hero compact */}
       <Card className="relative overflow-hidden p-5">
+        <MapBackdrop src={heroScreen} />
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand/15 via-transparent to-transparent"
