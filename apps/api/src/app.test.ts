@@ -297,3 +297,40 @@ test("GET /leaderboard rejects an invalid sparkline with 400", { skip }, async (
     assert.equal(res.status, 400, q);
   }
 });
+
+test("B11.1: invalid ?source= rejected with 400 everywhere", { skip }, async () => {
+  for (const path of [
+    `/leaderboard?source=csgo`,
+    `/leaderboard/movers?source=csgo`,
+    `/players/${playerId}?source=csgo`,
+    `/players/${playerId}/elo?source=csgo`,
+  ]) {
+    const res = await app.request(path);
+    assert.equal(res.status, 400, path);
+  }
+});
+
+test("B11.1: non-UUID :id rejected with 400 on every player route", { skip }, async () => {
+  for (const path of [
+    `/players/hackerman`,
+    `/players/hackerman/elo`,
+    `/players/hackerman/matches`,
+    `/players/hackerman/stats`,
+  ]) {
+    const res = await app.request(path);
+    assert.equal(res.status, 400, path);
+  }
+});
+
+test("B11.1: /health reports the DB state", { skip }, async () => {
+  const res = await app.request(`/health`);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), { ok: true, db: true });
+});
+
+test("B11.1: CORS allows the configured front origin only", { skip }, async () => {
+  const allowed = await app.request(`/health`, { headers: { Origin: "http://localhost:5173" } });
+  assert.equal(allowed.headers.get("access-control-allow-origin"), "http://localhost:5173");
+  const denied = await app.request(`/health`, { headers: { Origin: "https://evil.example" } });
+  assert.equal(denied.headers.get("access-control-allow-origin"), null);
+});
