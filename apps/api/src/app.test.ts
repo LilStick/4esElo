@@ -11,6 +11,7 @@ import type {
   FaceitMatchStats,
   MoversResponse,
   PlayerStatsResponse,
+  PlayerWrappedResponse,
 } from "@4eselo/types";
 import { app } from "./app";
 
@@ -364,6 +365,53 @@ test("B11.1: non-UUID :id rejected with 400 on every player route", { skip }, as
     const res = await app.request(path);
     assert.equal(res.status, 400, path);
   }
+});
+
+test("B7.2: GET /wrapped on an empty month → 200 with no awards", { skip }, async () => {
+  // 2021-05 : bien avant toute donnée (le backfill le plus profond remonte à mai 2024)
+  const res = await app.request(`/wrapped/2021/5`);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), { year: 2021, month: 5, awards: [] });
+});
+
+test("B7.2: GET /wrapped rejects an invalid year/month with 400", { skip }, async () => {
+  for (const path of [`/wrapped/2026/13`, `/wrapped/1999/1`, `/wrapped/abc/1`, `/wrapped/2026/0`]) {
+    const res = await app.request(path);
+    assert.equal(res.status, 400, path);
+  }
+});
+
+test("B7.2: GET /wrapped/:y/:m/:playerId returns the player month summary", { skip }, async () => {
+  // juin 2026 : les 3 matchs seedés (it-m1..3) appartiennent à ce joueur
+  const res = await app.request(`/wrapped/2026/6/${playerId}`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as PlayerWrappedResponse;
+
+  assert.equal(body.matches, 3);
+  assert.equal(body.wins, 2);
+  assert.equal(body.winRate, 66.7);
+  assert.deepEqual(body.topMap, { map: "de_mirage", matches: 2, winRate: 100 });
+  assert.equal(body.elo, null); // ses snapshots datent de janvier, pas de juin
+  assert.equal(body.playtimeMinutes, null);
+  // les percentiles dépendent des autres joueurs actifs du mois (données réelles) → bornes seulement
+  assert.ok(body.percentiles);
+  for (const v of Object.values(body.percentiles)) assert.ok(v >= 0 && v <= 100);
+});
+
+test("B7.2: GET /wrapped/:y/:m/:playerId on a month without games → percentiles null", { skip }, async () => {
+  const res = await app.request(`/wrapped/2021/5/${playerId}`);
+  const body = (await res.json()) as PlayerWrappedResponse;
+  assert.equal(body.matches, 0);
+  assert.equal(body.topMap, null);
+  assert.equal(body.percentiles, null);
+  assert.deepEqual(body.awards, []);
+});
+
+test("B7.2: GET /wrapped/:y/:m/:playerId → 404 unknown player, 400 bad uuid", { skip }, async () => {
+  const missing = await app.request(`/wrapped/2026/6/00000000-0000-0000-0000-000000000000`);
+  assert.equal(missing.status, 404);
+  const bad = await app.request(`/wrapped/2026/6/hackerman`);
+  assert.equal(bad.status, 400);
 });
 
 test("B11.1: /health reports the DB state", { skip }, async () => {

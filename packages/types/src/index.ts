@@ -151,3 +151,62 @@ export interface PlayerStatsResponse {
   overall: StatsAggregate;
   maps: MapStat[];
 }
+
+/** Wrapped mensuel (B7.2) — awards du pôle, votés ✅ par l'asso. */
+export type AwardKey =
+  | "rat"
+  | "spammeur"
+  | "puant"
+  | "chute-libre"
+  | "tryharder"
+  | "ministre-du-clutch"
+  | "nolife"
+  | "abonne-absent"
+  | "fantome";
+
+/** Un award décerné. Plusieurs gagnants possibles pour un même award (ex æquo). */
+export interface AwardWinner {
+  award: AwardKey;
+  emoji: string;
+  title: string;
+  playerId: string;
+  nickname: string;
+  /** Valeur brute qui a fait gagner (frags/match, ΔELO, nb de games…). */
+  value: number;
+  punchline: string;
+}
+
+export interface WrappedResponse {
+  year: number;
+  month: number; // 1-12
+  /** Vide si personne d'éligible (mois sans matchs). */
+  awards: AwardWinner[];
+}
+
+/** Percentiles 0-100 vs les membres du pôle actifs sur le mois. */
+export interface WrappedPercentiles {
+  matches: number;
+  winRate: number;
+  kd: number;
+  adr: number;
+}
+
+export interface PlayerWrappedResponse {
+  year: number;
+  month: number;
+  playerId: string;
+  nickname: string;
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+  /** Map la plus jouée du mois, null si aucun match. */
+  topMap: { map: string; matches: number; winRate: number } | null;
+  /** Minutes CS2 jouées sur le mois (Steam), null si privé / pas encore tracké. */
+  playtimeMinutes: number | null;
+  /** Évolution d'ELO sur le mois, null si pas assez de snapshots. */
+  elo: { start: number; end: number; delta: number } | null;
+  /** null si le joueur n'a pas joué ce mois-ci. */
+  percentiles: WrappedPercentiles | null;
+  /** Ses awards du mois (sous-ensemble de WrappedResponse.awards). */
+  awards: AwardWinner[];
+}
