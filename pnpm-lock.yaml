@@ -50,6 +50,12 @@ importers:
       '@4eselo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@4eselo/faceit':
+        specifier: workspace:*
+        version: link:../../packages/faceit
+      '@4eselo/steam':
+        specifier: workspace:*
+        version: link:../../packages/steam
       '@4eselo/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -176,6 +182,12 @@ importers:
       '@4eselo/types':
         specifier: workspace:*
         version: link:../types
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+
+  packages/steam:
+    dependencies:
       zod:
         specifier: ^3.24.1
         version: 3.25.76

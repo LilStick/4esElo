@@ -16,6 +16,7 @@ import type {
   PlayerStatsResponse,
 } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
+import { getPresence } from "./presence";
 
 const SOURCES: EloSource[] = ["faceit", "premier"];
 
@@ -36,6 +37,19 @@ export const app = new Hono();
 app.use("*", cors());
 
 app.get("/health", (c) => c.json({ ok: true }));
+
+app.get("/presence", async (c) => {
+  const rows = await db
+    .select({
+      id: players.id,
+      faceitNickname: players.faceitNickname,
+      discordName: players.discordName,
+      steamId64: players.steamId64,
+      faceitId: players.faceitId,
+    })
+    .from(players);
+  return c.json(await getPresence(rows));
+});
 
 const sparklineSchema = z.coerce.number().int().min(1).max(50).optional();
 

@@ -34,6 +34,23 @@ export interface MoversResponse {
   movers: MoverEntry[];
 }
 
+/** Live presence of one member (Steam status + optional Faceit confirmation). */
+export interface PresenceEntry {
+  id: string;
+  faceitNickname: string | null;
+  discordName: string | null;
+  /** null = unknown (private profile, Steam unreachable). */
+  online: boolean | null;
+  inGameCs2: boolean;
+  /** true = confirmed in a Faceit match; null = couldn't check (endpoint fragile). */
+  inFaceitMatch: boolean | null;
+}
+
+export interface PresenceResponse {
+  updatedAt: string; // ISO
+  players: PresenceEntry[];
+}
+
 export interface EloPoint {
   elo: number;
   capturedAt: string; // ISO
