@@ -6,6 +6,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Asso } from "./pages/Asso";
 import { Player } from "./pages/Player";
+import { Wrapped } from "./pages/Wrapped";
+import { WrappedPlayer } from "./pages/WrappedPlayer";
 import { Changelog } from "./pages/Changelog";
 import { Styleguide } from "./pages/Styleguide";
 import { NotFound } from "./pages/NotFound";
@@ -36,6 +38,8 @@ function AnimatedRoutes() {
           <Route path="/classement" element={<Leaderboard />} />
           <Route path="/asso" element={<Asso />} />
           <Route path="/player/:id" element={<Player />} />
+          <Route path="/wrapped/:period" element={<Wrapped />} />
+          <Route path="/wrapped/:period/:player" element={<WrappedPlayer />} />
           <Route path="/changelog" element={<Changelog />} />
           {/* Charte / styleguide : accessible en direct, volontairement absente du nav. */}
           <Route path="/charte" element={<Styleguide />} />

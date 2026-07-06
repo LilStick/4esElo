@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-07
+
+- Web : Wrapped — page vitrine des awards du pôle (`/wrapped/juillet-2026`) + Wrapped perso (`/wrapped/juillet-2026/:player` : matchs, winrate, Δ ELO, temps de jeu, map signature, percentiles vs pôle, awards) ; entrée nav. (#155)
+
 ## 2026-07-06
 
 - Web : section « Records du pôle » sur le home — plus haut ELO, meilleur K/D, meilleur winrate, plus de matchs (joueur + valeur, cliquable). (#204)

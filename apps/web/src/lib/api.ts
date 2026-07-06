@@ -6,8 +6,10 @@ import type {
   MoversWindow,
   PlayerDetail,
   PlayerStatsResponse,
+  PlayerWrappedResponse,
   PresenceResponse,
   StatsRange,
+  WrappedResponse,
 } from "@4eselo/types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
@@ -29,6 +31,14 @@ export function getMovers(window: MoversWindow = "24h", source: EloSource = "fac
 
 export function getPresence() {
   return get<PresenceResponse>(`/presence`);
+}
+
+export function getWrapped(year: number, month: number) {
+  return get<WrappedResponse>(`/wrapped/${year}/${month}`);
+}
+
+export function getPlayerWrapped(year: number, month: number, playerId: string) {
+  return get<PlayerWrappedResponse>(`/wrapped/${year}/${month}/${playerId}`);
 }
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
