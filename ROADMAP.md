@@ -30,6 +30,8 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 | B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)      | 🔨 en cours                                                               |
 | B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)      | 🔨 en cours (Arthur)                                                      |
 
+> **Chemin actuel** : B7.1 playtime + B2.10 backfill (Noé) et widgets B15 (Arthur) → B11 durcissement → B4 social + B5 engagement (la data s'accumule) → B12 mise en ligne + B6 register (avec l'asso).
+
 > **Profil "complet" (stats avancées) = épic B3**, data-gated : il dépend des données B2 (matches + stats). Le front B10 (shell + polish) avance sans attendre ; l'enrichissement du profil se fera sur B3 dès que B2.6/B2.7 sont mergés.
 
 ## Ce qui fait une app « complète » (principes — Layout / UI / UX)

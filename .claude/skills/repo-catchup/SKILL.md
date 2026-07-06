@@ -75,3 +75,5 @@ Détecter l'auteur de chaque PR/commit → séparer **toi** vs **l'autre**. Cour
 ```
 
 Règles : **humain-friendly**, groupé (dernier merge → toi → l'autre), mettre en avant ce qui **bloque** (CI rouge, PR à relire). Si rien n'a bougé, le dire simplement.
+
+**Court et simple, toujours** : après la frise, l'explication tient en quelques lignes max — ce qui a changé, dit avec des mots simples (« la data des widgets est prête », pas « l'endpoint d'agrégation timeline expose les deltas fenêtrés »). Une ligne par truc important, pas de pavé. Le lecteur doit capter en 15 secondes.
