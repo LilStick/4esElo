@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@4eselo/db": "workspace:*",
+    "@4eselo/env": "workspace:*",
     "@4eselo/faceit": "workspace:*",
     "@4eselo/steam": "workspace:*",
     "@4eselo/types": "workspace:*",
