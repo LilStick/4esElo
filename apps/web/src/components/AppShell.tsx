@@ -112,8 +112,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  // Le profil adopte une mise en page large (2 colonnes façon Faceit) ; le reste reste compact.
-  const wide = pathname.startsWith("/player/");
+  // Home (landing) et profil adoptent une mise en page large ; les autres pages restent compactes.
+  const wide = pathname === "/" || pathname.startsWith("/player/");
 
   // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
   useEffect(() => {
