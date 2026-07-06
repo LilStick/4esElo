@@ -6,8 +6,10 @@ import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
 import type {
   PlayerDetail,
   EloCurveResponse,
+  LeaderboardResponse,
   MatchesResponse,
   FaceitMatchStats,
+  MoversResponse,
   PlayerStatsResponse,
 } from "@4eselo/types";
 import { app } from "./app";
@@ -60,6 +62,8 @@ const DB_UP = await dbReachable();
 const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
 
 let playerId = "";
+let moverId = "";
+const HOUR = 60 * 60 * 1000;
 
 before(async () => {
   if (!DB_UP) return;
@@ -68,6 +72,22 @@ before(async () => {
     .values({ discordName: "itest", faceitNickname: "itest_nick", steamId64: "765_itest" })
     .returning({ id: players.id });
   playerId = p!.id;
+  const [m] = await db
+    .insert(players)
+    .values({ discordName: "imover", faceitNickname: "imover_nick", steamId64: "765_imover" })
+    .returning({ id: players.id });
+  moverId = m!.id;
+  await db.insert(eloSnapshots).values([
+    // tracked since 3 days: baseline exists for 24h, not for 7d
+    {
+      playerId: moverId,
+      source: "faceit",
+      elo: 1500,
+      level: 6,
+      capturedAt: new Date(Date.now() - 72 * HOUR),
+    },
+    { playerId: moverId, source: "faceit", elo: 1560, level: 6, capturedAt: new Date(Date.now() - 2 * HOUR) },
+  ]);
   await db.insert(eloSnapshots).values([
     { playerId, source: "faceit", elo: 1000, level: 3, capturedAt: new Date("2026-01-01T00:00:00Z") },
     { playerId, source: "faceit", elo: 1100, level: 4, capturedAt: new Date("2026-01-02T00:00:00Z") },
@@ -106,6 +126,7 @@ before(async () => {
 after(async () => {
   if (!DB_UP || !playerId) return;
   await db.delete(players).where(eq(players.id, playerId)); // cascade removes snapshots
+  await db.delete(players).where(eq(players.id, moverId));
 });
 
 test("GET /players/:id returns profile, latest elo and chronological history", { skip }, async () => {
@@ -214,4 +235,56 @@ test("GET /players/:id/stats rejects an unknown range with 400", { skip }, async
 test("GET /players/:id/stats returns 404 for an unknown player", { skip }, async () => {
   const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/stats`);
   assert.equal(res.status, 404);
+});
+
+test("GET /leaderboard/movers?window=24h computes deltas vs the window baseline", { skip }, async () => {
+  const res = await app.request(`/leaderboard/movers?window=24h`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as MoversResponse;
+
+  const mover = body.movers.find((m) => m.id === moverId);
+  const stable = body.movers.find((m) => m.id === playerId);
+  assert.ok(mover && stable);
+  assert.equal(mover.delta, 60); // 1560 now vs 1500 before the window
+  assert.equal(stable.delta, 0); // old snapshots on both sides → unchanged
+  assert.ok(body.movers.indexOf(mover) < body.movers.indexOf(stable)); // biggest gain first
+});
+
+test(
+  "GET /leaderboard/movers?window=7d gives null delta when not tracked at window start",
+  { skip },
+  async () => {
+    const res = await app.request(`/leaderboard/movers?window=7d`);
+    const body = (await res.json()) as MoversResponse;
+
+    const mover = body.movers.find((m) => m.id === moverId);
+    const stable = body.movers.find((m) => m.id === playerId);
+    assert.equal(mover!.delta, null); // first snapshot is 3 days old
+    assert.equal(stable!.delta, 0);
+    assert.ok(body.movers.indexOf(mover!) > body.movers.indexOf(stable!)); // nulls last
+  },
+);
+
+test("GET /leaderboard/movers rejects an unknown window with 400", { skip }, async () => {
+  const res = await app.request(`/leaderboard/movers?window=1y`);
+  assert.equal(res.status, 400);
+});
+
+test("GET /leaderboard?sparkline=N attaches the last N points, oldest first", { skip }, async () => {
+  const res = await app.request(`/leaderboard?sparkline=2`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as LeaderboardResponse;
+
+  const mover = body.leaderboard.find((e) => e.id === moverId);
+  assert.deepEqual(mover!.sparkline, [1500, 1560]);
+  const noSpark = await app.request(`/leaderboard`);
+  const plain = (await noSpark.json()) as LeaderboardResponse;
+  assert.equal(plain.leaderboard[0]!.sparkline, undefined);
+});
+
+test("GET /leaderboard rejects an invalid sparkline with 400", { skip }, async () => {
+  for (const q of ["sparkline=0", "sparkline=999", "sparkline=abc"]) {
+    const res = await app.request(`/leaderboard?${q}`);
+    assert.equal(res.status, 400, q);
+  }
 });

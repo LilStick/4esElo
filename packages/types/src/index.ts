@@ -13,6 +13,25 @@ export interface PlayerSummary {
 
 export interface LeaderboardEntry extends PlayerSummary {
   rank: number;
+  /** Last N ELO points, oldest first — only when the request asks for it. */
+  sparkline?: number[];
+}
+
+export type MoversWindow = "24h" | "7d";
+
+/** ELO movement over a window, computed from stored snapshots. */
+export interface MoverEntry extends PlayerSummary {
+  /** Rank by current ELO (same ordering as the leaderboard). */
+  rank: number;
+  /** ELO change over the window; null when the player wasn't tracked at its start. */
+  delta: number | null;
+}
+
+export interface MoversResponse {
+  source: EloSource;
+  window: MoversWindow;
+  /** Sorted by delta, biggest gain first; null deltas last. */
+  movers: MoverEntry[];
 }
 
 export interface EloPoint {

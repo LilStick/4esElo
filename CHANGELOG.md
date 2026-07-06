@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-06
+
+- API : `GET /leaderboard/movers?window=24h|7d` (deltas d'ELO par joueur, null si pas encore tracké) + `?sparkline=N` sur `/leaderboard` — la data des widgets Player of the Day, Mouvements et sparklines, sans call Faceit. (#148)
+
 ## 2026-07-03
 
 - Web : icône retirée du header du bloc « Activité » sur le profil. (#144)
