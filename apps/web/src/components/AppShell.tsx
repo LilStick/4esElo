@@ -121,10 +121,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState(false);
   const reduce = useReducedMotion();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  // Home (landing) et profil adoptent une mise en page large ; les autres pages restent compactes.
-  const wide = pathname === "/" || pathname.startsWith("/player/");
-
   // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
   useEffect(() => {
     let gHeld = false;
@@ -254,16 +250,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Contenu */}
+      {/* Contenu — la largeur max est portée par chaque page (évite le reflow pendant la transition). */}
       <div className="flex flex-1 flex-col lg:pl-60">
-        <main
-          className={cn(
-            "mx-auto flex w-full flex-1 flex-col px-4 py-8 lg:px-8 lg:py-10",
-            wide ? "max-w-[1560px]" : "max-w-4xl",
-          )}
-        >
+        <main className="flex w-full flex-1 flex-col px-4 py-8 lg:px-8 lg:py-10">
           <div className="flex-1">{children}</div>
-          <Footer />
+          <div className="mx-auto w-full max-w-[1560px]">
+            <Footer />
+          </div>
         </main>
       </div>
 

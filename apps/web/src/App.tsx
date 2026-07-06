@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AppShell } from "./components/AppShell";
@@ -13,14 +14,22 @@ import { NotFound } from "./pages/NotFound";
 function AnimatedRoutes() {
   const location = useLocation();
   const reduce = useReducedMotion();
+  // Remonte en haut à chaque changement de page (sinon on atterrit au milieu).
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location.pathname]);
+  // Home et profil en large ; le reste compact. Porté par la page (pas le shell) pour ne pas
+  // reflow la page sortante pendant la transition.
+  const wide = location.pathname === "/" || location.pathname.startsWith("/player/");
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
+        className={`mx-auto w-full ${wide ? "max-w-[1560px]" : "max-w-4xl"}`}
         initial={reduce ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={reduce ? {} : { opacity: 0, y: -8 }}
-        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        exit={reduce ? {} : { opacity: 0, y: -6 }}
+        transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
       >
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
