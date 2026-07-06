@@ -1,30 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { TbArrowRight, TbDeviceGamepad2 } from "react-icons/tb";
-import type { IconType } from "react-icons";
+import { TbArrowRight } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { PlayerOfTheDay } from "../components/PlayerOfTheDay";
 import { RecentMovements } from "../components/RecentMovements";
+import { LivePresence } from "../components/LivePresence";
 import { useTitle } from "../lib/useTitle";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
-
-/** Emplacement de widget à venir (rempli par B15.2–B15.4 quand la data back arrive). */
-function SoonWidget({ icon: Icon, title }: { icon: IconType; title: string }) {
-  return (
-    <Card className="flex items-center gap-3 p-4">
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-ink-faint">
-        <Icon size={20} />
-      </span>
-      <div>
-        <div className="text-sm font-semibold">{title}</div>
-        <div className="text-xs text-ink-faint">Bientôt</div>
-      </div>
-    </Card>
-  );
-}
 
 export function Dashboard() {
   useTitle("Tableau de bord");
@@ -45,7 +30,7 @@ export function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         <PlayerOfTheDay />
         <RecentMovements />
-        <SoonWidget icon={TbDeviceGamepad2} title="En jeu maintenant" />
+        <LivePresence />
       </div>
 
       <div>

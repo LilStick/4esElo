@@ -6,6 +6,7 @@ import type {
   MoversWindow,
   PlayerDetail,
   PlayerStatsResponse,
+  PresenceResponse,
   StatsRange,
 } from "@4eselo/types";
 
@@ -23,6 +24,10 @@ export function getLeaderboard(source: EloSource = "faceit") {
 
 export function getMovers(window: MoversWindow = "24h", source: EloSource = "faceit") {
   return get<MoversResponse>(`/leaderboard/movers?window=${window}&source=${source}`);
+}
+
+export function getPresence() {
+  return get<PresenceResponse>(`/presence`);
 }
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
