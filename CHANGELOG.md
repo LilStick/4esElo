@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-06
 
+- CI : le front est buildé sur chaque PR (un import cassé ne passe plus en vert) + Dependabot activé (deps npm groupées hebdo + GitHub Actions). (#65)
 - Tests : l'endpoint principal `/leaderboard` couvert en intégration (tri, dernier snapshot, joueurs sans ELO en fin, source vide). (#64)
 - DX : les apps refusent de démarrer mal configurées — env vars validées par zod au démarrage (`packages/env`), erreurs explicites variable par variable. (#63)
 - Worker : client Faceit résilient — timeout 10 s, retry avec backoff exponentiel + jitter sur 429/5xx/réseau, `Retry-After` respecté, jamais de retry sur 4xx. (#62)
