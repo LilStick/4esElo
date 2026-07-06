@@ -3,6 +3,7 @@ import { PlayerOfTheDay } from "../components/PlayerOfTheDay";
 import { RecentMovements } from "../components/RecentMovements";
 import { LivePresence } from "../components/LivePresence";
 import { TopClimber } from "../components/TopClimber";
+import { PoleRecords } from "../components/PoleRecords";
 import { LadderPreview } from "../components/LadderPreview";
 import { JoinBanner } from "../components/JoinBanner";
 import { useTitle } from "../lib/useTitle";
@@ -20,6 +21,8 @@ export function Dashboard() {
         <LivePresence />
         <RecentMovements />
       </div>
+
+      <PoleRecords />
 
       <LadderPreview />
 
