@@ -1,13 +1,19 @@
 import { FACEIT_API_KEY, STEAM_API_KEY, WORKER_INTERVAL_MS } from "./env";
 import { db, players } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
-import { FaceitClient } from "@4eselo/faceit";
+import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
 import { SteamClient } from "@4eselo/steam";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
 import { attributeEloAfter } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
-import { dbStore, dbMatchStatsStore, dbPlaytimeStore } from "./store";
+import { backfillPlayerElo } from "./backfillElo";
+import { curlFetch } from "./curlFetch";
+import { dbStore, dbMatchStatsStore, dbPlaytimeStore, dbBackfillStore } from "./store";
+
+// curl transport: Node's TLS fingerprint never passes the Cloudflare wall,
+// plain curl sometimes does — that's the whole opportunistic bet.
+const eloHistory = new UnofficialEloHistory({ fetchImpl: curlFetch() });
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
@@ -78,6 +84,18 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
       }
     } catch (err) {
       console.error(`[worker] ${p.faceitId} ingest failed:`, err instanceof Error ? err.message : err);
+    }
+    try {
+      const bf = await backfillPlayerElo(eloHistory, dbBackfillStore, p);
+      if (bf.status === "ok") {
+        console.log(
+          `[worker] ${p.faceitId}: backfill 🎉 ${bf.matchesFilled} matchs remplis, ${bf.snapshotsInserted} points de courbe rétro`,
+        );
+      } else if (bf.status === "blocked") {
+        console.log(`[worker] ${p.faceitId}: backfill 403 — on repassera demain`);
+      }
+    } catch (err) {
+      console.error(`[worker] ${p.faceitId} backfill failed:`, err instanceof Error ? err.message : err);
     }
     await sleep(DELAY_BETWEEN_PLAYERS_MS);
   }

@@ -21,6 +21,9 @@ export const players = pgTable("players", {
   faceitNickname: text("faceit_nickname"),
   steamId64: text("steam_id64"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  /** Backfill ELO opportuniste (#141) : dernière tentative (1/jour max) et succès. */
+  eloBackfillAttemptedAt: timestamp("elo_backfill_attempted_at", { withTimezone: true }),
+  eloBackfillDoneAt: timestamp("elo_backfill_done_at", { withTimezone: true }),
 });
 
 /** Time series of ELO values, one row per capture. Feeds the ELO curves. */
@@ -52,6 +55,8 @@ export const faceitMatchStats = pgTable(
     playedAt: timestamp("played_at", { withTimezone: true }).notNull(),
     result: integer("result").notNull(), // 1 win, 0 loss
     eloAfter: integer("elo_after"),
+    /** Vrai ±ELO du match (backfill #141) ; null tant que non récupéré. */
+    eloDelta: integer("elo_delta"),
     stats: jsonb("stats").$type<FaceitMatchStats>().notNull(),
   },
   (t) => [
