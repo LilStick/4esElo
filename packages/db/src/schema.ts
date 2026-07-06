@@ -61,8 +61,25 @@ export const faceitMatchStats = pgTable(
   ],
 );
 
+/** Daily samples of lifetime CS2 playtime (Steam). Monthly playtime = diff
+ *  between two samples — feeds the Wrapped ⏰ award (B7.1). */
+export const playtimeSnapshots = pgTable(
+  "playtime_snapshots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    /** null = échantillonné mais illisible (heures de jeu privées côté Steam). */
+    minutesForever: integer("minutes_forever"),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("playtime_snapshots_player_idx").on(t.playerId, t.capturedAt)],
+);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
 export type FaceitMatchStat = typeof faceitMatchStats.$inferSelect;
 export type NewFaceitMatchStat = typeof faceitMatchStats.$inferInsert;
+export type PlaytimeSnapshot = typeof playtimeSnapshots.$inferSelect;

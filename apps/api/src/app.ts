@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
-import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
   EloSource,
   EloCurveResponse,
@@ -178,6 +178,13 @@ app.get("/players/:id", async (c) => {
     .orderBy(desc(eloSnapshots.capturedAt))
     .limit(1);
 
+  const [lastPlaytime] = await db
+    .select({ minutes: playtimeSnapshots.minutesForever })
+    .from(playtimeSnapshots)
+    .where(eq(playtimeSnapshots.playerId, id))
+    .orderBy(desc(playtimeSnapshots.capturedAt))
+    .limit(1);
+
   const detail: PlayerDetail = {
     id: player.id,
     discordName: player.discordName,
@@ -187,6 +194,7 @@ app.get("/players/:id", async (c) => {
     level: latest?.level ?? null,
     createdAt: player.createdAt.toISOString(),
     history: await eloHistory(id, source),
+    playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
   };
 
   return c.json(detail);

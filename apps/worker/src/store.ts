@@ -1,8 +1,10 @@
-import { db, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import { db, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
 import type { EloAfterStore } from "./eloAfter";
+import type { PlaytimeStore } from "./playtime";
+import { utcDay } from "./playtime";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
 export const dbStore: SnapshotStore = {
@@ -18,6 +20,23 @@ export const dbStore: SnapshotStore = {
 
   async insertSnapshot(input) {
     await db.insert(eloSnapshots).values(input);
+  },
+};
+
+/** Real PlaytimeStore backed by Postgres via Drizzle. */
+export const dbPlaytimeStore: PlaytimeStore = {
+  async getLastCapturedDay(playerId) {
+    const rows = await db
+      .select({ capturedAt: playtimeSnapshots.capturedAt })
+      .from(playtimeSnapshots)
+      .where(eq(playtimeSnapshots.playerId, playerId))
+      .orderBy(desc(playtimeSnapshots.capturedAt))
+      .limit(1);
+    return rows[0] ? utcDay(rows[0].capturedAt) : null;
+  },
+
+  async insertPlaytime(playerId, minutesForever) {
+    await db.insert(playtimeSnapshots).values({ playerId, minutesForever });
   },
 };
 
