@@ -2,7 +2,7 @@ import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { WEB_ORIGINS } from "./env";
 import { z } from "zod";
-import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
   EloSource,
@@ -15,8 +15,11 @@ import type {
   MoversResponse,
   PlayerDetail,
   PlayerStatsResponse,
+  PlayerWrappedResponse,
+  WrappedResponse,
 } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
+import { computeAwards, computePlayerWrapped, monthRange, type WrappedInputs } from "./wrapped";
 import { getPresence } from "./presence";
 
 const sourceSchema = z.enum(["faceit", "premier"]).default("faceit");
@@ -279,6 +282,97 @@ app.get("/players/:id/matches", async (c) => {
   }));
 
   return c.json<MatchesResponse>({ items, total: counted?.total ?? 0 });
+});
+
+const wrappedParamsSchema = z.object({
+  year: z.coerce.number().int().min(2020).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+});
+
+/** Tout ce que le moteur d'awards consomme pour un mois donné (B7.2). */
+async function loadWrappedInputs(year: number, month: number): Promise<WrappedInputs> {
+  const { start, end } = monthRange(year, month);
+
+  const playerRows = await db
+    .select({
+      id: players.id,
+      faceitNickname: players.faceitNickname,
+      discordName: players.discordName,
+    })
+    .from(players);
+
+  const matches = await db
+    .select({
+      playerId: faceitMatchStats.playerId,
+      map: faceitMatchStats.map,
+      playedAt: faceitMatchStats.playedAt,
+      result: faceitMatchStats.result,
+      stats: faceitMatchStats.stats,
+    })
+    .from(faceitMatchStats)
+    .where(and(gte(faceitMatchStats.playedAt, start), lt(faceitMatchStats.playedAt, end)));
+
+  const elo = await db
+    .select({
+      playerId: eloSnapshots.playerId,
+      elo: eloSnapshots.elo,
+      capturedAt: eloSnapshots.capturedAt,
+    })
+    .from(eloSnapshots)
+    .where(
+      and(
+        eq(eloSnapshots.source, "faceit"),
+        gte(eloSnapshots.capturedAt, start),
+        lt(eloSnapshots.capturedAt, end),
+      ),
+    );
+
+  const playtime = await db
+    .select({
+      playerId: playtimeSnapshots.playerId,
+      minutesForever: playtimeSnapshots.minutesForever,
+      capturedAt: playtimeSnapshots.capturedAt,
+    })
+    .from(playtimeSnapshots)
+    .where(and(gte(playtimeSnapshots.capturedAt, start), lt(playtimeSnapshots.capturedAt, end)));
+
+  return {
+    players: playerRows.map((p) => ({
+      id: p.id,
+      nickname: p.faceitNickname ?? p.discordName ?? p.id,
+    })),
+    matches,
+    eloSnapshots: elo,
+    playtimeSnapshots: playtime,
+  };
+}
+
+app.get("/wrapped/:year/:month", async (c) => {
+  const parsed = wrappedParamsSchema.safeParse({
+    year: c.req.param("year"),
+    month: c.req.param("month"),
+  });
+  if (!parsed.success) return badRequest(c, "invalid year/month");
+  const { year, month } = parsed.data;
+
+  const inputs = await loadWrappedInputs(year, month);
+  return c.json<WrappedResponse>({ year, month, awards: computeAwards(inputs) });
+});
+
+app.get("/wrapped/:year/:month/:playerId", async (c) => {
+  const parsed = wrappedParamsSchema.safeParse({
+    year: c.req.param("year"),
+    month: c.req.param("month"),
+  });
+  if (!parsed.success) return badRequest(c, "invalid year/month");
+  const id = uuidSchema.safeParse(c.req.param("playerId"));
+  if (!id.success) return badRequest(c, "invalid player id (uuid)");
+  const { year, month } = parsed.data;
+
+  const inputs = await loadWrappedInputs(year, month);
+  const wrapped = computePlayerWrapped(id.data, year, month, inputs);
+  if (!wrapped) return c.json({ error: "player not found" }, 404);
+  return c.json<PlayerWrappedResponse>(wrapped);
 });
 
 const rangeSchema = z.enum(RANGES).default("all");
