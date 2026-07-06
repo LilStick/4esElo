@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { TbArrowRight, TbSearch, TbUsersGroup } from "react-icons/tb";
+import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
-import { PodiumCard } from "../components/PodiumCard";
 import { Sparkline } from "../components/Sparkline";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
@@ -38,48 +37,50 @@ const norm = (s: string) =>
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
 
-function LeaderboardSkeleton() {
+/** Regroupe les entrées par niveau Faceit, paliers du plus haut au plus bas. */
+function groupByLevel(items: LeaderboardEntry[]): { level: number; items: LeaderboardEntry[] }[] {
+  const map = new Map<number, LeaderboardEntry[]>();
+  for (const e of items) {
+    const lvl = e.level ?? 0;
+    const arr = map.get(lvl);
+    if (arr) arr.push(e);
+    else map.set(lvl, [e]);
+  }
+  return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([level, items]) => ({ level, items }));
+}
+
+/** Bandeau de palier entre les groupes de niveau. */
+function TierBanner({ level, count }: { level: number; count: number }) {
   return (
-    <>
-      <div className="mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
-        {[0, 1, 2].map((i) => (
-          <Card
-            key={i}
-            outerClassName={i === 1 ? "-translate-y-4" : undefined}
-            className="flex flex-col items-center gap-3 p-5"
-          >
-            <Skeleton className="size-[60px] rounded-full" />
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="size-[26px] rounded-lg" />
-            <Skeleton className="h-5 w-14" />
-          </Card>
-        ))}
-      </div>
-      <Card className="flex flex-col gap-2 p-[var(--bezel)]">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex items-center gap-4 px-4 py-2.5">
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="size-[34px] rounded-full" />
-            <Skeleton className="size-6 rounded-md" />
-            <Skeleton className="h-4 flex-1 max-w-[160px]" />
-            <Skeleton className="h-4 w-12" />
-          </div>
-        ))}
-      </Card>
-    </>
+    <div className="mb-2 flex items-center gap-2 px-1">
+      <LevelBadge level={level || null} size={20} />
+      <span className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        {level ? `Niveau ${level}` : "Sans niveau"}
+      </span>
+      <span className="ml-auto font-mono text-[11px] text-ink-faint tabular-nums">{count}</span>
+    </div>
   );
 }
 
-const SORTS = [
-  { key: "elo", label: "ELO" },
-  { key: "level", label: "Niveau" },
-] as const;
-type Sort = (typeof SORTS)[number]["key"];
+function LeaderboardSkeleton() {
+  return (
+    <Card className="flex flex-col gap-2 p-[var(--bezel)]">
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="flex items-center gap-4 px-4 py-2.5">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="size-[34px] rounded-full" />
+          <Skeleton className="size-6 rounded-md" />
+          <Skeleton className="h-4 max-w-[160px] flex-1" />
+          <Skeleton className="h-4 w-12" />
+        </div>
+      ))}
+    </Card>
+  );
+}
 
 export function Leaderboard() {
   useTitle("Classement");
   const navigate = useNavigate();
-  const [sort, setSort] = useState<Sort>("elo");
   const [q, setQ] = useState("");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["leaderboard", "faceit", "spark12"],
@@ -92,48 +93,43 @@ export function Leaderboard() {
   );
 
   const board = data?.leaderboard ?? [];
-  const byLevel = sort === "level";
   const searching = q.trim() !== "";
-  // Podium = toujours le top 3 ELO ; tri par niveau ou recherche → liste plate.
-  const ordered = byLevel
-    ? [...board].sort((a, b) => (b.level ?? -1) - (a.level ?? -1) || (b.elo ?? -1) - (a.elo ?? -1))
-    : board;
-  const [first, second, third] = board;
-  const hasPodium = !byLevel && !searching && Boolean(first && second && third);
-  const listItems = searching
-    ? ordered.filter((e) => norm(nameOf(e)).includes(norm(q.trim())))
-    : byLevel
-      ? ordered
-      : hasPodium
-        ? board.slice(3)
-        : board;
+  const listItems = searching ? board.filter((e) => norm(nameOf(e)).includes(norm(q.trim()))) : board;
+
+  // Paliers de niveau dès qu'on ne cherche pas ; liste plate en recherche.
+  const grouped = !searching;
+  const groups = useMemo(() => (grouped ? groupByLevel(listItems) : []), [grouped, listItems]);
+
+  const renderRow = (e: LeaderboardEntry) => (
+    <>
+      <span className="grid w-5 place-items-center font-mono font-bold text-ink-faint">
+        {e.rank === 1 ? (
+          <TbCrown className="text-brand drop-shadow-[0_0_6px_rgba(94,139,255,0.55)]" size={17} />
+        ) : (
+          e.rank
+        )}
+      </span>
+      <EloDelta delta={eloMove.get(e.id)} />
+      <Avatar name={nameOf(e)} size={34} />
+      <LevelBadge level={e.level} size={24} />
+      <span className={cn("flex-1 truncate font-semibold", e.rank === 1 && "text-brand-hi")}>
+        {nameOf(e)}
+      </span>
+      {e.sparkline && e.sparkline.length > 1 && (
+        <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
+      )}
+      <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
+        {e.elo ?? "—"}
+      </span>
+      <TbArrowRight className="text-ink-faint" size={17} />
+    </>
+  );
 
   return (
     <div>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
-          <p className="mt-1 text-sm text-ink-dim">
-            Membres du pôle CS2, triés par {byLevel ? "niveau" : "ELO"} Faceit.
-          </p>
-        </div>
-        <div className="inline-flex gap-1 rounded-full border border-white/[0.09] bg-white/[0.03] p-1">
-          {SORTS.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setSort(s.key)}
-              aria-pressed={sort === s.key}
-              className={cn(
-                "cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
-                sort === s.key ? "bg-brand text-[#060a18]" : "text-ink-dim hover:text-ink",
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
+        <p className="mt-1 text-sm text-ink-dim">Membres du pôle CS2, par ELO Faceit et palier de niveau.</p>
       </div>
 
       {!isLoading && !isError && board.length > 0 && (
@@ -154,40 +150,35 @@ export function Leaderboard() {
       {isLoading && <LeaderboardSkeleton />}
       {isError && <p className="text-loss">Impossible de charger le classement. L'API tourne-t-elle ?</p>}
 
-      {hasPodium && first && second && third && (
-        <div className="mt-5 mb-4 grid grid-cols-3 items-end gap-3 sm:gap-4">
-          <PodiumCard entry={second} />
-          <PodiumCard entry={first} />
-          <PodiumCard entry={third} />
-        </div>
-      )}
-
-      {listItems.length > 0 && (
-        <Card className="p-[var(--bezel)]">
-          <HoverBarList
-            items={listItems}
-            rowHeight={56}
-            keyOf={(e) => e.id}
-            onSelect={(e) => navigate(`/player/${e.id}`)}
-            children={(e) => (
-              <>
-                <span className="w-5 text-center font-mono font-bold text-ink-faint">{e.rank}</span>
-                <EloDelta delta={eloMove.get(e.id)} />
-                <Avatar name={nameOf(e)} size={34} />
-                <LevelBadge level={e.level} size={24} />
-                <span className="flex-1 truncate font-semibold">{nameOf(e)}</span>
-                {e.sparkline && e.sparkline.length > 1 && (
-                  <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
-                )}
-                <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
-                  {e.elo ?? "—"}
-                </span>
-                <TbArrowRight className="text-ink-faint" size={17} />
-              </>
-            )}
-          />
-        </Card>
-      )}
+      {listItems.length > 0 &&
+        (grouped ? (
+          <div className="flex flex-col gap-5">
+            {groups.map((g) => (
+              <div key={g.level}>
+                <TierBanner level={g.level} count={g.items.length} />
+                <Card className="p-[var(--bezel)]">
+                  <HoverBarList
+                    items={g.items}
+                    rowHeight={56}
+                    keyOf={(e) => e.id}
+                    onSelect={(e) => navigate(`/player/${e.id}`)}
+                    children={renderRow}
+                  />
+                </Card>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-[var(--bezel)]">
+            <HoverBarList
+              items={listItems}
+              rowHeight={56}
+              keyOf={(e) => e.id}
+              onSelect={(e) => navigate(`/player/${e.id}`)}
+              children={renderRow}
+            />
+          </Card>
+        ))}
 
       {searching && board.length > 0 && listItems.length === 0 && (
         <EmptyState icon={TbSearch} title="Aucun membre trouvé">
