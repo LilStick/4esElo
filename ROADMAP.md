@@ -11,26 +11,27 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 
 ## Blocs prévus (voir epics GitHub)
 
-| Bloc | Sujet                                                                      | Statut                                                                    |
-| ---- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| V1   | Fondations (DB, API, worker, web, courbe ELO)                              | ✅ fait                                                                   |
-| B1   | Design & assets (charte, design system, refonte pages)                     | ✅ fait (Arthur)                                                          |
-| B2   | **Fondation data** : ingestion matchs + APIs data (courbe = forward-only)  | 🔨 extension (backfill #141)                                              |
-| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)       | ✅ fait (Arthur)                                                          |
-| B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                      | à faire                                                                   |
-| B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)           | à faire                                                                   |
-| B6   | Bot Discord (/register, auto-post, commandes)                              | à faire (après B12 — inutile sans site hébergé)                           |
-| B7   | Splashy (Wrapped mensuel ✅ voté, achievements, AI roast)                  | 🔨 en cours                                                               |
-| B8   | Highlights (allstar.gg / Medal)                                            | à faire                                                                   |
-| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)            | ✅ fait (Arthur)                                                          |
-| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)           | 🔨 en cours                                                               |
-| B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)                | ⏸️ en pause — hébergement décidé **avec l'asso**, on verra le moment venu |
-| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)        | 🔨 en cours (Arthur)                                                      |
-| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA) | 🔨 en cours (Arthur)                                                      |
-| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)      | 🔨 en cours                                                               |
-| B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)      | 🔨 en cours (Arthur)                                                      |
+| Bloc | Sujet                                                                         | Statut                                                                    |
+| ---- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| V1   | Fondations (DB, API, worker, web, courbe ELO)                                 | ✅ fait                                                                   |
+| B1   | Design & assets (charte, design system, refonte pages)                        | ✅ fait (Arthur)                                                          |
+| B2   | **Fondation data** : ingestion, APIs, courbe rétro backfillée (2024+)         | ✅ fait                                                                   |
+| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)          | ✅ fait (Arthur)                                                          |
+| B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                         | à faire                                                                   |
+| B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)              | à faire                                                                   |
+| B6   | Bot Discord (auto-post, commandes — le **register vit sur le site**, cf. B17) | à faire (après B12)                                                       |
+| B7   | Splashy (Wrapped mensuel ✅ voté, achievements, AI roast)                     | 🔨 en cours                                                               |
+| B8   | Highlights (allstar.gg / Medal)                                               | à faire                                                                   |
+| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)               | ✅ fait (Arthur)                                                          |
+| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)              | 🔨 en cours                                                               |
+| B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)                   | ⏸️ en pause — hébergement décidé **avec l'asso**, on verra le moment venu |
+| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)           | 🔨 en cours (Arthur)                                                      |
+| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA)    | 🔨 en cours (Arthur)                                                      |
+| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)         | 🔨 en cours                                                               |
+| B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)         | 🔨 en cours (Arthur)                                                      |
+| B17  | Comptes : register sur site (OAuth, promo EFREI), login, panel admin          | à faire (après B12)                                                       |
 
-> **Chemin actuel** : B7.1 playtime + B2.10 backfill (Noé) et widgets B15 (Arthur) → B11 durcissement → B4 social + B5 engagement (la data s'accumule) → B12 mise en ligne + B6 register (avec l'asso).
+> **Chemin actuel** : B11 durcissement + B7.2 moteur d'awards (Noé), widgets B15 + footer/changelog (Arthur) → B4 social + B5 engagement (la data s'accumule) → B12 mise en ligne (avec l'asso) → B17 comptes + B6 bot.
 
 > **Profil "complet" (stats avancées) = épic B3**, data-gated : il dépend des données B2 (matches + stats). Le front B10 (shell + polish) avance sans attendre ; l'enrichissement du profil se fera sur B3 dès que B2.6/B2.7 sont mergés.
 
@@ -61,7 +62,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Discord** : notifs repo → salon (PR ouverte, CI échouée…) via webhook `/github` (gratuit, immédiat) · auto-post après match · /stats & /leaderboard · sync de rôles par niveau · digest quotidien · **proposition validée par emote** (réagir ✅ pour créer un ticket / merger — nécessite un bot custom, voir B6).
 
-**Communauté** : promo EFREI à l'inscription ✅ voté (profils par promo, filtre classement, statut Alumni 🎓 auto — design dans l'epic B6 #14) · onglet « S'inscrire » (process + invite Discord).
+**Communauté** : promo EFREI à l'inscription ✅ voté + login Discord ✅ voté → **ticketés en B17** (register sur site, Alumni 🎓 auto, panel admin).
 
 **Gamification** : succès déblocables · course au titre de saison + hall of fame · XP/level d'asso · jeu de pronostics · rivalries auto-détectées · bounties/challenges de la semaine.
 
