@@ -10,6 +10,8 @@ import type {
   LeaderboardResponse,
   MatchesResponse,
   MatchSummary,
+  MoverEntry,
+  MoversResponse,
   PlayerDetail,
   PlayerStatsResponse,
 } from "@4eselo/types";
@@ -35,8 +37,70 @@ app.use("*", cors());
 
 app.get("/health", (c) => c.json({ ok: true }));
 
+const sparklineSchema = z.coerce.number().int().min(1).max(50).optional();
+
+const WINDOW_HOURS = { "24h": 24, "7d": 24 * 7 } as const;
+const windowSchema = z.enum(["24h", "7d"]).default("24h");
+
+// NOTE: declared before /leaderboard so Hono matches the static path first.
+app.get("/leaderboard/movers", async (c) => {
+  const source = parseSource(c.req.query("source"));
+  const parsed = windowSchema.safeParse(c.req.query("window"));
+  if (!parsed.success) return c.json({ error: "invalid window (24h|7d)" }, 400);
+  const window = parsed.data;
+  const windowStart = new Date(Date.now() - WINDOW_HOURS[window] * 60 * 60 * 1000);
+
+  const rows = await db.execute<{
+    id: string;
+    discord_name: string | null;
+    faceit_nickname: string | null;
+    steam_id64: string | null;
+    elo: number | null;
+    level: number | null;
+    baseline_elo: number | null;
+  }>(sql`
+    select p.id, p.discord_name, p.faceit_nickname, p.steam_id64,
+           cur.elo, cur.level, base.elo as baseline_elo
+    from players p
+    left join lateral (
+      select elo, level from elo_snapshots
+      where player_id = p.id and source = ${source}
+      order by captured_at desc
+      limit 1
+    ) cur on true
+    left join lateral (
+      select elo from elo_snapshots
+      where player_id = p.id and source = ${source} and captured_at <= ${windowStart.toISOString()}::timestamptz
+      order by captured_at desc
+      limit 1
+    ) base on true
+    order by cur.elo desc nulls last, p.faceit_nickname asc
+  `);
+
+  const ranked: MoverEntry[] = rows.map((r, i) => ({
+    rank: i + 1,
+    id: r.id,
+    discordName: r.discord_name,
+    faceitNickname: r.faceit_nickname,
+    steamId64: r.steam_id64,
+    elo: r.elo,
+    level: r.level,
+    delta: r.elo !== null && r.baseline_elo !== null ? r.elo - r.baseline_elo : null,
+  }));
+  const movers = [...ranked].sort((a, b) => {
+    if (a.delta === null) return b.delta === null ? a.rank - b.rank : 1;
+    if (b.delta === null) return -1;
+    return b.delta - a.delta || a.rank - b.rank;
+  });
+
+  return c.json<MoversResponse>({ source, window, movers });
+});
+
 app.get("/leaderboard", async (c) => {
   const source = parseSource(c.req.query("source"));
+  const sparkParsed = sparklineSchema.safeParse(c.req.query("sparkline"));
+  if (!sparkParsed.success) return c.json({ error: "invalid sparkline (1-50)" }, 400);
+  const sparkline = sparkParsed.data;
 
   const rows = await db.execute<{
     id: string;
@@ -66,6 +130,22 @@ app.get("/leaderboard", async (c) => {
     elo: r.elo,
     level: r.level,
   }));
+
+  if (sparkline) {
+    const points = await db.execute<{ player_id: string; points: number[] }>(sql`
+      select player_id, array_agg(elo order by captured_at) as points
+      from (
+        select player_id, elo, captured_at,
+               row_number() over (partition by player_id order by captured_at desc) as rn
+        from elo_snapshots
+        where source = ${source}
+      ) t
+      where rn <= ${sparkline}
+      group by player_id
+    `);
+    const byPlayer = new Map(points.map((p) => [p.player_id, p.points]));
+    for (const entry of leaderboard) entry.sparkline = byPlayer.get(entry.id) ?? [];
+  }
 
   return c.json<LeaderboardResponse>({ source, leaderboard });
 });
