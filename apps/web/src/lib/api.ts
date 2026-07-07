@@ -1,5 +1,6 @@
 import type {
   AnnouncementsResponse,
+  DuosResponse,
   EloSource,
   LeaderboardResponse,
   MatchesResponse,
@@ -7,6 +8,7 @@ import type {
   MoversResponse,
   MoversWindow,
   PlayerDetail,
+  PlayerDuosResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
   PresenceResponse,
@@ -94,6 +96,14 @@ export function getPlayerStats(id: string, range: StatsRange = "all") {
 
 export function getPlayerMatches(id: string, limit = 10) {
   return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
+}
+
+export function getDuos() {
+  return get<DuosResponse>(`/social/duos`);
+}
+
+export function getPlayerDuos(id: string) {
+  return get<PlayerDuosResponse>(`/players/${id}/duos`);
 }
 
 // --- Auth / compte (B17) ---

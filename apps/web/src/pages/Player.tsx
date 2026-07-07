@@ -22,6 +22,7 @@ import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
+import { PlayerDuos } from "../components/PlayerDuos";
 import { EloSummaryCard } from "../components/EloSummaryCard";
 import { ShareButton } from "../components/ShareButton";
 import { useTitle } from "../lib/useTitle";
@@ -157,6 +158,8 @@ export function Player() {
             </Card>
 
             <ActivityHeatmap id={id} />
+
+            <PlayerDuos id={id} />
           </aside>
 
           {/* Colonne principale — centrée sur la page */}
