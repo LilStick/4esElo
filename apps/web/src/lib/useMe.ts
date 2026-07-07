@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { MeResponse } from "@4eselo/types";
 import { getMe } from "./api";
+import { discordAvatarUrl } from "./discord";
 
 const ANON: MeResponse = { authenticated: false };
 
@@ -23,5 +24,6 @@ export function useMe() {
     player: me.authenticated ? me.player : null,
     isAdmin: me.authenticated ? me.isAdmin : false,
     displayName: me.authenticated ? me.displayName : null,
+    avatarUrl: me.authenticated ? discordAvatarUrl(me.discordId, me.player?.discordAvatar) : null,
   };
 }

@@ -5,6 +5,7 @@ import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
+import { isAlumni } from "../lib/promo";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -128,6 +129,11 @@ export function Leaderboard() {
         <span className={cn("flex-1 truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
           {nameOf(e)}
         </span>
+        {isAlumni(e.promoEnd) && (
+          <span title="Alumni" aria-label="Alumni" className="shrink-0 text-[13px] leading-none">
+            🎓
+          </span>
+        )}
         {isMe && (
           <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-brand-hi uppercase">
             toi

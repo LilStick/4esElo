@@ -25,6 +25,7 @@ import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { PlayerDuos } from "../components/PlayerDuos";
 import { EloSummaryCard } from "../components/EloSummaryCard";
 import { ShareButton } from "../components/ShareButton";
+import { isAlumni, promoLabel } from "../lib/promo";
 import { useTitle } from "../lib/useTitle";
 
 function PlayerSkeleton() {
@@ -136,6 +137,27 @@ export function Player() {
                   )}
                 </div>
               </div>
+
+              {(isAlumni(data.promoEnd) || promoLabel(data.promoStart, data.promoEnd) || data.formation) && (
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  {isAlumni(data.promoEnd) && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
+                      🎓 Alumni
+                    </span>
+                  )}
+                  {promoLabel(data.promoStart, data.promoEnd) && (
+                    <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-ink-dim">
+                      Promo {promoLabel(data.promoStart, data.promoEnd)}
+                    </span>
+                  )}
+                  {data.formation && (
+                    <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[11px] text-ink-dim">
+                      {data.formation}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <ShareButton className="w-full" />
 
               {data.playtimePrivate === true && (
