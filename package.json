@@ -23,7 +23,7 @@
     ]
   },
   "scripts": {
-    "dev": "pnpm db:up && concurrently -k -n api,web -c blue,magenta \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev": "pnpm db:up && concurrently -k -n api,web,worker -c blue,magenta,yellow \"pnpm dev:api\" \"pnpm dev:web\" \"pnpm dev:worker\"",
     "preflight": "node scripts/preflight.mjs",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r exec tsc --noEmit",

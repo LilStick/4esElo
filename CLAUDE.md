@@ -79,7 +79,7 @@ Monorepo **pnpm** en **TypeScript** (ESM).
 
 ```bash
 pnpm preflight                    # preflight (À FAIRE EN PREMIER)
-pnpm dev                          # ⭐ API + front ensemble (watch) — le plus simple pour bosser
+pnpm dev                          # ⭐ API + front + worker ensemble (watch) — le plus simple pour bosser
 pnpm dev:api                      # API seule sur :3001
 pnpm dev:worker                   # worker en boucle (10 min)
 pnpm dev:web                      # front Vite sur :5173
