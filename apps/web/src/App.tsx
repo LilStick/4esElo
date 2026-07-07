@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AppShell } from "./components/AppShell";
+import { Tour } from "./components/Tour";
 import { Dashboard } from "./pages/Dashboard";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Asso } from "./pages/Asso";
@@ -70,6 +71,7 @@ export function App() {
       <AppShell>
         <AnimatedRoutes />
       </AppShell>
+      <Tour />
     </>
   );
 }

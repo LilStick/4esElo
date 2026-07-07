@@ -182,7 +182,7 @@ export function Leaderboard() {
 
       {listItems.length > 0 &&
         (grouped ? (
-          <div className="flex flex-col gap-5">
+          <div data-tour="ladder" className="flex flex-col gap-5">
             {groups.map((g) => (
               <div key={g.level}>
                 <TierBanner level={g.level} count={g.items.length} />

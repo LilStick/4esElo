@@ -1,0 +1,302 @@
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { TbArrowLeft, TbArrowRight, TbX } from "react-icons/tb";
+import { TOUR_KEY, TOUR_REPLAY_EVENT } from "../lib/tour";
+
+type Step = {
+  /** Route à afficher pour cette étape (navigue avant de cibler). */
+  path?: string;
+  /** Sélecteur de l'élément à mettre en lumière (spotlight). Absent = bulle centrée. */
+  target?: string;
+  title: string;
+  body: string;
+};
+
+/** Le parcours guidé : navigue entre les pages et éclaire les vrais éléments. */
+const STEPS: Step[] = [
+  {
+    path: "/",
+    target: '[data-tour="nav"]',
+    title: "La navigation",
+    body: "Accueil, Classement, Comparer, Social, Wrapped… tout est ici, à gauche.",
+  },
+  {
+    path: "/",
+    target: '[data-tour="search"]',
+    title: "Recherche rapide",
+    body: "Trouve un membre en un éclair — ou appuie sur ⌘/Ctrl + K de n'importe où.",
+  },
+  {
+    path: "/classement",
+    target: '[data-tour="ladder"]',
+    title: "Le classement",
+    body: "Le cœur du site : classé par ELO Faceit et paliers. Clique une ligne pour ouvrir un profil détaillé (courbe d'ELO, stats, maps, duos).",
+  },
+  {
+    path: "/",
+    target: '[data-tour="auth"]',
+    title: "Ton compte",
+    body: "Connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
+  },
+  {
+    title: "Tu es prêt 🎯",
+    body: "Explore, compare, grimpe. Astuce : la touche « ? » affiche tous les raccourcis clavier à tout moment.",
+  },
+];
+
+const seen = (): boolean => {
+  try {
+    return localStorage.getItem(TOUR_KEY) === "1";
+  } catch {
+    return true;
+  }
+};
+
+const TW = 340; // largeur bulle
+
+/**
+ * Onboarding première visite (B14.6) — tour guidé « façon jeu vidéo » : spotlight
+ * sur les vrais éléments, bulle explicative, navigation automatique entre les
+ * pages, progression. Une seule fois (localStorage). Skippable, Échap ferme,
+ * respecte prefers-reduced-motion.
+ */
+export function Tour() {
+  const reduce = useReducedMotion();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [active, setActive] = useState(() => !seen());
+  const [index, setIndex] = useState(0);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  // hidden = en transition (navigation / recherche de cible) → on ne montre que le voile
+  const [mode, setMode] = useState<"hidden" | "spot" | "center">("hidden");
+  const elRef = useRef<HTMLElement | null>(null);
+  const tipRef = useRef<HTMLDivElement | null>(null);
+  const [tipH, setTipH] = useState(190);
+
+  const finish = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_KEY, "1");
+    } catch {
+      // pas de persistance possible → on ferme au moins pour la session
+    }
+    setActive(false);
+  }, []);
+
+  const step = STEPS[index]!;
+  const isLast = index === STEPS.length - 1;
+
+  // Localise la cible de l'étape (navigue d'abord si besoin), en suivant les
+  // éléments qui apparaissent après le changement de route.
+  useEffect(() => {
+    if (!active) return;
+    // Transition : on masque bulle + spotlight tant que la cible n'est pas prête.
+    setMode("hidden");
+    setRect(null);
+    if (step.path && location.pathname !== step.path) {
+      navigate(step.path);
+      return; // l'effet se relance au changement de pathname (reste en "hidden")
+    }
+    if (!step.target) {
+      setMode("center"); // étape volontairement centrée (ex. écran final)
+      return;
+    }
+    let raf = 0;
+    let tries = 0;
+    let scrolled = false;
+    const tick = () => {
+      const el = document.querySelector<HTMLElement>(step.target!);
+      const r = el?.getBoundingClientRect();
+      if (el && r && r.width > 0 && r.height > 0) {
+        elRef.current = el;
+        if (!scrolled) {
+          el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+          scrolled = true;
+        }
+        setRect(el.getBoundingClientRect());
+        setMode("spot");
+        raf = requestAnimationFrame(tick); // colle le spotlight pendant le scroll
+      } else if (tries++ < 90) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setMode("center"); // introuvable (ex. mobile, sidebar cachée) → bulle centrée
+      }
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
+  }, [active, index, step.path, step.target, location.pathname, navigate, reduce]);
+
+  // Mesure la hauteur réelle de la bulle → placement sans débordement.
+  useLayoutEffect(() => {
+    if (tipRef.current) setTipH(tipRef.current.offsetHeight);
+  }, [index, rect, active]);
+
+  // Replay depuis l'extérieur (bouton « Revoir le tuto »).
+  useEffect(() => {
+    const onReplay = () => {
+      setIndex(0);
+      setActive(true);
+    };
+    window.addEventListener(TOUR_REPLAY_EVENT, onReplay);
+    return () => window.removeEventListener(TOUR_REPLAY_EVENT, onReplay);
+  }, []);
+
+  // Échap ferme + verrou du scroll.
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && finish();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [active, finish]);
+
+  if (!active) return null;
+
+  // En transition (navigation / recherche de cible) : juste le voile, pas de bulle
+  // → évite le flash de la bulle mal placée avant que la page/cible soit prête.
+  if (mode === "hidden") {
+    return <div className="fixed inset-0 z-[80] bg-[rgba(4,6,10,0.78)] backdrop-blur-sm" />;
+  }
+
+  const pad = 8;
+  const spot =
+    mode === "spot" && rect
+      ? {
+          top: rect.top - pad,
+          left: rect.left - pad,
+          width: rect.width + pad * 2,
+          height: rect.height + pad * 2,
+        }
+      : null;
+
+  // Position de la bulle : on choisit le côté avec le plus de place (droite/gauche
+  // pour une cible sur un bord, sinon dessous/dessus) puis on clampe dans l'écran.
+  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const M = 14; // marge écran
+  const gap = 14; // écart cible ↔ bulle
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+
+  let tipStyle: React.CSSProperties;
+  if (!spot) {
+    tipStyle = { left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: TW };
+  } else {
+    let left: number;
+    let top: number;
+    if (vw - (spot.left + spot.width) >= TW + gap) {
+      // à droite (idéal pour la sidebar)
+      left = spot.left + spot.width + gap;
+      top = spot.top + spot.height / 2 - tipH / 2;
+    } else if (spot.left >= TW + gap) {
+      // à gauche
+      left = spot.left - TW - gap;
+      top = spot.top + spot.height / 2 - tipH / 2;
+    } else if (vh - (spot.top + spot.height) >= tipH + gap) {
+      // dessous
+      top = spot.top + spot.height + gap;
+      left = spot.left + spot.width / 2 - TW / 2;
+    } else {
+      // dessus
+      top = spot.top - tipH - gap;
+      left = spot.left + spot.width / 2 - TW / 2;
+    }
+    tipStyle = {
+      left: clamp(left, M, vw - TW - M),
+      top: clamp(top, M, vh - tipH - M),
+      width: TW,
+    };
+  }
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[80]">
+        {/* Voile + spotlight (le box-shadow assombrit tout sauf le trou). */}
+        {spot ? (
+          <motion.div
+            className="pointer-events-none absolute rounded-xl ring-2 ring-brand"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{
+              opacity: 1,
+              top: spot.top,
+              left: spot.left,
+              width: spot.width,
+              height: spot.height,
+            }}
+            transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 42 }}
+            style={{ boxShadow: "0 0 0 9999px rgba(4,6,10,0.78)" }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[rgba(4,6,10,0.78)] backdrop-blur-sm" />
+        )}
+
+        {/* Capte les clics hors bulle (tour guidé). */}
+        <div className="absolute inset-0" onClick={() => {}} />
+
+        {/* Bulle */}
+        <motion.div
+          key={index}
+          ref={tipRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={step.title}
+          className="absolute flex flex-col gap-3 border border-white/[0.1] bg-white/[0.05] p-[var(--bezel)] shadow-[0_32px_90px_-24px_rgba(0,0,0,0.95)]"
+          style={{ ...tipStyle, borderRadius: "var(--r-card)" }}
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <div
+            className="flex flex-col gap-3 bg-gradient-to-b from-surface-2 to-surface p-5"
+            style={{ borderRadius: "calc(var(--r-card) - var(--bezel))" }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-base font-extrabold tracking-tight">{step.title}</h2>
+              <button
+                onClick={finish}
+                aria-label="Passer le tuto"
+                className="-mt-1 grid size-7 shrink-0 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-white/[0.06] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              >
+                <TbX size={16} />
+              </button>
+            </div>
+            <p className="text-sm text-ink-dim">{step.body}</p>
+
+            <div className="mt-1 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                {STEPS.map((_, i) => (
+                  <span
+                    key={i}
+                    className={
+                      i === index ? "h-1.5 w-4 rounded-full bg-brand" : "size-1.5 rounded-full bg-white/20"
+                    }
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                {index > 0 && (
+                  <button
+                    onClick={() => setIndex((n) => n - 1)}
+                    aria-label="Précédent"
+                    className="grid size-8 place-items-center rounded-full border border-white/[0.16] bg-white/[0.045] text-ink transition-colors hover:border-brand hover:text-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                  >
+                    <TbArrowLeft size={15} />
+                  </button>
+                )}
+                <button
+                  onClick={() => (isLast ? finish() : setIndex((n) => n + 1))}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-1.5 text-sm font-bold text-[#060a18] transition-colors hover:bg-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  {isLast ? "C'est parti" : "Suivant"}
+                  {!isLast && <TbArrowRight size={15} />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
