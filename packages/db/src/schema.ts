@@ -82,9 +82,29 @@ export const playtimeSnapshots = pgTable(
   (t) => [index("playtime_snapshots_player_idx").on(t.playerId, t.capturedAt)],
 );
 
+/** Site announcements: the Wrapped monthly banner (B7.4), later the staff
+ *  announce from the admin panel (B17.4). `type` stays text (not enum) so new
+ *  kinds don't need a migration. */
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    type: text("type").notNull(), // "wrapped" | "staff" (B17.4)
+    title: text("title").notNull(),
+    /** Chemin interne du site (ex. /wrapped/juin-2026), null = annonce sans lien. */
+    linkUrl: text("link_url"),
+    /** Idempotence (ex. wrapped-2026-06) : l'unicité fait la dédup, relance sans doublon. */
+    dedupeKey: text("dedupe_key").unique(),
+    publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("announcements_published_idx").on(t.publishedAt)],
+);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
 export type FaceitMatchStat = typeof faceitMatchStats.$inferSelect;
 export type NewFaceitMatchStat = typeof faceitMatchStats.$inferInsert;
 export type PlaytimeSnapshot = typeof playtimeSnapshots.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
+export type NewAnnouncement = typeof announcements.$inferInsert;

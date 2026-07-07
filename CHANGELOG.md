@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Wrapped : annonce automatique sur le site — chaque début de mois le worker publie « Le Wrapped de <mois> est là 🎁 » (table `announcements`, dédup par mois, relançable sans doublon) + `GET /announcements` pour la future bannière home (#225). (#156)
 - Web : décor photo de map pour rendre le site plus vivant — bannière de la modale de détail de match, fond de la carte ELO du profil, en-tête du classement, hero des pages Wrapped ; + page 404 refaite (gros 404 + stickers CS éparpillés). (#223)
 - Web : page « Comparer » (/compare) — deux joueurs face à face : radar superposé + tableau comparatif (ELO, winrate, K/D, ADR, HS%, clutch, entry), meilleur surligné ; sélection dans l'URL (partageable). (#203)
 - Web : Wrapped — page vitrine des awards du pôle (`/wrapped/juillet-2026`) + Wrapped perso (`/wrapped/juillet-2026/:player` : matchs, winrate, Δ ELO, temps de jeu, map signature, percentiles vs pôle, awards) ; entrée nav. (#155)

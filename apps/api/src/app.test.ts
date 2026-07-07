@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { sql, eq } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
+  AnnouncementsResponse,
   PlayerDetail,
   EloCurveResponse,
   LeaderboardResponse,
@@ -412,6 +413,54 @@ test("B7.2: GET /wrapped/:y/:m/:playerId → 404 unknown player, 400 bad uuid", 
   assert.equal(missing.status, 404);
   const bad = await app.request(`/wrapped/2026/6/hackerman`);
   assert.equal(bad.status, 400);
+});
+
+test("B7.4: GET /announcements lists newest first, honors limit, rejects bad limit", { skip }, async () => {
+  const { announcements } = await import("@4eselo/db");
+  const inserted = await db
+    .insert(announcements)
+    .values([
+      {
+        type: "wrapped",
+        title: "Le Wrapped de mai est là 🎁",
+        linkUrl: "/wrapped/mai-2026",
+        dedupeKey: "itest-wrapped-2026-05",
+        publishedAt: new Date("2026-06-01T00:00:00Z"),
+      },
+      {
+        type: "wrapped",
+        title: "Le Wrapped de juin est là 🎁",
+        linkUrl: "/wrapped/juin-2026",
+        dedupeKey: "itest-wrapped-2026-06",
+        publishedAt: new Date("2026-07-01T00:00:00Z"),
+      },
+    ])
+    .returning({ id: announcements.id });
+  try {
+    const res = await app.request(`/announcements`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as AnnouncementsResponse;
+    const ours = body.announcements.filter((a) => a.title.startsWith("Le Wrapped de"));
+    assert.ok(ours.length >= 2);
+    // plus récent d'abord
+    assert.ok(
+      body.announcements.findIndex((a) => a.linkUrl === "/wrapped/juin-2026") <
+        body.announcements.findIndex((a) => a.linkUrl === "/wrapped/mai-2026"),
+    );
+
+    const limited = await app.request(`/announcements?limit=1`);
+    const one = (await limited.json()) as AnnouncementsResponse;
+    assert.equal(one.announcements.length, 1);
+
+    for (const q of ["limit=0", "limit=999", "limit=abc"]) {
+      const bad = await app.request(`/announcements?${q}`);
+      assert.equal(bad.status, 400, q);
+    }
+  } finally {
+    for (const { id } of inserted) {
+      await db.delete(announcements).where(eq(announcements.id, id));
+    }
+  }
 });
 
 test("B11.1: /health reports the DB state", { skip }, async () => {
