@@ -19,6 +19,7 @@ import type {
   MatchSummary,
   MoverEntry,
   MoversResponse,
+  OvertakesResponse,
   PlayerDetail,
   PlayerDuosResponse,
   PlayerStatsResponse,
@@ -27,6 +28,7 @@ import type {
 } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
+import { computeStreak, computeOvertakes } from "./streaks";
 import { authRoutes } from "./auth";
 import { registerRoutes } from "./register";
 import { adminRoutes } from "./admin";
@@ -164,6 +166,54 @@ app.get("/leaderboard/movers", async (c) => {
   return c.json<MoversResponse>({ source, window, movers });
 });
 
+// NOTE: comme /movers, déclaré avant /leaderboard pour que Hono matche le chemin statique.
+app.get("/leaderboard/overtakes", async (c) => {
+  const source = readSource(c);
+  if (!source) return badRequest(c, "invalid source (faceit|premier)");
+  const parsed = windowSchema.safeParse(c.req.query("window"));
+  if (!parsed.success) return c.json({ error: "invalid window (24h|7d)" }, 400);
+  const window = parsed.data;
+  const windowStart = new Date(Date.now() - WINDOW_HOURS[window] * 60 * 60 * 1000);
+
+  const rows = await db.execute<{
+    id: string;
+    discord_name: string | null;
+    faceit_nickname: string | null;
+    discord_avatar: string | null;
+    elo: number | null;
+    baseline_elo: number | null;
+  }>(sql`
+    select p.id, p.discord_name, p.faceit_nickname, p.discord_avatar,
+           cur.elo, base.elo as baseline_elo
+    from players p
+    left join lateral (
+      select elo from elo_snapshots
+      where player_id = p.id and source = ${source}
+      order by captured_at desc
+      limit 1
+    ) cur on true
+    left join lateral (
+      select elo from elo_snapshots
+      where player_id = p.id and source = ${source} and captured_at <= ${windowStart.toISOString()}::timestamptz
+      order by captured_at desc
+      limit 1
+    ) base on true
+  `);
+
+  const overtakes = computeOvertakes(
+    rows.map((r) => ({
+      id: r.id,
+      faceitNickname: r.faceit_nickname,
+      discordName: r.discord_name,
+      discordAvatar: r.discord_avatar,
+      elo: r.elo,
+      baselineElo: r.baseline_elo,
+    })),
+  );
+
+  return c.json<OvertakesResponse>({ source, window, overtakes });
+});
+
 app.get("/leaderboard", async (c) => {
   const source = readSource(c);
   if (!source) return badRequest(c, "invalid source (faceit|premier)");
@@ -251,6 +301,12 @@ app.get("/players/:id", async (c) => {
     .orderBy(desc(playtimeSnapshots.capturedAt))
     .limit(1);
 
+  const results = await db
+    .select({ result: faceitMatchStats.result })
+    .from(faceitMatchStats)
+    .where(eq(faceitMatchStats.playerId, id))
+    .orderBy(desc(faceitMatchStats.playedAt));
+
   const detail: PlayerDetail = {
     id: player.id,
     discordName: player.discordName,
@@ -265,6 +321,7 @@ app.get("/players/:id", async (c) => {
     createdAt: player.createdAt.toISOString(),
     history: await eloHistory(id, source),
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
+    streak: computeStreak(results.map((r) => r.result)),
   };
 
   return c.json(detail);
