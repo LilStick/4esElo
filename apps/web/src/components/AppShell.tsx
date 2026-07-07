@@ -16,6 +16,7 @@ import {
 import { cn } from "../lib/cn";
 import { currentPeriod } from "../lib/period";
 import { CommandPalette } from "./CommandPalette";
+import { Cheatsheet } from "./Cheatsheet";
 import { AuthMenu } from "./AuthMenu";
 import { AuthToast } from "./AuthToast";
 import { Footer } from "./Footer";
@@ -128,6 +129,7 @@ const GOTO: Record<string, string> = { h: "/", c: "/classement", a: "/asso" };
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
+  const [help, setHelp] = useState(false);
   const reduce = useReducedMotion();
   const navigate = useNavigate();
   // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
@@ -181,6 +183,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         e.preventDefault();
         setSearch((s) => !s);
       }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Cheatsheet des raccourcis : « ? » (hors champ de saisie)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "?" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      e.preventDefault();
+      setHelp((h) => !h);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -277,6 +292,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <CommandPalette open={search} onClose={() => setSearch(false)} />
+      <Cheatsheet open={help} onClose={() => setHelp(false)} />
     </div>
   );
 }
