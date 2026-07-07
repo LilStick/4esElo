@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { sql, eq } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
+  ActivityResponse,
   AnnouncementsResponse,
   DuosResponse,
   PlayerDuosResponse,
@@ -414,6 +415,67 @@ test("B7.2: GET /wrapped/:y/:m/:playerId → 404 unknown player, 400 bad uuid", 
   const missing = await app.request(`/wrapped/2026/6/00000000-0000-0000-0000-000000000000`);
   assert.equal(missing.status, 404);
   const bad = await app.request(`/wrapped/2026/6/hackerman`);
+  assert.equal(bad.status, 400);
+});
+
+test("B5.2: /players/:id/activity counts per UTC day, sparse, window applied", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/activity`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as ActivityResponse;
+  assert.equal(body.days, 365);
+  // ses 3 matchs seedés (01, 02, 03 juin) — un jour = une entrée, rien d'autre
+  assert.deepEqual(body.activity, [
+    { day: "2026-06-01", matches: 1 },
+    { day: "2026-06-02", matches: 1 },
+    { day: "2026-06-03", matches: 1 },
+  ]);
+
+  // fenêtre 1 jour = aujourd'hui seulement → ses matchs de juin sortent de la fenêtre
+  const today = await app.request(`/players/${playerId}/activity?days=1`);
+  const todayBody = (await today.json()) as ActivityResponse;
+  assert.deepEqual(todayBody.activity, []);
+});
+
+test("B5.2: /activity counts a shared match once (distinct matchId)", { skip }, async () => {
+  const day = "2026-06-20";
+  const before = (await (await app.request(`/activity`)).json()) as ActivityResponse;
+  const countBefore = before.activity.find((d) => d.day === day)?.matches ?? 0;
+
+  const duo = await db
+    .insert(players)
+    .values([
+      { discordName: "iactA", faceitNickname: "iactA_nick", steamId64: "765_iactA" },
+      { discordName: "iactB", faceitNickname: "iactB_nick", steamId64: "765_iactB" },
+    ])
+    .returning({ id: players.id });
+  try {
+    await db.insert(faceitMatchStats).values(
+      duo.map(({ id }) => ({
+        matchId: "it-act-shared",
+        playerId: id,
+        map: "de_nuke",
+        playedAt: new Date(`${day}T21:00:00Z`),
+        result: 1,
+        stats: makeStats(),
+      })),
+    );
+    const after = (await (await app.request(`/activity`)).json()) as ActivityResponse;
+    const countAfter = after.activity.find((d) => d.day === day)?.matches ?? 0;
+    // 2 lignes (2 membres) mais 1 seul match → +1, pas +2
+    assert.equal(countAfter, countBefore + 1);
+  } finally {
+    for (const { id } of duo) await db.delete(players).where(eq(players.id, id));
+  }
+});
+
+test("B5.2: /activity rejects an invalid days, player routes validated", { skip }, async () => {
+  for (const q of ["days=0", "days=9999", "days=abc"]) {
+    const res = await app.request(`/activity?${q}`);
+    assert.equal(res.status, 400, q);
+  }
+  const missing = await app.request(`/players/00000000-0000-0000-0000-000000000000/activity`);
+  assert.equal(missing.status, 404);
+  const bad = await app.request(`/players/hackerman/activity`);
   assert.equal(bad.status, 400);
 });
 

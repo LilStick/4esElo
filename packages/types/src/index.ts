@@ -152,6 +152,20 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Heatmap d'activité (B5.2) : nb de matchs par jour UTC, style GitHub. */
+export interface ActivityDay {
+  day: string; // YYYY-MM-DD (UTC)
+  matches: number;
+}
+
+/** Réponse **creuse** : seuls les jours avec ≥ 1 match sont présents (ordre chrono).
+ *  Le front remplit la grille — un jour absent = 0 match. */
+export interface ActivityResponse {
+  /** Fenêtre demandée en jours (aujourd'hui inclus). */
+  days: number;
+  activity: ActivityDay[];
+}
+
 /** Duos (B4.1) : stats de paires de membres coéquipiers, calculées des matchs stockés. */
 export interface DuoPlayer {
   id: string;
