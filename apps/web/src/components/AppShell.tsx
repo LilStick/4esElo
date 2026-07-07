@@ -211,11 +211,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-2">
           <Brand />
         </div>
-        <SearchTrigger onClick={() => setSearch(true)} className="mt-6 w-full" />
-        <div className="mt-4 flex-1">
+        <div data-tour="search" className="mt-6">
+          <SearchTrigger onClick={() => setSearch(true)} className="w-full" />
+        </div>
+        <div data-tour="nav" className="mt-4 flex-1">
           <NavList />
         </div>
-        <div className="mb-3 border-t border-white/[0.06] pt-3">
+        <div data-tour="auth" className="mb-3 border-t border-white/[0.06] pt-3">
           <AuthMenu />
         </div>
         {FOOTER}

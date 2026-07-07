@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { TbRoute } from "react-icons/tb";
 import { Modal } from "../ui";
+import { replayTour } from "../lib/tour";
 
 type Shortcut = { keys: string[]; sequence?: boolean; label: string };
 
@@ -43,6 +45,19 @@ export function Cheatsheet({ open, onClose }: { open: boolean; onClose: () => vo
       <p className="px-3 pt-2 pb-1 text-[11px] text-ink-faint">
         Les raccourcis sont inactifs quand tu écris dans un champ.
       </p>
+      <div className="mt-1 border-t border-white/[0.06] px-3 pt-3">
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            replayTour();
+          }}
+          className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-brand hover:text-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+        >
+          <TbRoute size={16} />
+          Revoir le tuto
+        </button>
+      </div>
     </Modal>
   );
 }
