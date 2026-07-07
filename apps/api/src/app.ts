@@ -28,6 +28,7 @@ import type {
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
 import { authRoutes } from "./auth";
+import { registerRoutes } from "./register";
 import { computeAwards, computePlayerWrapped, monthRange, type WrappedInputs } from "./wrapped";
 import { getPresence } from "./presence";
 
@@ -67,6 +68,7 @@ app.onError((err, c) => {
 });
 
 app.route("/", authRoutes);
+app.route("/", registerRoutes);
 
 app.get("/health", async (c) => {
   try {

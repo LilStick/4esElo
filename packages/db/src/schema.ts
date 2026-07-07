@@ -20,6 +20,13 @@ export const players = pgTable("players", {
   faceitId: text("faceit_id").unique(),
   faceitNickname: text("faceit_nickname"),
   steamId64: text("steam_id64"),
+  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») — libre, suggéré côté front. Register B17.2. */
+  formation: text("formation"),
+  /** Années de promo (ex. 2026-2028) ; Alumni 🎓 = promoEnd < année courante. */
+  promoStart: integer("promo_start"),
+  promoEnd: integer("promo_end"),
+  /** Hash d'avatar Discord (rendu via cdn.discordapp.com), null si aucun. */
+  discordAvatar: text("discord_avatar"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   /** Backfill ELO opportuniste (#141) : dernière tentative (1/jour max) et succès. */
   eloBackfillAttemptedAt: timestamp("elo_backfill_attempted_at", { withTimezone: true }),

@@ -17,9 +17,11 @@ const SESSION_COOKIE = "4eselo_session";
 const STATE_COOKIE = "4eselo_oauth_state";
 const SESSION_TTL_S = 7 * 24 * 60 * 60;
 
-interface SessionPayload {
+export interface SessionPayload {
   discordId: string;
   displayName: string;
+  /** Hash d'avatar Discord, null si aucun (absent sur les vieux cookies → null). */
+  avatar?: string | null;
   exp: number; // epoch seconds
 }
 
@@ -40,7 +42,7 @@ const webHome = () => WEB_ORIGINS[0] ?? "http://localhost:5173";
 
 const secure = () => webHome().startsWith("https://");
 
-async function readSession(c: Context): Promise<SessionPayload | null> {
+export async function readSession(c: Context): Promise<SessionPayload | null> {
   const { config } = authDeps;
   if (!config) return null;
   const raw = await getSignedCookie(c, config.sessionSecret, SESSION_COOKIE);
@@ -106,7 +108,7 @@ authRoutes.get("/auth/callback", async (c) => {
       return c.redirect(`${webHome()}/?auth=not-member${invite}`);
     }
     const user = await oauth.getUser(token);
-    await writeSession(c, { discordId: user.id, displayName: user.displayName });
+    await writeSession(c, { discordId: user.id, displayName: user.displayName, avatar: user.avatar });
     return c.redirect(`${webHome()}/?auth=ok`);
   } catch (err) {
     console.error("[auth] callback failed:", err instanceof Error ? err.message : err);
