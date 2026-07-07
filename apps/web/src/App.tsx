@@ -10,6 +10,7 @@ import { Wrapped } from "./pages/Wrapped";
 import { WrappedPlayer } from "./pages/WrappedPlayer";
 import { Compare } from "./pages/Compare";
 import { Changelog } from "./pages/Changelog";
+import { Register } from "./pages/Register";
 import { Styleguide } from "./pages/Styleguide";
 import { NotFound } from "./pages/NotFound";
 
@@ -47,6 +48,7 @@ function AnimatedRoutes() {
           <Route path="/wrapped/:period" element={<Wrapped />} />
           <Route path="/wrapped/:period/:player" element={<WrappedPlayer />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/changelog" element={<Changelog />} />
           {/* Charte / styleguide : accessible en direct, volontairement absente du nav. */}
           <Route path="/charte" element={<Styleguide />} />
