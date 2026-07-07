@@ -36,7 +36,7 @@ function IconAction({
  * (avatar + accès profil / son Wrapped / déconnexion).
  */
 export function AuthMenu({ onNavigate }: { onNavigate?: () => void }) {
-  const { isLoading, isAuthenticated, player, displayName, isAdmin } = useMe();
+  const { isLoading, isAuthenticated, player, displayName, isAdmin, avatarUrl } = useMe();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -80,7 +80,7 @@ export function AuthMenu({ onNavigate }: { onNavigate?: () => void }) {
     return (
       <div className="mx-1 flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
         <div className="flex items-center gap-2.5">
-          <Avatar name={name} size={30} />
+          <Avatar name={name} size={30} src={avatarUrl} />
           <span className="min-w-0 flex-1 truncate text-sm font-semibold">{name}</span>
         </div>
         <button
@@ -98,7 +98,7 @@ export function AuthMenu({ onNavigate }: { onNavigate?: () => void }) {
   // Connecté + membre.
   return (
     <div className="mx-1 flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 pl-2.5">
-      <Avatar name={name} size={30} />
+      <Avatar name={name} size={30} src={avatarUrl} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="min-w-0 truncate text-sm font-semibold">{name}</span>
