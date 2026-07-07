@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Web : panel admin `/admin` (réservé aux admins, lien dans la nav) — liste des joueurs avec édition (pseudo Discord, formation, promo) et suppression (confirmation + cascade), éditeur de l'annonce staff de la home, régénération d'un Wrapped mensuel. (#170)
 - Web : badges promo/Alumni 🎓 sur le classement et les profils (années de promo + formation) + avatar Discord de l'utilisateur connecté dans la nav — dernier bout de l'expérience connectée, débloqué par l'API B17.6. (#168)
 - Web : cheatsheet des raccourcis clavier — « ? » ouvre une modale listant les raccourcis (⌘/Ctrl+K, G puis H/C/A, Échap) ; inactive quand on tape dans un champ, fermeture Esc. (#207)
 - Web : page « Social » (`/social`) — classement des duos du pôle par winrate (nb de games en commun, médailles top 3), + encart « avec qui il win le + » (top 3 coéquipiers) sur le profil, masqué si aucun duo. Entrée nav, états vides propres. (#228)
