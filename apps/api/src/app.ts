@@ -27,6 +27,7 @@ import type {
 } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
+import { authRoutes } from "./auth";
 import { computeAwards, computePlayerWrapped, monthRange, type WrappedInputs } from "./wrapped";
 import { getPresence } from "./presence";
 
@@ -57,13 +58,15 @@ async function eloHistory(playerId: string, source: EloSource) {
 }
 
 export const app = new Hono();
-app.use("*", cors({ origin: WEB_ORIGINS }));
+app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
 
 // Une erreur imprévue (DB down…) → 500 structuré, jamais de stack trace au client.
 app.onError((err, c) => {
   console.error(`[api] ${c.req.method} ${c.req.path} failed:`, err.message);
   return c.json({ error: "internal error" }, 500);
 });
+
+app.route("/", authRoutes);
 
 app.get("/health", async (c) => {
   try {
