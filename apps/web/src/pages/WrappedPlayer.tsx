@@ -6,8 +6,11 @@ import { getPlayerWrapped } from "../lib/api";
 import { parsePeriod, monthLabel } from "../lib/period";
 import { Avatar, Card, MapIcon, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
+import { MapBackdrop } from "../components/MapBackdrop";
+import { mapScreen } from "../lib/mapScreens";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
+import fallbackScreen from "../assets/maps/screens/de_dust2.png";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
 const fmtPlaytime = (min: number) => {
@@ -87,6 +90,7 @@ export function WrappedPlayer() {
         <div className="mt-6 flex flex-col gap-6">
           {/* Hero */}
           <Card className="relative overflow-hidden p-6 text-center sm:p-8">
+            <MapBackdrop src={(data.topMap && mapScreen(data.topMap.map)) || fallbackScreen} />
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand/12 to-transparent"

@@ -18,6 +18,7 @@ import { Modal, MapIcon } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
 import { matchRating, ratingColor } from "../lib/rating";
+import { mapScreen } from "../lib/mapScreens";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
 const faceitRoom = (id: string) => `https://www.faceit.com/fr/cs2/room/${id}`;
@@ -76,24 +77,33 @@ export function MatchDetailModal({ match, onClose }: { match: MatchSummary | nul
     <Modal open={!!match} onClose={onClose} title="Détail du match" size="lg">
       {match && s && (
         <div className="flex flex-col gap-4 p-2">
-          {/* Bannière : dégradé V/D + icône de map en filigrane */}
+          {/* Bannière : vrai fond photo de la map (assombri) + teinte V/D */}
           <div
             className={cn(
               "relative overflow-hidden rounded-xl border p-4",
               win ? "border-win/25" : "border-loss/25",
             )}
           >
+            {mapScreen(match.map) ? (
+              <img
+                src={mapScreen(match.map)}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 size-full object-cover opacity-30"
+              />
+            ) : (
+              <div className="pointer-events-none absolute top-1/2 -right-3 -translate-y-1/2 opacity-10">
+                <MapIcon map={match.map} size={120} />
+              </div>
+            )}
             <div
               className={cn(
                 "absolute inset-0",
                 win
-                  ? "bg-gradient-to-r from-win/15 via-win/5 to-transparent"
-                  : "bg-gradient-to-r from-loss/15 via-loss/5 to-transparent",
+                  ? "bg-gradient-to-r from-bg via-bg/80 to-win/15"
+                  : "bg-gradient-to-r from-bg via-bg/80 to-loss/15",
               )}
             />
-            <div className="pointer-events-none absolute top-1/2 -right-3 -translate-y-1/2 opacity-10">
-              <MapIcon map={match.map} size={120} />
-            </div>
             <div className="relative flex items-center gap-3">
               <MapIcon map={match.map} size={40} />
               <div className="min-w-0 flex-1">
