@@ -67,9 +67,14 @@ export function Tour() {
   const location = useLocation();
   const [active, setActive] = useState(() => !seen());
   const [index, setIndex] = useState(0);
+  // Index réellement affiché : il ne rattrape `index` qu'une fois la nouvelle cible
+  // localisée → pendant la navigation la bulle garde le contenu + la position de
+  // l'étape précédente (pas de « contenu classement plaqué sur recherche rapide »).
+  const [shownIndex, setShownIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
-  // hidden = en transition (navigation / recherche de cible) → on ne montre que le voile
-  const [mode, setMode] = useState<"hidden" | "spot" | "center">("hidden");
+  // "spot" = spotlight sur une cible ; "center" = bulle centrée (voile plein).
+  // On garde le dernier rect pendant les transitions → le spotlight voyage au lieu de popper.
+  const [mode, setMode] = useState<"spot" | "center">("center");
   const elRef = useRef<HTMLElement | null>(null);
   const tipRef = useRef<HTMLDivElement | null>(null);
   const [tipH, setTipH] = useState(190);
@@ -84,21 +89,22 @@ export function Tour() {
   }, []);
 
   const step = STEPS[index]!;
-  const isLast = index === STEPS.length - 1;
+  const shown = STEPS[shownIndex]!;
+  const isLast = shownIndex === STEPS.length - 1;
 
   // Localise la cible de l'étape (navigue d'abord si besoin), en suivant les
   // éléments qui apparaissent après le changement de route.
   useEffect(() => {
     if (!active) return;
-    // Transition : on masque bulle + spotlight tant que la cible n'est pas prête.
-    setMode("hidden");
-    setRect(null);
     if (step.path && location.pathname !== step.path) {
       navigate(step.path);
-      return; // l'effet se relance au changement de pathname (reste en "hidden")
+      // On garde le rect/mode courant : le spotlight reste sur l'ancienne cible
+      // pendant la navigation, puis voyagera vers la nouvelle une fois localisée.
+      return; // l'effet se relance au changement de pathname
     }
     if (!step.target) {
       setMode("center"); // étape volontairement centrée (ex. écran final)
+      setShownIndex(index);
       return;
     }
     let raf = 0;
@@ -115,11 +121,13 @@ export function Tour() {
         }
         setRect(el.getBoundingClientRect());
         setMode("spot");
+        setShownIndex(index); // cible prête → on bascule contenu + position ensemble
         raf = requestAnimationFrame(tick); // colle le spotlight pendant le scroll
       } else if (tries++ < 90) {
         raf = requestAnimationFrame(tick);
       } else {
         setMode("center"); // introuvable (ex. mobile, sidebar cachée) → bulle centrée
+        setShownIndex(index);
       }
     };
     tick();
@@ -129,7 +137,7 @@ export function Tour() {
   // Mesure la hauteur réelle de la bulle → placement sans débordement.
   useLayoutEffect(() => {
     if (tipRef.current) setTipH(tipRef.current.offsetHeight);
-  }, [index, rect, active]);
+  }, [shownIndex, rect, active]);
 
   // Replay depuis l'extérieur (bouton « Revoir le tuto »).
   useEffect(() => {
@@ -155,105 +163,102 @@ export function Tour() {
 
   if (!active) return null;
 
-  // En transition (navigation / recherche de cible) : juste le voile, pas de bulle
-  // → évite le flash de la bulle mal placée avant que la page/cible soit prête.
-  if (mode === "hidden") {
-    return <div className="fixed inset-0 z-[80] bg-[rgba(4,6,10,0.78)] backdrop-blur-sm" />;
-  }
-
   const pad = 8;
+  const M = 14; // marge écran
+  const gap = 14; // écart cible ↔ bulle
+  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+
+  // En "center" (ou tant que la cible n'est pas localisée) le spotlight se réduit à
+  // un point central de taille 0 : le box-shadow garde le voile plein, l'anneau est
+  // invisible. En "spot" il épouse la cible → géométrie animée = voyage fluide.
+  const showSpot = mode === "spot" && !!rect;
   const spot =
-    mode === "spot" && rect
+    showSpot && rect
       ? {
           top: rect.top - pad,
           left: rect.left - pad,
           width: rect.width + pad * 2,
           height: rect.height + pad * 2,
         }
-      : null;
+      : { top: vh / 2, left: vw / 2, width: 0, height: 0 };
 
-  // Position de la bulle : on choisit le côté avec le plus de place (droite/gauche
-  // pour une cible sur un bord, sinon dessous/dessus) puis on clampe dans l'écran.
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-  const M = 14; // marge écran
-  const gap = 14; // écart cible ↔ bulle
-  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-
-  let tipStyle: React.CSSProperties;
-  if (!spot) {
-    tipStyle = { left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: TW };
+  // Position de la bulle (numérique → animable au spring) : on choisit le côté avec
+  // le plus de place puis on clampe dans l'écran. Centrée si pas de cible.
+  let tipLeft: number;
+  let tipTop: number;
+  if (!showSpot) {
+    tipLeft = vw / 2 - TW / 2;
+    tipTop = vh / 2 - tipH / 2;
   } else {
-    let left: number;
-    let top: number;
     if (vw - (spot.left + spot.width) >= TW + gap) {
       // à droite (idéal pour la sidebar)
-      left = spot.left + spot.width + gap;
-      top = spot.top + spot.height / 2 - tipH / 2;
+      tipLeft = spot.left + spot.width + gap;
+      tipTop = spot.top + spot.height / 2 - tipH / 2;
     } else if (spot.left >= TW + gap) {
       // à gauche
-      left = spot.left - TW - gap;
-      top = spot.top + spot.height / 2 - tipH / 2;
+      tipLeft = spot.left - TW - gap;
+      tipTop = spot.top + spot.height / 2 - tipH / 2;
     } else if (vh - (spot.top + spot.height) >= tipH + gap) {
       // dessous
-      top = spot.top + spot.height + gap;
-      left = spot.left + spot.width / 2 - TW / 2;
+      tipTop = spot.top + spot.height + gap;
+      tipLeft = spot.left + spot.width / 2 - TW / 2;
     } else {
       // dessus
-      top = spot.top - tipH - gap;
-      left = spot.left + spot.width / 2 - TW / 2;
+      tipTop = spot.top - tipH - gap;
+      tipLeft = spot.left + spot.width / 2 - TW / 2;
     }
-    tipStyle = {
-      left: clamp(left, M, vw - TW - M),
-      top: clamp(top, M, vh - tipH - M),
-      width: TW,
-    };
+    tipLeft = clamp(tipLeft, M, vw - TW - M);
+    tipTop = clamp(tipTop, M, vh - tipH - M);
   }
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[80]">
-        {/* Voile + spotlight (le box-shadow assombrit tout sauf le trou). */}
-        {spot ? (
-          <motion.div
-            className="pointer-events-none absolute rounded-xl ring-2 ring-brand"
-            initial={reduce ? false : { opacity: 0 }}
-            animate={{
-              opacity: 1,
-              top: spot.top,
-              left: spot.left,
-              width: spot.width,
-              height: spot.height,
-            }}
-            transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 42 }}
-            style={{ boxShadow: "0 0 0 9999px rgba(4,6,10,0.78)" }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[rgba(4,6,10,0.78)] backdrop-blur-sm" />
-        )}
+        {/* Voile + spotlight toujours montés : la géométrie est animée au spring →
+            le trou voyage vers la nouvelle cible au lieu de disparaître/réapparaître.
+            Le box-shadow porte le voile (opacité constante), l'anneau est un enfant
+            dont seule l'opacité varie → le voile ne clignote pas en mode centré. */}
+        <motion.div
+          className="pointer-events-none absolute rounded-xl"
+          initial={false}
+          animate={{
+            top: spot.top,
+            left: spot.left,
+            width: spot.width,
+            height: spot.height,
+          }}
+          transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 40 }}
+          style={{ boxShadow: "0 0 0 9999px rgba(4,6,10,0.78)" }}
+        />
 
         {/* Capte les clics hors bulle (tour guidé). */}
         <div className="absolute inset-0" onClick={() => {}} />
 
-        {/* Bulle */}
+        {/* Bulle — reste montée entre les étapes : left/top animés au spring → elle
+            glisse vers la nouvelle position au lieu de re-popper (key retirée exprès). */}
         <motion.div
-          key={index}
           ref={tipRef}
           role="dialog"
           aria-modal="true"
-          aria-label={step.title}
+          aria-label={shown.title}
           className="absolute flex flex-col gap-3 border border-white/[0.1] bg-white/[0.05] p-[var(--bezel)] shadow-[0_32px_90px_-24px_rgba(0,0,0,0.95)]"
-          style={{ ...tipStyle, borderRadius: "var(--r-card)" }}
-          initial={reduce ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          style={{ width: TW, borderRadius: "var(--r-card)" }}
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1, left: tipLeft, top: tipTop }}
+          transition={
+            reduce
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 380, damping: 40, opacity: { duration: 0.2 } }
+          }
         >
           <div
             className="flex flex-col gap-3 bg-gradient-to-b from-surface-2 to-surface p-5"
             style={{ borderRadius: "calc(var(--r-card) - var(--bezel))" }}
           >
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-base font-extrabold tracking-tight">{step.title}</h2>
+              <h2 className="text-base font-extrabold tracking-tight">{shown.title}</h2>
               <button
                 onClick={finish}
                 aria-label="Passer le tuto"
@@ -262,7 +267,7 @@ export function Tour() {
                 <TbX size={16} />
               </button>
             </div>
-            <p className="text-sm text-ink-dim">{step.body}</p>
+            <p className="text-sm text-ink-dim">{shown.body}</p>
 
             <div className="mt-1 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -270,15 +275,17 @@ export function Tour() {
                   <span
                     key={i}
                     className={
-                      i === index ? "h-1.5 w-4 rounded-full bg-brand" : "size-1.5 rounded-full bg-white/20"
+                      i === shownIndex
+                        ? "h-1.5 w-4 rounded-full bg-brand"
+                        : "size-1.5 rounded-full bg-white/20"
                     }
                   />
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                {index > 0 && (
+                {shownIndex > 0 && (
                   <button
-                    onClick={() => setIndex((n) => n - 1)}
+                    onClick={() => setIndex(shownIndex - 1)}
                     aria-label="Précédent"
                     className="grid size-8 place-items-center rounded-full border border-white/[0.16] bg-white/[0.045] text-ink transition-colors hover:border-brand hover:text-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
                   >
@@ -286,7 +293,7 @@ export function Tour() {
                   </button>
                 )}
                 <button
-                  onClick={() => (isLast ? finish() : setIndex((n) => n + 1))}
+                  onClick={() => (isLast ? finish() : setIndex(shownIndex + 1))}
                   className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-1.5 text-sm font-bold text-[#060a18] transition-colors hover:bg-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
                 >
                   {isLast ? "C'est parti" : "Suivant"}
