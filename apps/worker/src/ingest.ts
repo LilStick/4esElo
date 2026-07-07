@@ -56,7 +56,7 @@ export interface IngestResult {
   /** Matches seen inside the window. */
   scanned: number;
   inserted: number;
-  /** Already stored (dedup). */
+  /** Already stored (dedup) or bye/forfeit — nothing to fetch. */
   skipped: number;
   /** Stats fetch failed or member missing from the match — retried next run. */
   failed: number;
@@ -108,7 +108,11 @@ export async function ingestPlayerMatches(
         player.id,
         inWindow.map((m) => m.matchId),
       );
-      const fresh = inWindow.filter((m) => !stored.has(m.matchId));
+      // Zero-duration match = championship bye / forfeit: Faceit never has a
+      // stats page for it (permanent 404), so don't even try (#244).
+      const fresh = inWindow.filter(
+        (m) => !stored.has(m.matchId) && (m.finishedAt === null || m.finishedAt > m.startedAt),
+      );
       result.skipped += inWindow.length - fresh.length;
       toFetch.push(...fresh);
 

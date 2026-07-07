@@ -231,6 +231,41 @@ test("member missing from the match detail → failed, no insert, run continues"
   });
 });
 
+test("bye/forfeit (zero duration) → never fetched, not counted failed (#244)", async () => {
+  // Real case (Styl1zt): a championship bye finishes the instant it starts and
+  // has no stats page — fetching it would 404 forever, on every run.
+  const refs = makeRefs(3);
+  const bye = refs[1]!;
+  refs[1] = { ...bye, finishedAt: bye.startedAt };
+  const reader = makeReader(refs);
+  const store = makeStore();
+  const res = await ingestPlayerMatches(reader, store, player, noSleep);
+
+  assert.deepEqual(res, {
+    scanned: 3,
+    inserted: 2,
+    skipped: 1,
+    failed: 0,
+    insertedMatchIds: ["m3", "m1"],
+  });
+  assert.ok(!reader.statsCalls.includes("m2"));
+});
+
+test("incremental early-stop still holds when the stored page also contains a bye", async () => {
+  // The bye is never stored; it must not keep the pager walking older pages.
+  const refs = makeRefs(50);
+  const bye = refs[10]!;
+  refs[10] = { ...bye, finishedAt: bye.startedAt };
+  const reader = makeReader(refs);
+  const store = makeStore(refs.filter((_, i) => i !== 10).map((r) => r.matchId));
+  const res = await ingestPlayerMatches(reader, store, player, { ...noSleep, pageSize: 50 });
+
+  assert.deepEqual(reader.historyCalls, [0]);
+  assert.equal(reader.statsCalls.length, 0);
+  assert.equal(res.inserted, 0);
+  assert.equal(res.skipped, 50);
+});
+
 test("throttle: sleeps between Faceit calls", async () => {
   let sleeps = 0;
   const reader = makeReader(makeRefs(3));
