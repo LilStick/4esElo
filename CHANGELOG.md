@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Web : le widget « En jeu maintenant » précise le mode — « En match Faceit » (confirmé) sinon « En jeu CS2 » sinon « En ligne » ; vérif Faceit impossible → « En jeu CS2 », jamais de fausse mention Faceit. (#214)
 - Web : bannière d'annonce sur la home — la plus récente annonce (Wrapped auto ou staff) avec son lien, fermable et mémorisée (localStorage, ne revient pas), rien du tout si aucune annonce. (#225)
 - Web : expérience connectée (connexion Discord) — bouton se connecter/déconnecter dans la nav, page d'inscription `/register` (lookup du pseudo Faceit avec aperçu avatar/ELO/niveau → formation + promo, états d'erreur : pseudo introuvable, déjà pris, déjà inscrit), bandeau retour OAuth (`?auth=ok|error|not-member`), ta ligne surlignée dans le classement, raccourcis « ton Wrapped » et « ton profil » sur le home. (#168)
 - Admin : les endpoints protégés du panel (whitelist Discord) — éditer un joueur (`PATCH /admin/players/:id` : pseudo, formation, promo), le retirer avec confirmation obligatoire (cascade sur tout l'historique), gérer l'annonce staff de la home (`PUT/DELETE /admin/announcement`, une seule active, servie par `GET /announcements`), re-publier un Wrapped (`POST /admin/wrapped/:y/:m/regenerate`). (#169)
