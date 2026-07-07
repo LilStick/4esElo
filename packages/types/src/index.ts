@@ -152,6 +152,31 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Duos (B4.1) : stats de paires de membres coéquipiers, calculées des matchs stockés. */
+export interface DuoPlayer {
+  id: string;
+  nickname: string;
+}
+
+export interface DuoStat {
+  /** Les deux coéquipiers, ordre stable (pseudo alphabétique). */
+  players: [DuoPlayer, DuoPlayer];
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+}
+
+export interface DuosResponse {
+  /** Games ensemble minimum pour apparaître (anti « 100% sur 1 game »). */
+  minMatches: number;
+  /** Triés par winrate desc, puis nb de games desc. */
+  duos: DuoStat[];
+}
+
+export interface PlayerDuosResponse extends DuosResponse {
+  playerId: string;
+}
+
 /** Annonce du site (B7.4) : Wrapped mensuel auto, plus tard l'annonce staff (B17.4). */
 export interface Announcement {
   id: string;

@@ -5,6 +5,8 @@ import { sql, eq } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
   AnnouncementsResponse,
+  DuosResponse,
+  PlayerDuosResponse,
   PlayerDetail,
   EloCurveResponse,
   LeaderboardResponse,
@@ -412,6 +414,69 @@ test("B7.2: GET /wrapped/:y/:m/:playerId → 404 unknown player, 400 bad uuid", 
   const missing = await app.request(`/wrapped/2026/6/00000000-0000-0000-0000-000000000000`);
   assert.equal(missing.status, 404);
   const bad = await app.request(`/wrapped/2026/6/hackerman`);
+  assert.equal(bad.status, 400);
+});
+
+test("B4.1: /social/duos and /players/:id/duos expose seeded teammates", { skip }, async () => {
+  const duo = await db
+    .insert(players)
+    .values([
+      { discordName: "iduoA", faceitNickname: "iduoA_nick", steamId64: "765_iduoA" },
+      { discordName: "iduoB", faceitNickname: "iduoB_nick", steamId64: "765_iduoB" },
+    ])
+    .returning({ id: players.id });
+  const [a, b] = [duo[0]!.id, duo[1]!.id];
+  try {
+    // 5 games ensemble (4 wins), même matchId + même résultat = coéquipiers
+    const results = [1, 1, 1, 1, 0];
+    await db.insert(faceitMatchStats).values(
+      results.flatMap((result, i) =>
+        [a, b].map((playerId) => ({
+          matchId: `it-duo-${i}`,
+          playerId,
+          map: "de_mirage",
+          playedAt: new Date(`2026-06-1${i}T20:00:00Z`),
+          result,
+          stats: makeStats(),
+        })),
+      ),
+    );
+
+    const res = await app.request(`/social/duos`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as DuosResponse;
+    assert.equal(body.minMatches, 5);
+    const ours = body.duos.find((d) => d.players.some((p) => p.id === a));
+    assert.ok(ours, "seeded duo should be listed");
+    assert.deepEqual(
+      ours.players.map((p) => p.nickname),
+      ["iduoA_nick", "iduoB_nick"],
+    );
+    assert.equal(ours.matches, 5);
+    assert.equal(ours.winRate, 80);
+
+    const mine = await app.request(`/players/${a}/duos`);
+    assert.equal(mine.status, 200);
+    const mineBody = (await mine.json()) as PlayerDuosResponse;
+    assert.equal(mineBody.playerId, a);
+    assert.ok(mineBody.duos.every((d) => d.players.some((p) => p.id === a)));
+    assert.equal(mineBody.duos.length, 1);
+  } finally {
+    await db.delete(players).where(eq(players.id, a)); // cascade sur ses matchs
+    await db.delete(players).where(eq(players.id, b));
+  }
+});
+
+test("B4.1: /players/:id/duos → vide sans match commun, 404 inconnu, 400 uuid", { skip }, async () => {
+  // itest ne partage aucun matchId avec un autre membre → aucun duo
+  const res = await app.request(`/players/${playerId}/duos`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as PlayerDuosResponse;
+  assert.deepEqual(body.duos, []);
+
+  const missing = await app.request(`/players/00000000-0000-0000-0000-000000000000/duos`);
+  assert.equal(missing.status, 404);
+  const bad = await app.request(`/players/hackerman/duos`);
   assert.equal(bad.status, 400);
 });
 

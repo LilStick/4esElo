@@ -7,6 +7,8 @@ import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots, announc
 import type {
   Announcement,
   AnnouncementsResponse,
+  DuoPlayer,
+  DuosResponse,
   EloSource,
   EloCurveResponse,
   LeaderboardEntry,
@@ -16,11 +18,13 @@ import type {
   MoverEntry,
   MoversResponse,
   PlayerDetail,
+  PlayerDuosResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
   WrappedResponse,
 } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
+import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
 import { computeAwards, computePlayerWrapped, monthRange, type WrappedInputs } from "./wrapped";
 import { getPresence } from "./presence";
 
@@ -284,6 +288,51 @@ app.get("/players/:id/matches", async (c) => {
   }));
 
   return c.json<MatchesResponse>({ items, total: counted?.total ?? 0 });
+});
+
+/** Membres (id + pseudo affichable) + lignes de matchs — l'entrée du calcul de duos. */
+async function loadSocialInputs() {
+  const playerRows = await db
+    .select({
+      id: players.id,
+      faceitNickname: players.faceitNickname,
+      discordName: players.discordName,
+    })
+    .from(players);
+  const members: DuoPlayer[] = playerRows.map((p) => ({
+    id: p.id,
+    nickname: p.faceitNickname ?? p.discordName ?? p.id,
+  }));
+  const matchRows = await db
+    .select({
+      matchId: faceitMatchStats.matchId,
+      playerId: faceitMatchStats.playerId,
+      result: faceitMatchStats.result,
+    })
+    .from(faceitMatchStats);
+  return { members, matchRows };
+}
+
+app.get("/social/duos", async (c) => {
+  const { members, matchRows } = await loadSocialInputs();
+  return c.json<DuosResponse>({
+    minMatches: MIN_DUO_MATCHES,
+    duos: computeDuos(members, matchRows),
+  });
+});
+
+app.get("/players/:id/duos", async (c) => {
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  const { members, matchRows } = await loadSocialInputs();
+  return c.json<PlayerDuosResponse>({
+    playerId: id,
+    minMatches: MIN_DUO_MATCHES,
+    duos: computePlayerDuos(id, members, matchRows),
+  });
 });
 
 const announcementsLimitSchema = z.coerce.number().int().min(1).max(20).default(5);
