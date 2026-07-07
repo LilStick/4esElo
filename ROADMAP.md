@@ -67,6 +67,8 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Communauté** : promo EFREI à l'inscription ✅ voté + login Discord ✅ voté → **ticketés en B17** (register sur site, Alumni 🎓 auto, panel admin).
 
+**Qualité** : **passe QA complète du site avant la mise en ligne** (idée Noé 2026-07-07 : parcourir toutes les pages/états et ticketer chaque bug en `type:bugfix` — premier cas : widget « En jeu maintenant » qui confondait connecté/en jeu, cf. #214) · label `type:bugfix` créé pour tracer ces corrections.
+
 **Gamification** : succès déblocables · course au titre de saison + hall of fame · XP/level d'asso · jeu de pronostics · rivalries auto-détectées · bounties/challenges de la semaine.
 
 **Outillage (DX)** : skill **`/gen-readme`** — régénère le `README.md` pour qu'il colle **fidèlement à l'état réel du repo** (structure, commandes, endpoints, avancement) en inspectant le code + les issues. Même famille que `repo-catchup` (docs auto à jour).
