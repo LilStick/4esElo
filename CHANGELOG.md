@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Social : les duos du pôle — `GET /social/duos` (meilleurs duos : games ensemble + winrate, min. 5 games) et `GET /players/:id/duos` (« avec qui je win le + »), calculés des matchs stockés (même match + même résultat = coéquipiers). La page Social (#228) est débloquée. (#227)
 - Wrapped : annonce automatique sur le site — chaque début de mois le worker publie « Le Wrapped de <mois> est là 🎁 » (table `announcements`, dédup par mois, relançable sans doublon) + `GET /announcements` pour la future bannière home (#225). (#156)
 - Web : décor photo de map pour rendre le site plus vivant — bannière de la modale de détail de match, fond de la carte ELO du profil, en-tête du classement, hero des pages Wrapped ; + page 404 refaite (gros 404 + stickers CS éparpillés). (#223)
 - Web : page « Comparer » (/compare) — deux joueurs face à face : radar superposé + tableau comparatif (ELO, winrate, K/D, ADR, HS%, clutch, entry), meilleur surligné ; sélection dans l'URL (partageable). (#203)
