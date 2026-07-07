@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Engagement : les streaks & dépassements — `/players/:id` porte la série en cours + records (`streak`), et `GET /leaderboard/overtakes?window=24h|7d` liste qui est passé devant qui. Le front (#256) et les badges (#258) sont débloqués. (#255)
 - Web : panel admin `/admin` (réservé aux admins, lien dans la nav) — liste des joueurs avec édition (pseudo Discord, formation, promo) et suppression (confirmation + cascade), éditeur de l'annonce staff de la home, régénération d'un Wrapped mensuel. (#170)
 - Web : badges promo/Alumni 🎓 sur le classement et les profils (années de promo + formation) + avatar Discord de l'utilisateur connecté dans la nav — dernier bout de l'expérience connectée, débloqué par l'API B17.6. (#168)
 - Web : cheatsheet des raccourcis clavier — « ? » ouvre une modale listant les raccourcis (⌘/Ctrl+K, G puis H/C/A, Échap) ; inactive quand on tape dans un champ, fermeture Esc. (#207)

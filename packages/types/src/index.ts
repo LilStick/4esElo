@@ -62,11 +62,40 @@ export interface EloPoint {
   capturedAt: string; // ISO
 }
 
+/** Séries de wins/losses (B5.5), calculées des matchs stockés. */
+export interface PlayerStreak {
+  /** Série en cours ; null si aucun match stocké. */
+  current: { type: "win" | "loss"; length: number } | null;
+  bestWinStreak: number;
+  worstLossStreak: number;
+}
+
 export interface PlayerDetail extends PlayerSummary {
   createdAt: string;
   history: EloPoint[];
   /** true = ses heures de jeu Steam sont privées (hint front) ; null = pas encore échantillonné. */
   playtimePrivate?: boolean | null;
+  streak: PlayerStreak;
+}
+
+/** Dépassement au classement (B5.5) : `passer` est passé devant `passed` sur la fenêtre. */
+export interface OvertakePlayer {
+  id: string;
+  faceitNickname: string | null;
+  discordName: string | null;
+  discordAvatar: string | null;
+  elo: number | null;
+}
+
+export interface OvertakeEntry {
+  passer: OvertakePlayer;
+  passed: OvertakePlayer;
+}
+
+export interface OvertakesResponse {
+  source: EloSource;
+  window: MoversWindow;
+  overtakes: OvertakeEntry[];
 }
 
 export interface LeaderboardResponse {

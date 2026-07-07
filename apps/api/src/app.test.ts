@@ -14,6 +14,7 @@ import type {
   MatchesResponse,
   FaceitMatchStats,
   MoversResponse,
+  OvertakesResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
 } from "@4eselo/types";
@@ -162,6 +163,56 @@ test("GET /players/:id flags private playtime from the last snapshot", { skip },
   const body = (await res.json()) as PlayerDetail;
   assert.equal(body.playtimePrivate, true);
   await db.delete(playtimeSnapshots).where(eq(playtimeSnapshots.playerId, playerId));
+});
+
+test("B5.5: GET /players/:id carries the streak (newest first over stored matches)", { skip }, async () => {
+  // it-m1 (win) → it-m2 (loss) → it-m3 (win) : série en cours = 1 win
+  const res = await app.request(`/players/${playerId}`);
+  const body = (await res.json()) as PlayerDetail;
+  assert.deepEqual(body.streak, {
+    current: { type: "win", length: 1 },
+    bestWinStreak: 1,
+    worstLossStreak: 1,
+  });
+
+  // joueur suivi mais sans match stocké → streak vide, pas de crash
+  const bare = (await (await app.request(`/players/${moverId}`)).json()) as PlayerDetail;
+  assert.deepEqual(bare.streak, { current: null, bestWinStreak: 0, worstLossStreak: 0 });
+});
+
+test("B5.5: GET /leaderboard/overtakes detects a rank crossing inside the window", { skip }, async () => {
+  const HOUR_ = 60 * 60 * 1000;
+  const mk = async (name: string, before: number, now: number) => {
+    const [row] = await db
+      .insert(players)
+      .values({ discordName: name, faceitNickname: name, steamId64: "765_" + name })
+      .returning({ id: players.id });
+    await db.insert(eloSnapshots).values([
+      { playerId: row!.id, source: "faceit", elo: before, capturedAt: new Date(Date.now() - 30 * HOUR_) },
+      { playerId: row!.id, source: "faceit", elo: now, capturedAt: new Date(Date.now() - 1 * HOUR_) },
+    ]);
+    return row!.id;
+  };
+  const hare = await mk("iovt_hare", 3000, 2900); // partait devant, se fait doubler
+  const turtle = await mk("iovt_turtle", 2950, 3050);
+
+  try {
+    const res = await app.request(`/leaderboard/overtakes?window=24h`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as OvertakesResponse;
+    const crossing = body.overtakes.find((o) => o.passer.id === turtle);
+    assert.ok(crossing, "turtle doit apparaître comme passer");
+    assert.equal(crossing!.passed.id, hare);
+    assert.equal(crossing!.passer.elo, 3050);
+  } finally {
+    await db.delete(players).where(eq(players.id, hare));
+    await db.delete(players).where(eq(players.id, turtle));
+  }
+});
+
+test("B5.5: GET /leaderboard/overtakes rejects an unknown window with 400", { skip }, async () => {
+  const res = await app.request(`/leaderboard/overtakes?window=1y`);
+  assert.equal(res.status, 400);
 });
 
 test("GET /players/:id returns 404 for an unknown id", { skip }, async () => {
