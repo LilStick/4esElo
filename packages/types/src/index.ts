@@ -9,6 +9,12 @@ export interface PlayerSummary {
   elo: number | null;
   /** Faceit skill level 1-10 (null for premier / unknown). */
   level: number | null;
+  /** Discord avatar hash (register) — null until the member registers on the site. */
+  discordAvatar: string | null;
+  /** Formation + promo years (register) — null until the member registers. */
+  formation: string | null;
+  promoStart: number | null;
+  promoEnd: number | null;
 }
 
 export interface LeaderboardEntry extends PlayerSummary {

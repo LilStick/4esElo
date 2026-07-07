@@ -74,7 +74,15 @@ before(async () => {
   if (!DB_UP) return;
   const [p] = await db
     .insert(players)
-    .values({ discordName: "itest", faceitNickname: "itest_nick", steamId64: "765_itest" })
+    .values({
+      discordName: "itest",
+      faceitNickname: "itest_nick",
+      steamId64: "765_itest",
+      discordAvatar: "itest_avatar_hash",
+      formation: "Mastère Dev",
+      promoStart: 2026,
+      promoEnd: 2028,
+    })
     .returning({ id: players.id });
   playerId = p!.id;
   const [m] = await db
@@ -278,6 +286,31 @@ test(
     assert.ok(body.movers.indexOf(mover!) > body.movers.indexOf(stable!)); // nulls last
   },
 );
+
+test("B17.6: leaderboard, movers and player detail expose promo + avatar", { skip }, async () => {
+  // itest is registered (avatar + formation + promo), imover is not → nulls.
+  const lb = (await (await app.request(`/leaderboard`)).json()) as LeaderboardResponse;
+  const registered = lb.leaderboard.find((e) => e.id === playerId);
+  const bare = lb.leaderboard.find((e) => e.id === moverId);
+  assert.equal(registered!.discordAvatar, "itest_avatar_hash");
+  assert.equal(registered!.formation, "Mastère Dev");
+  assert.equal(registered!.promoStart, 2026);
+  assert.equal(registered!.promoEnd, 2028);
+  assert.equal(bare!.discordAvatar, null);
+  assert.equal(bare!.formation, null);
+  assert.equal(bare!.promoStart, null);
+
+  const mv = (await (await app.request(`/leaderboard/movers`)).json()) as MoversResponse;
+  const mvRegistered = mv.movers.find((e) => e.id === playerId);
+  assert.equal(mvRegistered!.formation, "Mastère Dev");
+  assert.equal(mvRegistered!.discordAvatar, "itest_avatar_hash");
+
+  const detail = (await (await app.request(`/players/${playerId}`)).json()) as PlayerDetail;
+  assert.equal(detail.discordAvatar, "itest_avatar_hash");
+  assert.equal(detail.formation, "Mastère Dev");
+  assert.equal(detail.promoStart, 2026);
+  assert.equal(detail.promoEnd, 2028);
+});
 
 test("GET /leaderboard/movers rejects an unknown window with 400", { skip }, async () => {
   const res = await app.request(`/leaderboard/movers?window=1y`);
