@@ -3,8 +3,10 @@ import { cors } from "hono/cors";
 import { WEB_ORIGINS } from "./env";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, lt, sql } from "drizzle-orm";
-import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
+import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots, announcements } from "@4eselo/db";
 import type {
+  Announcement,
+  AnnouncementsResponse,
   EloSource,
   EloCurveResponse,
   LeaderboardEntry,
@@ -282,6 +284,28 @@ app.get("/players/:id/matches", async (c) => {
   }));
 
   return c.json<MatchesResponse>({ items, total: counted?.total ?? 0 });
+});
+
+const announcementsLimitSchema = z.coerce.number().int().min(1).max(20).default(5);
+
+app.get("/announcements", async (c) => {
+  const parsed = announcementsLimitSchema.safeParse(c.req.query("limit"));
+  if (!parsed.success) return badRequest(c, "invalid limit (1-20)");
+
+  const rows = await db
+    .select()
+    .from(announcements)
+    .orderBy(desc(announcements.publishedAt))
+    .limit(parsed.data);
+
+  const items: Announcement[] = rows.map((r) => ({
+    id: r.id,
+    type: r.type as Announcement["type"],
+    title: r.title,
+    linkUrl: r.linkUrl,
+    publishedAt: r.publishedAt.toISOString(),
+  }));
+  return c.json<AnnouncementsResponse>({ announcements: items });
 });
 
 const wrappedParamsSchema = z.object({

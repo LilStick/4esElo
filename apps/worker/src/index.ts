@@ -8,8 +8,9 @@ import { ingestPlayerMatches } from "./ingest";
 import { attributeEloAfter } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
+import { announceWrapped } from "./announceWrapped";
 import { curlFetch } from "./curlFetch";
-import { dbStore, dbMatchStatsStore, dbPlaytimeStore, dbBackfillStore } from "./store";
+import { dbStore, dbMatchStatsStore, dbPlaytimeStore, dbBackfillStore, dbAnnouncementStore } from "./store";
 
 // curl transport: Node's TLS fingerprint never passes the Cloudflare wall,
 // plain curl sometimes does — that's the whole opportunistic bet.
@@ -30,6 +31,17 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 async function runOnce(faceit: FaceitClient): Promise<void> {
+  try {
+    const ann = await announceWrapped(dbAnnouncementStore, dbAnnouncementStore);
+    if (ann.status === "posted") {
+      console.log(`[worker] wrapped ${ann.year}-${ann.month} annoncé sur le site 🎁`);
+    } else if (ann.status === "empty-month") {
+      console.log(`[worker] wrapped ${ann.year}-${ann.month}: aucun match ce mois-là, pas d'annonce`);
+    }
+  } catch (err) {
+    console.error("[worker] wrapped announce failed:", err instanceof Error ? err.message : err);
+  }
+
   if (STEAM_API_KEY) {
     try {
       const withSteam = await db

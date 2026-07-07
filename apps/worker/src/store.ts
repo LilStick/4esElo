@@ -1,10 +1,11 @@
-import { db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { announcements, db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
 import type { EloAfterStore } from "./eloAfter";
 import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
+import type { AnnouncementStore, MonthActivityReader } from "./announceWrapped";
 import { utcDay } from "./playtime";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
@@ -82,6 +83,30 @@ export const dbPlaytimeStore: PlaytimeStore = {
 
   async insertPlaytime(playerId, minutesForever) {
     await db.insert(playtimeSnapshots).values({ playerId, minutesForever });
+  },
+};
+
+/** Real AnnouncementStore + MonthActivityReader backed by Postgres via Drizzle. */
+export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader = {
+  async insertUnique(a) {
+    // dedupeKey unique : la relance du même mois est un no-op, pas une erreur.
+    const rows = await db
+      .insert(announcements)
+      .values(a)
+      .onConflictDoNothing()
+      .returning({ id: announcements.id });
+    return rows.length > 0;
+  },
+
+  async monthHasMatches(year, month) {
+    const start = new Date(Date.UTC(year, month - 1, 1));
+    const end = new Date(Date.UTC(year, month, 1));
+    const [row] = await db
+      .select({ one: sql<number>`1` })
+      .from(faceitMatchStats)
+      .where(and(gte(faceitMatchStats.playedAt, start), lt(faceitMatchStats.playedAt, end)))
+      .limit(1);
+    return row !== undefined;
   },
 };
 

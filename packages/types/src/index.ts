@@ -152,6 +152,20 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Annonce du site (B7.4) : Wrapped mensuel auto, plus tard l'annonce staff (B17.4). */
+export interface Announcement {
+  id: string;
+  type: "wrapped" | "staff";
+  title: string;
+  /** Chemin interne (ex. /wrapped/juin-2026), null = annonce sans lien. */
+  linkUrl: string | null;
+  publishedAt: string; // ISO
+}
+
+export interface AnnouncementsResponse {
+  announcements: Announcement[];
+}
+
 /** Wrapped mensuel (B7.2) — awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"

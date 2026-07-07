@@ -36,6 +36,13 @@
       "when": 1783341966989,
       "tag": "0004_elo_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783412068471,
+      "tag": "0005_announcements",
+      "breakpoints": true
     }
   ]
 }
