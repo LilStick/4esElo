@@ -11,25 +11,25 @@ Un site où les membres du pôle CS2 se comparent, suivent leur progression et o
 
 ## Blocs prévus (voir epics GitHub)
 
-| Bloc | Sujet                                                                                                | Statut                                                                    |
-| ---- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| V1   | Fondations (DB, API, worker, web, courbe ELO)                                                        | ✅ fait                                                                   |
-| B1   | Design & assets (charte, design system, refonte pages)                                               | ✅ fait (Arthur)                                                          |
-| B2   | **Fondation data** : ingestion, APIs, courbe rétro backfillée (2024+)                                | ✅ fait                                                                   |
-| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)                                 | ✅ fait (Arthur)                                                          |
-| B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                                                | à faire                                                                   |
-| B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)                                     | à faire                                                                   |
-| B6   | ~~Bot Discord~~ — **annulé 2026-07-07** (aucun accès admin au serveur asso ; tout passe par le site) | ❌ annulé (epic #14 fermé)                                                |
-| B7   | Splashy (Wrapped mensuel ✅ voté, achievements, AI roast)                                            | 🔨 en cours                                                               |
-| B8   | Highlights (allstar.gg / Medal)                                                                      | à faire                                                                   |
-| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)                                      | ✅ fait (Arthur)                                                          |
-| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)                                     | 🔨 en cours                                                               |
-| B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)                                          | ⏸️ en pause — hébergement décidé **avec l'asso**, on verra le moment venu |
-| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)                                  | 🔨 en cours (Arthur)                                                      |
-| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA)                           | 🔨 en cours (Arthur)                                                      |
-| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)                                | 🔨 en cours                                                               |
-| B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)                                | 🔨 en cours (Arthur)                                                      |
-| B17  | Comptes : register sur site (OAuth, promo EFREI), login, panel admin                                 | à faire — **débloqué** (dev en local, config prod à la mise en ligne)     |
+| Bloc | Sujet                                                                                                                                       | Statut                                                                    |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| V1   | Fondations (DB, API, worker, web, courbe ELO)                                                                                               | ✅ fait                                                                   |
+| B1   | Design & assets (charte, design system, refonte pages)                                                                                      | ✅ fait (Arthur)                                                          |
+| B2   | **Fondation data** : ingestion, APIs, courbe rétro backfillée (2024+)                                                                       | ✅ fait                                                                   |
+| B3   | Profil enrichi (ADR, clutch, entry, utility, par map, filtres temps)                                                                        | ✅ fait (Arthur)                                                          |
+| B4   | Social (duos, avec qui je win, head-to-head, 5-stack)                                                                                       | 🔨 en cours (ticketé #227/#228 ; 5-stack au vivier)                       |
+| B5   | Engagement (heatmap, Player of the Day, streaks, recaps, badges)                                                                            | 🔨 en cours (heatmap #229/#230 ; streaks/badges/recap au vivier)          |
+| B6   | ~~Bot Discord~~ — **annulé 2026-07-07** (aucun accès admin au serveur asso ; tout passe par le site)                                        | ❌ annulé (epic #14 fermé)                                                |
+| B7   | Splashy (Wrapped mensuel ✅ voté, achievements, AI roast)                                                                                   | 🔨 en cours                                                               |
+| B8   | ~~Highlights (allstar.gg / Medal)~~ — **annulé 2026-07-07**, update possible plus tard (v0 = iframe manuel ; auto = Partner API à demander) | ❌ annulé (epic #16 fermé)                                                |
+| B10  | Shell & polish UI (layout header+sidebar, skeletons, 404, meta)                                                                             | ✅ fait (Arthur)                                                          |
+| B11  | Durcissement (validation API, retry Faceit, CI build web, tests)                                                                            | 🔨 en cours                                                               |
+| B12  | Mise en ligne (hébergeur, worker prod, backups, monitoring)                                                                                 | ⏸️ en pause — hébergement décidé **avec l'asso**, on verra le moment venu |
+| B13  | Classement v2 (tri/filtres, mouvement de rang, sparklines, par map)                                                                         | 🔨 en cours (Arthur)                                                      |
+| B14  | Navigation & confort (recherche Ctrl+K, carte accent-bar, « L'asso », PWA)                                                                  | 🔨 en cours (Arthur)                                                      |
+| B15  | Home / Dashboard asso (feed vivant : POTD, mouvements, présence live)                                                                       | 🔨 en cours                                                               |
+| B16  | Profil v2 façon Faceit (layout 2 colonnes, heatmap, rating par match)                                                                       | 🔨 en cours (Arthur)                                                      |
+| B17  | Comptes : register sur site (OAuth, promo EFREI), login, panel admin                                                                        | à faire — **débloqué** (dev en local, config prod à la mise en ligne)     |
 
 > **Chemin actuel** : B4 social + B5 engagement (ticketés : #227-#230) + B17 comptes (débloqué, tout se fait avant la prod) → B12 mise en ligne à la fin, quand le site est prêt.
 
