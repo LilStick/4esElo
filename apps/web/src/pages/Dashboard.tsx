@@ -6,6 +6,7 @@ import { TopClimber } from "../components/TopClimber";
 import { PoleRecords } from "../components/PoleRecords";
 import { LadderPreview } from "../components/LadderPreview";
 import { HomeAccountBanner } from "../components/HomeAccountBanner";
+import { AnnouncementBanner } from "../components/AnnouncementBanner";
 import { useTitle } from "../lib/useTitle";
 
 export function Dashboard() {
@@ -13,6 +14,7 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
+      <AnnouncementBanner />
       <HomeHero />
 
       <div className="grid gap-4 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-4">
