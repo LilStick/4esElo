@@ -114,7 +114,7 @@ Tout le monde (LilStick, Arthur) peut proposer des features et créer des ticket
 
 - **Le format détaillé (corps Contexte/Quoi/DoD, exemple canonique) vit dans le skill [`refine`](.claude/skills/refine/SKILL.md)** — source de vérité unique, à suivre pour toute création d'epic/ticket.
 - L'essentiel : milestone = `Bloc <n> — <Nom>` · epic = `EPIC B<n> · <Nom>` (label `epic`, corps = résumé lisible + checklist) · ticket = `B<n>.<x> · <titre court>` avec **contexte lisible par un humain sans ouvrir le code**, puis Quoi, puis DoD vérifiable.
-- **Labels obligatoires** : un `type:*` (feature/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
+- **Labels obligatoires** : un `type:*` (feature/bugfix/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
 - Feature hors blocs → soit la rattacher à un bloc, soit créer un nouveau bloc (milestone + epic). Noter l'idée dans [ROADMAP.md](./ROADMAP.md) si pas encore ticketée.
 
 ## Skills (Claude Code)

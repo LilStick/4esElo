@@ -20,7 +20,7 @@ But : produire des tickets **cohérents et lisibles** quel que soit qui (ou quel
 ## 3. Créer le ticket (FORMAT IMPOSÉ)
 
 - **Titre** : `B<n>.<x> · <titre court>` — **humain-friendly, court**, pas verbeux.
-- **Labels** : un `type:*` (feature/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
+- **Labels** : un `type:*` (feature/bugfix/chore/design/infra) + un `area:*` (api/web/worker/db/bot) + un **propriétaire** `arthur` (front/UI) ou `lilstick` (back/API/data).
 - **Corps** (exactement cette structure — les 3 sections Contexte / Quoi / DoD sont **obligatoires**) :
 
   ```
