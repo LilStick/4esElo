@@ -5,7 +5,7 @@ import { LivePresence } from "../components/LivePresence";
 import { TopClimber } from "../components/TopClimber";
 import { PoleRecords } from "../components/PoleRecords";
 import { LadderPreview } from "../components/LadderPreview";
-import { JoinBanner } from "../components/JoinBanner";
+import { HomeAccountBanner } from "../components/HomeAccountBanner";
 import { useTitle } from "../lib/useTitle";
 
 export function Dashboard() {
@@ -26,7 +26,7 @@ export function Dashboard() {
 
       <LadderPreview />
 
-      <JoinBanner />
+      <HomeAccountBanner />
     </div>
   );
 }

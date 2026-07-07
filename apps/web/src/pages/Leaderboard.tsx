@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
+import { useMe } from "../lib/useMe";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -93,6 +94,8 @@ export function Leaderboard() {
     () => new Map((moversData?.movers ?? []).map((m) => [m.id, m.delta])),
     [moversData],
   );
+  const { player: mePlayer } = useMe();
+  const myId = mePlayer?.id ?? null;
 
   const board = data?.leaderboard ?? [];
   const searching = q.trim() !== "";
@@ -102,30 +105,44 @@ export function Leaderboard() {
   const grouped = !searching;
   const groups = useMemo(() => (grouped ? groupByLevel(listItems) : []), [grouped, listItems]);
 
-  const renderRow = (e: LeaderboardEntry) => (
-    <>
-      <span className="grid w-5 place-items-center font-mono font-bold text-ink-faint">
-        {e.rank === 1 ? (
-          <TbCrown className="text-brand drop-shadow-[0_0_6px_rgba(94,139,255,0.55)]" size={17} />
-        ) : (
-          e.rank
+  const renderRow = (e: LeaderboardEntry) => {
+    const isMe = myId != null && e.id === myId;
+    return (
+      <>
+        {isMe && (
+          <span
+            aria-hidden
+            className="absolute top-1/2 left-0 h-7 w-[3px] -translate-y-1/2 rounded-full bg-brand shadow-[0_0_10px_rgba(94,139,255,0.6)]"
+          />
         )}
-      </span>
-      <EloDelta delta={eloMove.get(e.id)} />
-      <Avatar name={nameOf(e)} size={34} />
-      <LevelBadge level={e.level} size={24} />
-      <span className={cn("flex-1 truncate font-semibold", e.rank === 1 && "text-brand-hi")}>
-        {nameOf(e)}
-      </span>
-      {e.sparkline && e.sparkline.length > 1 && (
-        <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
-      )}
-      <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
-        {e.elo ?? "—"}
-      </span>
-      <TbArrowRight className="text-ink-faint" size={17} />
-    </>
-  );
+        <span className="grid w-5 place-items-center font-mono font-bold text-ink-faint">
+          {e.rank === 1 ? (
+            <TbCrown className="text-brand drop-shadow-[0_0_6px_rgba(94,139,255,0.55)]" size={17} />
+          ) : (
+            e.rank
+          )}
+        </span>
+        <EloDelta delta={eloMove.get(e.id)} />
+        <Avatar name={nameOf(e)} size={34} />
+        <LevelBadge level={e.level} size={24} />
+        <span className={cn("flex-1 truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
+          {nameOf(e)}
+        </span>
+        {isMe && (
+          <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-brand-hi uppercase">
+            toi
+          </span>
+        )}
+        {e.sparkline && e.sparkline.length > 1 && (
+          <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
+        )}
+        <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
+          {e.elo ?? "—"}
+        </span>
+        <TbArrowRight className="text-ink-faint" size={17} />
+      </>
+    );
+  };
 
   return (
     <div>

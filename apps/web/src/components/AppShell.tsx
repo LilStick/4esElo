@@ -15,6 +15,8 @@ import {
 import { cn } from "../lib/cn";
 import { currentPeriod } from "../lib/period";
 import { CommandPalette } from "./CommandPalette";
+import { AuthMenu } from "./AuthMenu";
+import { AuthToast } from "./AuthToast";
 import { Footer } from "./Footer";
 import lockup from "../assets/logo/4esElo_lockup_transparent.png";
 
@@ -186,6 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <AuthToast />
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/[0.08] bg-white/[0.015] px-4 py-6 lg:flex">
         <div className="px-2">
@@ -194,6 +197,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SearchTrigger onClick={() => setSearch(true)} className="mt-6 w-full" />
         <div className="mt-4 flex-1">
           <NavList />
+        </div>
+        <div className="mb-3 border-t border-white/[0.06] pt-3">
+          <AuthMenu />
         </div>
         {FOOTER}
       </aside>
@@ -248,6 +254,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
               <div className="mt-8 flex-1">
                 <NavList onNavigate={() => setOpen(false)} />
+              </div>
+              <div className="mb-3 border-t border-white/[0.06] pt-3">
+                <AuthMenu onNavigate={() => setOpen(false)} />
               </div>
               {FOOTER}
             </motion.aside>
