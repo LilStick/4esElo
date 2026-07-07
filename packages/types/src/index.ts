@@ -236,9 +236,26 @@ export interface Announcement {
   id: string;
   type: "wrapped" | "staff";
   title: string;
+  /** Texte libre (annonce staff), null pour le Wrapped. */
+  body: string | null;
   /** Chemin interne (ex. /wrapped/juin-2026), null = annonce sans lien. */
   linkUrl: string | null;
   publishedAt: string; // ISO
+}
+
+/** Admin (B17.4) : édition partielle d'un joueur. */
+export interface AdminPlayerPatch {
+  discordName?: string | null;
+  formation?: string | null;
+  promoStart?: number | null;
+  promoEnd?: number | null;
+}
+
+/** Admin (B17.4) : l'annonce staff de la home (une seule active, upsert). */
+export interface StaffAnnouncementRequest {
+  title: string;
+  body?: string | null;
+  linkUrl?: string | null;
 }
 
 export interface AnnouncementsResponse {

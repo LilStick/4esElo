@@ -98,6 +98,8 @@ export const announcements = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     type: text("type").notNull(), // "wrapped" | "staff" (B17.4)
     title: text("title").notNull(),
+    /** Texte libre de l'annonce staff (B17.4) ; null pour le Wrapped (le lien suffit). */
+    body: text("body"),
     /** Chemin interne du site (ex. /wrapped/juin-2026), null = annonce sans lien. */
     linkUrl: text("link_url"),
     /** Idempotence (ex. wrapped-2026-06) : l'unicité fait la dédup, relance sans doublon. */
