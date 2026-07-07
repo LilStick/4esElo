@@ -1,7 +1,10 @@
 import type {
+  AdminPlayerPatch,
+  Announcement,
   AnnouncementsResponse,
   DuosResponse,
   EloSource,
+  StaffAnnouncementRequest,
   LeaderboardResponse,
   MatchesResponse,
   MeResponse,
@@ -50,9 +53,9 @@ async function get<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function post<T>(path: string, body?: unknown): Promise<T> {
+async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
+    method,
     credentials: "include",
     headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -60,6 +63,8 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   if (!res.ok) await fail(res, path);
   return (await res.json()) as T;
 }
+
+const post = <T>(path: string, body?: unknown) => send<T>("POST", path, body);
 
 export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
   const spark = sparkline ? `&sparkline=${sparkline}` : "";
@@ -128,4 +133,27 @@ export function registerLookup(nickname: string) {
 /** Inscription : relie la session Discord au compte Faceit + promo EFREI. */
 export function register(body: RegisterRequest) {
   return post<RegisterResponse>(`/register`, body);
+}
+
+// --- Admin (B17.5, tout derrière requireAdmin) ---
+
+export function adminUpdatePlayer(id: string, patch: AdminPlayerPatch) {
+  return send<{ ok: true }>("PATCH", `/admin/players/${id}`, patch);
+}
+
+/** Suppression = cascade sur tout l'historique → confirm=true obligatoire côté API. */
+export function adminDeletePlayer(id: string) {
+  return send<{ ok: true }>("DELETE", `/admin/players/${id}?confirm=true`);
+}
+
+export function adminPutAnnouncement(body: StaffAnnouncementRequest) {
+  return send<Announcement>("PUT", `/admin/announcement`, body);
+}
+
+export function adminDeleteAnnouncement() {
+  return send<{ ok: true }>("DELETE", `/admin/announcement`);
+}
+
+export function adminRegenerateWrapped(year: number, month: number) {
+  return post<WrappedResponse>(`/admin/wrapped/${year}/${month}/regenerate`);
 }

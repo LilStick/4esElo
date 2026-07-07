@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { TbBrandDiscord, TbConfetti, TbLogout, TbUser, TbUserPlus } from "react-icons/tb";
+import { TbBrandDiscord, TbConfetti, TbLogout, TbShieldCog, TbUser, TbUserPlus } from "react-icons/tb";
 import { Avatar } from "../ui";
 import { loginUrl, logout } from "../lib/api";
 import { useMe } from "../lib/useMe";
@@ -122,6 +122,7 @@ export function AuthMenu({ onNavigate }: { onNavigate?: () => void }) {
           icon={TbConfetti}
           onClick={() => go(`/wrapped/${currentPeriod()}/${player.id}`)}
         />
+        {isAdmin && <IconAction label="Panel admin" icon={TbShieldCog} onClick={() => go("/admin")} />}
         <IconAction label="Se déconnecter" icon={TbLogout} onClick={onLogout} />
       </div>
     </div>
