@@ -50,6 +50,9 @@ importers:
       '@4eselo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@4eselo/discord':
+        specifier: workspace:*
+        version: link:../../packages/discord
       '@4eselo/env':
         specifier: workspace:*
         version: link:../../packages/env
@@ -191,6 +194,12 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
+
+  packages/discord:
+    dependencies:
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
 
   packages/env:
     dependencies:

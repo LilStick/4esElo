@@ -152,6 +152,17 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Session (B17.1) : qui suis-je. `player` = fiche matchée via discord_id, null si pas registré. */
+export type MeResponse =
+  | { authenticated: false }
+  | {
+      authenticated: true;
+      discordId: string;
+      displayName: string;
+      isAdmin: boolean;
+      player: PlayerSummary | null;
+    };
+
 /** Heatmap d'activité (B5.2) : nb de matchs par jour UTC, style GitHub. */
 export interface ActivityDay {
   day: string; // YYYY-MM-DD (UTC)

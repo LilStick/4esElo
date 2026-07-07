@@ -16,6 +16,17 @@ const env = loadEnv(
     API_PORT: z.coerce.number().int().positive().default(3001),
     STEAM_API_KEY: z.string().optional(),
     WEB_ORIGINS: z.string().default("http://localhost:5173"),
+    // Auth Discord (B17.1) — optionnels : absents = auth désactivée proprement
+    // (les routes /auth répondent 503, /me répond anonyme). Tout-ou-rien vérifié plus bas.
+    // Préfixe OAUTH/ASSO : les DISCORD_* non préfixés appartiennent au bot dev (B9).
+    DISCORD_OAUTH_CLIENT_ID: z.string().optional(),
+    DISCORD_OAUTH_CLIENT_SECRET: z.string().optional(),
+    DISCORD_OAUTH_REDIRECT_URI: z.string().url().optional(),
+    DISCORD_ASSO_GUILD_ID: z.string().optional(),
+    DISCORD_ASSO_INVITE_URL: z.string().url().optional(),
+    SESSION_SECRET: z.string().min(32, "SESSION_SECRET : 32 caractères minimum").optional(),
+    /** Whitelist admin : discord_id séparés par des virgules. */
+    ADMIN_DISCORD_IDS: z.string().default(""),
   }),
 );
 
@@ -23,3 +34,44 @@ export const API_PORT = env.API_PORT;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
 /** Origines autorisées par le CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
+
+export interface AuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  guildId: string;
+  guildInviteUrl: string | null;
+  sessionSecret: string;
+  adminDiscordIds: string[];
+}
+
+const AUTH_KEYS = [
+  "DISCORD_OAUTH_CLIENT_ID",
+  "DISCORD_OAUTH_CLIENT_SECRET",
+  "DISCORD_OAUTH_REDIRECT_URI",
+  "DISCORD_ASSO_GUILD_ID",
+  "SESSION_SECRET",
+] as const;
+const setKeys = AUTH_KEYS.filter((k) => env[k]);
+
+// Config à moitié remplie = erreur de setup, pas un choix → fail-fast (B11.3).
+if (setKeys.length > 0 && setKeys.length < AUTH_KEYS.length) {
+  const missing = AUTH_KEYS.filter((k) => !env[k]).join(", ");
+  throw new Error(`Auth Discord à moitié configurée — il manque : ${missing} (voir .env.example)`);
+}
+
+/** null = auth désactivée (aucune var renseignée) — le site reste 100% consultable. */
+export const AUTH_CONFIG: AuthConfig | null =
+  setKeys.length === AUTH_KEYS.length
+    ? {
+        clientId: env.DISCORD_OAUTH_CLIENT_ID!,
+        clientSecret: env.DISCORD_OAUTH_CLIENT_SECRET!,
+        redirectUri: env.DISCORD_OAUTH_REDIRECT_URI!,
+        guildId: env.DISCORD_ASSO_GUILD_ID!,
+        guildInviteUrl: env.DISCORD_ASSO_INVITE_URL ?? null,
+        sessionSecret: env.SESSION_SECRET!,
+        adminDiscordIds: env.ADMIN_DISCORD_IDS.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      }
+    : null;
