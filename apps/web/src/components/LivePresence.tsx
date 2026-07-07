@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { TbArrowsDiagonal, TbDeviceGamepad2 } from "react-icons/tb";
+import type { IconType } from "react-icons";
+import { TbArrowsDiagonal, TbDeviceGamepad2, TbSwords } from "react-icons/tb";
 import type { PresenceEntry } from "@4eselo/types";
 import { getPresence } from "../lib/api";
 import { Avatar, Card, Modal, Skeleton } from "../ui";
@@ -9,13 +10,33 @@ import { cn } from "../lib/cn";
 
 const nameOf = (p: PresenceEntry) => p.faceitNickname ?? p.discordName ?? "—";
 
-type Status = { rank: number; label: string; text: string; dot: string; pulse: boolean };
+type Status = { rank: number; label: string; text: string; dot: string; pulse: boolean; icon?: IconType };
 
-/** Statut le plus fort d'un membre (CS2 > match Faceit > en ligne), sinon null (masqué). */
+/**
+ * Statut le plus précis d'un membre (B15.8), du plus fort au plus faible :
+ * match Faceit confirmé > en jeu CS2 > en ligne ; sinon null (masqué).
+ * `inFaceitMatch` n'est truthy que si `=== true` : null (vérif impossible) ou
+ * false retombent sur « En jeu CS2 » — jamais de mention Faceit non confirmée.
+ */
 function statusOf(p: PresenceEntry): Status | null {
-  if (p.inGameCs2) return { rank: 0, label: "En jeu CS2", text: "text-win", dot: "bg-win", pulse: true };
   if (p.inFaceitMatch)
-    return { rank: 1, label: "Match Faceit", text: "text-brand-hi", dot: "bg-brand", pulse: true };
+    return {
+      rank: 0,
+      label: "En match Faceit",
+      text: "text-brand-hi",
+      dot: "bg-brand",
+      pulse: true,
+      icon: TbSwords,
+    };
+  if (p.inGameCs2)
+    return {
+      rank: 1,
+      label: "En jeu CS2",
+      text: "text-win",
+      dot: "bg-win",
+      pulse: true,
+      icon: TbDeviceGamepad2,
+    };
   if (p.online)
     return { rank: 2, label: "En ligne", text: "text-ink-dim", dot: "bg-ink-faint", pulse: false };
   return null;
@@ -30,7 +51,10 @@ function PresenceRow({ p, s }: { p: PresenceEntry; s: Status }) {
       <Avatar name={nameOf(p)} size={40} />
       <div className="min-w-0 flex-1">
         <div className="truncate font-semibold transition-colors group-hover:text-brand-hi">{nameOf(p)}</div>
-        <div className={cn("text-xs", s.text)}>{s.label}</div>
+        <div className={cn("flex items-center gap-1 text-xs", s.text)}>
+          {s.icon && <s.icon size={12} className="shrink-0" />}
+          {s.label}
+        </div>
       </div>
       <span className={cn("size-2.5 rounded-full", s.dot, s.pulse && "animate-pulse")} />
     </Link>
