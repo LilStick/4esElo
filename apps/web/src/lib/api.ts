@@ -1,4 +1,5 @@
 import type {
+  AnnouncementsResponse,
   EloSource,
   LeaderboardResponse,
   MatchesResponse,
@@ -69,6 +70,10 @@ export function getMovers(window: MoversWindow = "24h", source: EloSource = "fac
 
 export function getPresence() {
   return get<PresenceResponse>(`/presence`);
+}
+
+export function getAnnouncements(limit = 5) {
+  return get<AnnouncementsResponse>(`/announcements?limit=${limit}`);
 }
 
 export function getWrapped(year: number, month: number) {

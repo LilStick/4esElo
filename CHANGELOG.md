@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Web : bannière d'annonce sur la home — la plus récente annonce (Wrapped auto ou staff) avec son lien, fermable et mémorisée (localStorage, ne revient pas), rien du tout si aucune annonce. (#225)
 - Web : expérience connectée (connexion Discord) — bouton se connecter/déconnecter dans la nav, page d'inscription `/register` (lookup du pseudo Faceit avec aperçu avatar/ELO/niveau → formation + promo, états d'erreur : pseudo introuvable, déjà pris, déjà inscrit), bandeau retour OAuth (`?auth=ok|error|not-member`), ta ligne surlignée dans le classement, raccourcis « ton Wrapped » et « ton profil » sur le home. (#168)
 - Worker : les byes/forfaits (durée 0, jamais de stats côté Faceit) sont ignorés à l'ingestion au lieu d'être retentés en 404 à chaque sync. (#244)
 - Admin : les endpoints protégés du panel (whitelist Discord) — éditer un joueur (`PATCH /admin/players/:id` : pseudo, formation, promo), le retirer avec confirmation obligatoire (cascade sur tout l'historique), gérer l'annonce staff de la home (`PUT/DELETE /admin/announcement`, une seule active, servie par `GET /announcements`), re-publier un Wrapped (`POST /admin/wrapped/:y/:m/regenerate`). (#169)
