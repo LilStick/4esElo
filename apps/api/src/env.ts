@@ -15,6 +15,8 @@ const env = loadEnv(
     DATABASE_URL: z.string().url({ message: "URL Postgres attendue (voir .env.example)" }),
     API_PORT: z.coerce.number().int().positive().default(3001),
     STEAM_API_KEY: z.string().optional(),
+    /** Requis pour le register (lookup pseudo Faceit) ; absent = register en 503. */
+    FACEIT_API_KEY: z.string().optional(),
     WEB_ORIGINS: z.string().default("http://localhost:5173"),
     // Auth Discord (B17.1) — optionnels : absents = auth désactivée proprement
     // (les routes /auth répondent 503, /me répond anonyme). Tout-ou-rien vérifié plus bas.
@@ -32,6 +34,7 @@ const env = loadEnv(
 
 export const API_PORT = env.API_PORT;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
+export const FACEIT_API_KEY = env.FACEIT_API_KEY;
 /** Origines autorisées par le CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
 

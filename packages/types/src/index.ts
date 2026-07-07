@@ -152,6 +152,35 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Register (B17.2) : préviusalisation du pseudo Faceit avant confirmation. */
+export interface RegisterLookupResponse {
+  faceitId: string;
+  nickname: string;
+  avatar: string | null;
+  elo: number | null;
+  level: number | null;
+  /** Ce compte Faceit est déjà relié à un membre. */
+  alreadyClaimed: boolean;
+}
+
+export interface RegisterRequest {
+  faceitNickname: string;
+  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») — libre, suggéré côté front. */
+  formation: string;
+  /** Années de promo, ex. 2026 → 2028. */
+  promoStart: number;
+  promoEnd: number;
+}
+
+export interface RegisterResponse {
+  player: PlayerSummary;
+  formation: string;
+  promoStart: number;
+  promoEnd: number;
+  /** Fin de promo passée = Alumni 🎓. */
+  isAlumni: boolean;
+}
+
 /** Session (B17.1) : qui suis-je. `player` = fiche matchée via discord_id, null si pas registré. */
 export type MeResponse =
   | { authenticated: false }

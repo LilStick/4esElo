@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-07
 
+- Comptes : le register vit sur le site — `GET /register/lookup` (préviusalisation du pseudo Faceit : avatar, niveau, ELO, déjà réclamé ?) puis `POST /register` (session Discord requise) : fiche `players` créée avec discord_id/avatar, faceit, steam, **formation + années de promo** (ex. Mastère Dev 2026-2028, Alumni 🎓 déduit). Doublons refusés proprement (1 Discord = 1 compte, 1 Faceit = 1 personne). Vérifié en réel. (#167)
 - Comptes : « Se connecter avec Discord » côté back — OAuth (`/auth/login`, `/auth/callback`, `/auth/logout`), session 7 j en cookie httpOnly signé, `GET /me` (anonyme / membre / admin), refus propre des non-membres du serveur avec lien d'invite, middleware `requireAdmin` prêt pour le panel. Auth désactivable proprement (vars absentes = site consultable). (#166)
 - Engagement : la data de la heatmap d'activité — `GET /activity` (matchs/jour du pôle, un match partagé compte une fois) et `GET /players/:id/activity`, réponse creuse (jours sans match absents). La heatmap front (#230) est débloquée. (#229)
 - Social : les duos du pôle — `GET /social/duos` (meilleurs duos : games ensemble + winrate, min. 5 games) et `GET /players/:id/duos` (« avec qui je win le + »), calculés des matchs stockés (même match + même résultat = coéquipiers). La page Social (#228) est débloquée. (#227)

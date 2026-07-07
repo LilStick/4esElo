@@ -43,6 +43,13 @@
       "when": 1783412068471,
       "tag": "0005_announcements",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783416193622,
+      "tag": "0006_players_register_fields",
+      "breakpoints": true
     }
   ]
 }
