@@ -131,6 +131,10 @@ authRoutes.get("/me", async (c) => {
       discordName: players.discordName,
       faceitNickname: players.faceitNickname,
       steamId64: players.steamId64,
+      discordAvatar: players.discordAvatar,
+      formation: players.formation,
+      promoStart: players.promoStart,
+      promoEnd: players.promoEnd,
     })
     .from(players)
     .where(eq(players.discordId, session.discordId))
@@ -149,6 +153,10 @@ authRoutes.get("/me", async (c) => {
           steamId64: player.steamId64,
           elo: null, // le front a déjà l'ELO par le leaderboard ; ici on identifie, c'est tout
           level: null,
+          discordAvatar: player.discordAvatar,
+          formation: player.formation,
+          promoStart: player.promoStart,
+          promoEnd: player.promoEnd,
         }
       : null,
   });

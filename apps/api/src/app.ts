@@ -116,9 +116,14 @@ app.get("/leaderboard/movers", async (c) => {
     steam_id64: string | null;
     elo: number | null;
     level: number | null;
+    discord_avatar: string | null;
+    formation: string | null;
+    promo_start: number | null;
+    promo_end: number | null;
     baseline_elo: number | null;
   }>(sql`
     select p.id, p.discord_name, p.faceit_nickname, p.steam_id64,
+           p.discord_avatar, p.formation, p.promo_start, p.promo_end,
            cur.elo, cur.level, base.elo as baseline_elo
     from players p
     left join lateral (
@@ -144,6 +149,10 @@ app.get("/leaderboard/movers", async (c) => {
     steamId64: r.steam_id64,
     elo: r.elo,
     level: r.level,
+    discordAvatar: r.discord_avatar,
+    formation: r.formation,
+    promoStart: r.promo_start,
+    promoEnd: r.promo_end,
     delta: r.elo !== null && r.baseline_elo !== null ? r.elo - r.baseline_elo : null,
   }));
   const movers = [...ranked].sort((a, b) => {
@@ -169,8 +178,13 @@ app.get("/leaderboard", async (c) => {
     steam_id64: string | null;
     elo: number | null;
     level: number | null;
+    discord_avatar: string | null;
+    formation: string | null;
+    promo_start: number | null;
+    promo_end: number | null;
   }>(sql`
-    select p.id, p.discord_name, p.faceit_nickname, p.steam_id64, s.elo, s.level
+    select p.id, p.discord_name, p.faceit_nickname, p.steam_id64,
+           p.discord_avatar, p.formation, p.promo_start, p.promo_end, s.elo, s.level
     from players p
     left join lateral (
       select elo, level from elo_snapshots
@@ -189,6 +203,10 @@ app.get("/leaderboard", async (c) => {
     steamId64: r.steam_id64,
     elo: r.elo,
     level: r.level,
+    discordAvatar: r.discord_avatar,
+    formation: r.formation,
+    promoStart: r.promo_start,
+    promoEnd: r.promo_end,
   }));
 
   if (sparkline) {
@@ -240,6 +258,10 @@ app.get("/players/:id", async (c) => {
     steamId64: player.steamId64,
     elo: latest?.elo ?? null,
     level: latest?.level ?? null,
+    discordAvatar: player.discordAvatar,
+    formation: player.formation,
+    promoStart: player.promoStart,
+    promoEnd: player.promoEnd,
     createdAt: player.createdAt.toISOString(),
     history: await eloHistory(id, source),
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
