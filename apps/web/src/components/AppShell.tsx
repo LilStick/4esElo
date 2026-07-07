@@ -10,6 +10,7 @@ import {
   TbSearch,
   TbSparkles,
   TbTrophy,
+  TbUsersGroup,
   TbX,
 } from "react-icons/tb";
 import { cn } from "../lib/cn";
@@ -45,6 +46,7 @@ const NAV = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard, end: true },
   { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
   { to: "/compare", label: "Comparer", icon: TbGitCompare, end: false },
+  { to: "/social", label: "Social", icon: TbUsersGroup, end: false },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle, end: false },
   { to: `/wrapped/${currentPeriod()}`, label: "Wrapped", icon: TbConfetti, end: false },
   { to: "/changelog", label: "Nouveautés", icon: TbSparkles, end: false },
