@@ -4,6 +4,7 @@ import { TbCrown, TbFlame, TbPercentage, TbSwords } from "react-icons/tb";
 import type { IconType } from "react-icons";
 import type { LeaderboardEntry, PlayerStatsResponse } from "@4eselo/types";
 import { getLeaderboard, getPlayerStats } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, Skeleton } from "../ui";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -33,7 +34,11 @@ function RecordCard({
         <Icon size={20} />
       </span>
       <Link to={`/player/${player.id}`} className="group flex min-w-0 flex-1 items-center gap-2">
-        <Avatar name={nameOf(player)} size={30} />
+        <Avatar
+          name={nameOf(player)}
+          size={30}
+          src={discordAvatarUrl(player.discordId, player.discordAvatar)}
+        />
         <div className="min-w-0">
           <div className="text-[10px] tracking-[0.14em] text-ink-faint uppercase">{label}</div>
           <div className="truncate text-sm font-semibold transition-colors group-hover:text-brand-hi">

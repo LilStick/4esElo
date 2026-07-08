@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TbFlame } from "react-icons/tb";
 import type { MoverEntry } from "@4eselo/types";
 import { getMovers } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 
 const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "—";
@@ -38,7 +39,11 @@ export function PlayerOfTheDay() {
       ) : best ? (
         <Card className="flex flex-col gap-3 p-4">
           <Link to={`/player/${best.id}`} className="group flex cursor-pointer items-center gap-3">
-            <Avatar name={nameOf(best)} size={40} />
+            <Avatar
+              name={nameOf(best)}
+              size={40}
+              src={discordAvatarUrl(best.discordId, best.discordAvatar)}
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="truncate font-semibold transition-colors group-hover:text-brand-hi">

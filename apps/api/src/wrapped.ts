@@ -15,6 +15,8 @@ import type {
 export interface WrappedPlayer {
   id: string;
   nickname: string;
+  discordId: string | null;
+  discordAvatar: string | null;
 }
 
 export interface WrappedMatch {
@@ -177,6 +179,8 @@ function pickWinners(award: AwardKey, candidates: Candidate[]): AwardWinner[] {
       title,
       playerId: c.player.id,
       nickname: c.player.nickname,
+      discordId: c.player.discordId,
+      discordAvatar: c.player.discordAvatar,
       value: c.value,
       punchline: c.punchline,
     }));
@@ -436,6 +440,8 @@ export function computePlayerWrapped(
     month,
     playerId,
     nickname: player.nickname,
+    discordId: player.discordId,
+    discordAvatar: player.discordAvatar,
     matches: matches.length,
     wins,
     winRate: pct(wins, matches.length),

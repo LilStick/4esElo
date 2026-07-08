@@ -13,6 +13,7 @@ import {
   getLeaderboard,
 } from "../lib/api";
 import { useMe } from "../lib/useMe";
+import { discordAvatarUrl } from "../lib/discord";
 import { currentPeriod, parsePeriod } from "../lib/period";
 import { promoLabel } from "../lib/promo";
 import { Avatar, Button, Card, Modal, Skeleton } from "../ui";
@@ -346,7 +347,7 @@ export function Admin() {
         <Card className="flex flex-col divide-y divide-white/[0.05] p-[var(--bezel)]">
           {players.map((p) => (
             <div key={p.id} className="flex items-center gap-3 px-2 py-2.5">
-              <Avatar name={nameOf(p)} size={34} />
+              <Avatar name={nameOf(p)} size={34} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold">{nameOf(p)}</div>
                 <div className="truncate text-xs text-ink-faint">

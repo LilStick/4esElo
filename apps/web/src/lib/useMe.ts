@@ -24,6 +24,9 @@ export function useMe() {
     player: me.authenticated ? me.player : null,
     isAdmin: me.authenticated ? me.isAdmin : false,
     displayName: me.authenticated ? me.displayName : null,
-    avatarUrl: me.authenticated ? discordAvatarUrl(me.discordId, me.player?.discordAvatar) : null,
+    // Avatar de session (frais à chaque connexion) prioritaire sur le snapshot DB du joueur.
+    avatarUrl: me.authenticated
+      ? discordAvatarUrl(me.discordId, me.avatar ?? me.player?.discordAvatar)
+      : null,
   };
 }

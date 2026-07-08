@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { TbHeartHandshake } from "react-icons/tb";
 import { getPlayerDuos } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card } from "../ui";
 
 /**
@@ -30,7 +31,11 @@ export function PlayerDuos({ id }: { id: string }) {
               to={`/player/${partner.id}`}
               className="group flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-white/[0.03]"
             >
-              <Avatar name={partner.nickname} size={30} />
+              <Avatar
+                name={partner.nickname}
+                size={30}
+                src={discordAvatarUrl(partner.discordId, partner.discordAvatar)}
+              />
               <span className="min-w-0 flex-1 truncate text-sm font-semibold transition-colors group-hover:text-brand-hi">
                 {partner.nickname}
               </span>

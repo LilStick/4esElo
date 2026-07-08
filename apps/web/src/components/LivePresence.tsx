@@ -4,6 +4,7 @@ import type { IconType } from "react-icons";
 import { TbDeviceGamepad2, TbSwords } from "react-icons/tb";
 import type { PresenceEntry } from "@4eselo/types";
 import { getPresence } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
@@ -99,7 +100,7 @@ export function LivePresence() {
           onSelect={(x) => navigate(`/player/${x.p.id}`)}
           children={(x) => (
             <>
-              <Avatar name={nameOf(x.p)} size={40} />
+              <Avatar name={nameOf(x.p)} size={40} src={discordAvatarUrl(x.p.discordId, x.p.discordAvatar)} />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-semibold">{nameOf(x.p)}</div>
                 <div className={cn("flex items-center gap-1 text-xs", x.s.text)}>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TbArrowUp, TbArrowsExchange } from "react-icons/tb";
 import type { OvertakeEntry, OvertakePlayer } from "@4eselo/types";
 import { getOvertakes } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, Skeleton } from "../ui";
 
 const nameOf = (p: OvertakePlayer) => p.faceitNickname ?? p.discordName ?? "—";
@@ -59,7 +60,11 @@ export function Overtakes() {
           children={(o: OvertakeEntry) => (
             <div className="flex w-full min-w-0 flex-col gap-1 py-1">
               <div className="flex items-center gap-2">
-                <Avatar name={nameOf(o.passer)} size={24} />
+                <Avatar
+                  name={nameOf(o.passer)}
+                  size={24}
+                  src={discordAvatarUrl(o.passer.discordId, o.passer.discordAvatar)}
+                />
                 <Link
                   to={`/player/${o.passer.id}`}
                   className="truncate text-sm font-semibold text-win hover:underline"

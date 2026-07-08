@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TbHeartHandshake, TbUsersGroup } from "react-icons/tb";
 import type { DuoStat } from "@4eselo/types";
 import { getDuos } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { useTitle } from "../lib/useTitle";
@@ -19,10 +20,10 @@ function DuoRow({ duo, index }: { duo: DuoStat; index: number }) {
       {/* Avatars superposés */}
       <div className="flex shrink-0 -space-x-2">
         <span className="rounded-full ring-2 ring-bg">
-          <Avatar name={a.nickname} size={34} />
+          <Avatar name={a.nickname} size={34} src={discordAvatarUrl(a.discordId, a.discordAvatar)} />
         </span>
         <span className="rounded-full ring-2 ring-bg">
-          <Avatar name={b.nickname} size={34} />
+          <Avatar name={b.nickname} size={34} src={discordAvatarUrl(b.discordId, b.discordAvatar)} />
         </span>
       </div>
       <div className="min-w-0 flex-1 truncate text-sm font-semibold">

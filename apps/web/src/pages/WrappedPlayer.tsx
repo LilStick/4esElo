@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { TbArrowLeft, TbSparkles } from "react-icons/tb";
 import { getPlayerWrapped } from "../lib/api";
 import { parsePeriod, monthLabel } from "../lib/period";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, MapIcon, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { MapBackdrop } from "../components/MapBackdrop";
@@ -96,7 +97,11 @@ export function WrappedPlayer() {
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand/12 to-transparent"
             />
             <div className="relative flex flex-col items-center gap-3">
-              <Avatar name={data.nickname} size={72} />
+              <Avatar
+                name={data.nickname}
+                size={72}
+                src={discordAvatarUrl(data.discordId, data.discordAvatar)}
+              />
               <div>
                 <h1 className="text-2xl font-extrabold tracking-[-0.03em]">{data.nickname}</h1>
                 <p className="text-sm text-ink-dim capitalize">Wrapped · {label}</p>

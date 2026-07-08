@@ -83,6 +83,7 @@ export function computeOvertakes(players: OvertakeInput[]): OvertakeEntry[] {
 function toOvertakePlayer(p: OvertakeInput): OvertakePlayer {
   return {
     id: p.id,
+    discordId: p.discordId,
     faceitNickname: p.faceitNickname,
     discordName: p.discordName,
     discordAvatar: p.discordAvatar,

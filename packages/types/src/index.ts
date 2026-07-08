@@ -2,6 +2,8 @@ export type EloSource = "faceit" | "premier";
 
 export interface PlayerSummary {
   id: string;
+  /** Snowflake Discord — nécessaire pour construire l'URL CDN de l'avatar. */
+  discordId: string | null;
   discordName: string | null;
   faceitNickname: string | null;
   steamId64: string | null;
@@ -45,6 +47,8 @@ export interface PresenceEntry {
   id: string;
   faceitNickname: string | null;
   discordName: string | null;
+  discordId: string | null;
+  discordAvatar: string | null;
   /** null = unknown (private profile, Steam unreachable). */
   online: boolean | null;
   inGameCs2: boolean;
@@ -81,6 +85,7 @@ export interface PlayerDetail extends PlayerSummary {
 /** Dépassement au classement (B5.5) : `passer` est passé devant `passed` sur la fenêtre. */
 export interface OvertakePlayer {
   id: string;
+  discordId: string | null;
   faceitNickname: string | null;
   discordName: string | null;
   discordAvatar: string | null;
@@ -224,6 +229,8 @@ export type MeResponse =
       discordId: string;
       displayName: string;
       isAdmin: boolean;
+      /** Hash d'avatar Discord de la session (frais à chaque connexion), null si aucun. */
+      avatar: string | null;
       player: PlayerSummary | null;
     };
 
@@ -245,6 +252,8 @@ export interface ActivityResponse {
 export interface DuoPlayer {
   id: string;
   nickname: string;
+  discordId: string | null;
+  discordAvatar: string | null;
 }
 
 export interface DuoStat {
@@ -316,6 +325,8 @@ export interface AwardWinner {
   title: string;
   playerId: string;
   nickname: string;
+  discordId: string | null;
+  discordAvatar: string | null;
   /** Valeur brute qui a fait gagner (frags/match, ΔELO, nb de games…). */
   value: number;
   punchline: string;
@@ -341,6 +352,8 @@ export interface PlayerWrappedResponse {
   month: number;
   playerId: string;
   nickname: string;
+  discordId: string | null;
+  discordAvatar: string | null;
   matches: number;
   wins: number;
   winRate: number; // 0-100

@@ -90,6 +90,8 @@ app.get("/presence", async (c) => {
       id: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
       steamId64: players.steamId64,
       faceitId: players.faceitId,
     })
@@ -113,6 +115,7 @@ app.get("/leaderboard/movers", async (c) => {
 
   const rows = await db.execute<{
     id: string;
+    discord_id: string | null;
     discord_name: string | null;
     faceit_nickname: string | null;
     steam_id64: string | null;
@@ -124,7 +127,7 @@ app.get("/leaderboard/movers", async (c) => {
     promo_end: number | null;
     baseline_elo: number | null;
   }>(sql`
-    select p.id, p.discord_name, p.faceit_nickname, p.steam_id64,
+    select p.id, p.discord_id, p.discord_name, p.faceit_nickname, p.steam_id64,
            p.discord_avatar, p.formation, p.promo_start, p.promo_end,
            cur.elo, cur.level, base.elo as baseline_elo
     from players p
@@ -146,6 +149,7 @@ app.get("/leaderboard/movers", async (c) => {
   const ranked: MoverEntry[] = rows.map((r, i) => ({
     rank: i + 1,
     id: r.id,
+    discordId: r.discord_id,
     discordName: r.discord_name,
     faceitNickname: r.faceit_nickname,
     steamId64: r.steam_id64,
@@ -177,13 +181,14 @@ app.get("/leaderboard/overtakes", async (c) => {
 
   const rows = await db.execute<{
     id: string;
+    discord_id: string | null;
     discord_name: string | null;
     faceit_nickname: string | null;
     discord_avatar: string | null;
     elo: number | null;
     baseline_elo: number | null;
   }>(sql`
-    select p.id, p.discord_name, p.faceit_nickname, p.discord_avatar,
+    select p.id, p.discord_id, p.discord_name, p.faceit_nickname, p.discord_avatar,
            cur.elo, base.elo as baseline_elo
     from players p
     left join lateral (
@@ -203,6 +208,7 @@ app.get("/leaderboard/overtakes", async (c) => {
   const overtakes = computeOvertakes(
     rows.map((r) => ({
       id: r.id,
+      discordId: r.discord_id,
       faceitNickname: r.faceit_nickname,
       discordName: r.discord_name,
       discordAvatar: r.discord_avatar,
@@ -223,6 +229,7 @@ app.get("/leaderboard", async (c) => {
 
   const rows = await db.execute<{
     id: string;
+    discord_id: string | null;
     discord_name: string | null;
     faceit_nickname: string | null;
     steam_id64: string | null;
@@ -233,7 +240,7 @@ app.get("/leaderboard", async (c) => {
     promo_start: number | null;
     promo_end: number | null;
   }>(sql`
-    select p.id, p.discord_name, p.faceit_nickname, p.steam_id64,
+    select p.id, p.discord_id, p.discord_name, p.faceit_nickname, p.steam_id64,
            p.discord_avatar, p.formation, p.promo_start, p.promo_end, s.elo, s.level
     from players p
     left join lateral (
@@ -248,6 +255,7 @@ app.get("/leaderboard", async (c) => {
   const leaderboard: LeaderboardEntry[] = rows.map((r, i) => ({
     rank: i + 1,
     id: r.id,
+    discordId: r.discord_id,
     discordName: r.discord_name,
     faceitNickname: r.faceit_nickname,
     steamId64: r.steam_id64,
@@ -309,6 +317,7 @@ app.get("/players/:id", async (c) => {
 
   const detail: PlayerDetail = {
     id: player.id,
+    discordId: player.discordId,
     discordName: player.discordName,
     faceitNickname: player.faceitNickname,
     steamId64: player.steamId64,
@@ -421,11 +430,15 @@ async function loadSocialInputs() {
       id: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
     })
     .from(players);
   const members: DuoPlayer[] = playerRows.map((p) => ({
     id: p.id,
     nickname: p.faceitNickname ?? p.discordName ?? p.id,
+    discordId: p.discordId,
+    discordAvatar: p.discordAvatar,
   }));
   const matchRows = await db
     .select({

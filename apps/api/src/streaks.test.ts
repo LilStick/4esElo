@@ -30,7 +30,15 @@ test("streak: un seul match", () => {
 });
 
 function p(id: string, elo: number | null, baselineElo: number | null): OvertakeInput {
-  return { id, faceitNickname: id, discordName: null, discordAvatar: null, elo, baselineElo };
+  return {
+    id,
+    discordId: null,
+    faceitNickname: id,
+    discordName: null,
+    discordAvatar: null,
+    elo,
+    baselineElo,
+  };
 }
 
 test("overtakes: B passe devant A quand les ELO se croisent", () => {
