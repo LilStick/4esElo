@@ -13,32 +13,35 @@ const credit = "text-ink-dim underline-offset-2 transition-colors hover:text-bra
 /** Pied de page global : crédits (gauche) + réseaux de l'asso (droite), discret. */
 export function Footer() {
   return (
-    <footer className="mt-10 flex flex-col-reverse items-center gap-4 border-t border-white/[0.06] pt-6 text-xs text-ink-faint sm:flex-row sm:justify-between">
-      <div>
-        Fait par{" "}
-        <a href="https://github.com/LilStick" target="_blank" rel="noreferrer" className={credit}>
-          LilStick
-        </a>{" "}
-        &{" "}
-        <a href="https://github.com/luminescencedev" target="_blank" rel="noreferrer" className={credit}>
-          luminescence
-        </a>
-      </div>
-      <div className="flex items-center gap-1">
-        {SOCIALS.map((s) => (
-          <a
-            key={s.href}
-            href={s.href}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={s.label}
-            title={s.label}
-            className="grid size-9 place-items-center rounded-lg text-ink-dim transition-colors hover:bg-white/[0.05] hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-          >
-            <s.icon size={18} />
+    <footer className="mt-10 flex flex-col gap-4 border-t border-white/[0.06] pt-6 text-xs text-ink-faint">
+      <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:justify-between">
+        <div>
+          Fait par{" "}
+          <a href="https://github.com/LilStick" target="_blank" rel="noreferrer" className={credit}>
+            LilStick
+          </a>{" "}
+          &{" "}
+          <a href="https://github.com/luminescencedev" target="_blank" rel="noreferrer" className={credit}>
+            luminescence
           </a>
-        ))}
+        </div>
+        <div className="flex items-center gap-1">
+          {SOCIALS.map((s) => (
+            <a
+              key={s.href}
+              href={s.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={s.label}
+              title={s.label}
+              className="grid size-9 place-items-center rounded-lg text-ink-dim transition-colors hover:bg-white/[0.05] hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+            >
+              <s.icon size={18} />
+            </a>
+          ))}
+        </div>
       </div>
+      <div className="text-center sm:text-left">Pôle CS2 · données Faceit</div>
     </footer>
   );
 }
