@@ -8,6 +8,7 @@ export {
   playtimeSnapshots,
   announcements,
   ideas,
+  bannedDiscordIds,
   eloSource,
   type Player,
   type NewPlayer,
@@ -19,4 +20,6 @@ export {
   type NewAnnouncement,
   type Idea,
   type NewIdea,
+  type BannedDiscordId,
+  type NewBannedDiscordId,
 } from "./schema";
