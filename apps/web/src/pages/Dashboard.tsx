@@ -16,22 +16,27 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       <AnnouncementBanner />
-      <HomeHero />
 
-      <div className="grid gap-4 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-4">
-        <PlayerOfTheDay />
-        <TopClimber />
-        <LivePresence />
-        <RecentMovements />
+      <div className="grid gap-4 2xl:grid-cols-[280px_minmax(0,1fr)] 2xl:items-start">
+        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements, records — en entier, sans clic */}
+        <aside className="flex flex-col gap-4 2xl:w-[280px]">
+          <PlayerOfTheDay />
+          <TopClimber />
+          <LivePresence />
+          <RecentMovements />
+          <PoleRecords />
+        </aside>
+
+        <div className="flex min-w-0 flex-col gap-6">
+          <HomeHero />
+
+          <ActivityHeatmap title="Activité du pôle" />
+
+          <LadderPreview />
+
+          <HomeAccountBanner />
+        </div>
       </div>
-
-      <ActivityHeatmap title="Activité du pôle" />
-
-      <PoleRecords />
-
-      <LadderPreview />
-
-      <HomeAccountBanner />
     </div>
   );
 }

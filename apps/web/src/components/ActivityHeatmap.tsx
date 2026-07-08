@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TbActivity } from "react-icons/tb";
 import { getActivity, getPlayerActivity } from "../lib/api";
@@ -67,94 +67,105 @@ export function ActivityHeatmap({ id, title = "Activité" }: { id?: string; titl
     return { weeks, months, total };
   }, [data]);
 
+  const header = (extra?: ReactNode) => (
+    <div className="flex items-center justify-between">
+      <span className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        <TbActivity size={14} className="text-brand" />
+        {title} · 52 semaines
+      </span>
+      {extra}
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <Card className="p-4">
-        <Skeleton className="h-28 w-full" />
-      </Card>
+      <section className="flex flex-col gap-3">
+        {header()}
+        <Card className="p-4">
+          <Skeleton className="h-28 w-full" />
+        </Card>
+      </section>
     );
   }
   if (isError) return null;
 
   return (
-    <Card className="p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-          <TbActivity size={14} className="text-brand" />
-          {title} · 52 semaines
-        </span>
-        <span className="text-xs text-ink-dim">{total} matchs</span>
-      </div>
+    <section className="flex flex-col gap-3">
+      {header(<span className="text-xs text-ink-dim">{total} matchs</span>)}
 
-      <div className="overflow-x-auto">
-        <div className="flex">
-          {/* Labels jours */}
-          <div className="mr-2 flex flex-col gap-[3px] pt-[18px] text-[10px] text-ink-faint">
-            {WEEKDAYS.map((d) => (
-              <span key={d} className="h-[13px] leading-[13px]">
-                {d}
-              </span>
-            ))}
-          </div>
-
-          <div>
-            {/* Labels mois */}
-            <div className="mb-[5px] flex h-[13px] gap-[3px] text-[10px] text-ink-faint">
-              {months.map((m, i) => (
-                <span key={i} className="w-[13px] whitespace-nowrap">
-                  {m}
+      <Card className="p-4">
+        <div className="overflow-x-auto">
+          <div className="flex">
+            {/* Labels jours */}
+            <div className="mr-2 flex flex-col gap-[3px] pt-[18px] text-[10px] text-ink-faint">
+              {WEEKDAYS.map((d) => (
+                <span key={d} className="h-[13px] leading-[13px]">
+                  {d}
                 </span>
               ))}
             </div>
 
-            {/* Grille */}
-            <div className="flex gap-[3px]">
-              {weeks.map((col, ci) => (
-                <div key={ci} className="flex flex-col gap-[3px]">
-                  {Array.from({ length: 7 }, (_, ri) => {
-                    const cell = col[ri];
-                    if (!cell) return <span key={ri} className="size-[13px]" />;
-                    return (
-                      <span
-                        key={ri}
-                        className={cn(
-                          "size-[13px] rounded-[3px] transition-transform hover:scale-110",
-                          level(cell.count),
-                        )}
-                        onMouseEnter={(e) =>
-                          setHover({ count: cell.count, date: cell.date, x: e.clientX, y: e.clientY })
-                        }
-                        onMouseLeave={() => setHover(null)}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
+            <div>
+              {/* Labels mois */}
+              <div className="mb-[5px] flex h-[13px] gap-[3px] text-[10px] text-ink-faint">
+                {months.map((m, i) => (
+                  <span key={i} className="w-[13px] whitespace-nowrap">
+                    {m}
+                  </span>
+                ))}
+              </div>
+
+              {/* Grille */}
+              <div className="flex gap-[3px]">
+                {weeks.map((col, ci) => (
+                  <div key={ci} className="flex flex-col gap-[3px]">
+                    {Array.from({ length: 7 }, (_, ri) => {
+                      const cell = col[ri];
+                      if (!cell) return <span key={ri} className="size-[13px]" />;
+                      return (
+                        <span
+                          key={ri}
+                          className={cn(
+                            "size-[13px] rounded-[3px] transition-transform hover:scale-110",
+                            level(cell.count),
+                          )}
+                          onMouseEnter={(e) =>
+                            setHover({ count: cell.count, date: cell.date, x: e.clientX, y: e.clientY })
+                          }
+                          onMouseLeave={() => setHover(null)}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-faint">
-        <span>Moins</span>
-        <span className="size-[13px] rounded-[3px] bg-white/[0.05]" />
-        <span className="size-[13px] rounded-[3px] bg-brand/30" />
-        <span className="size-[13px] rounded-[3px] bg-brand/60" />
-        <span className="size-[13px] rounded-[3px] bg-brand" />
-        <span>Plus</span>
-      </div>
-
-      {hover && (
-        <div
-          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg border border-white/12 bg-[#11141b] px-2.5 py-1.5 text-center shadow-xl"
-          style={{ left: hover.x, top: hover.y - 8 }}
-        >
-          <div className="font-mono text-xs font-bold text-ink">{hover.date.toLocaleDateString("fr-FR")}</div>
-          <div className="text-[11px] text-ink-dim">
-            {hover.count} match{hover.count > 1 ? "s" : ""}
-          </div>
+        <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] text-ink-faint">
+          <span>Moins</span>
+          <span className="size-[13px] rounded-[3px] bg-white/[0.05]" />
+          <span className="size-[13px] rounded-[3px] bg-brand/30" />
+          <span className="size-[13px] rounded-[3px] bg-brand/60" />
+          <span className="size-[13px] rounded-[3px] bg-brand" />
+          <span>Plus</span>
         </div>
-      )}
-    </Card>
+
+        {hover && (
+          <div
+            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg border border-white/12 bg-[#11141b] px-2.5 py-1.5 text-center shadow-xl"
+            style={{ left: hover.x, top: hover.y - 8 }}
+          >
+            <div className="font-mono text-xs font-bold text-ink">
+              {hover.date.toLocaleDateString("fr-FR")}
+            </div>
+            <div className="text-[11px] text-ink-dim">
+              {hover.count} match{hover.count > 1 ? "s" : ""}
+            </div>
+          </div>
+        )}
+      </Card>
+    </section>
   );
 }
