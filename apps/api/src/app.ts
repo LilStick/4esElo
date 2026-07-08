@@ -31,6 +31,7 @@ import type {
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
 import { computeStreak, computeOvertakes } from "./streaks";
+import { computeBadges, type BadgeMatch } from "./badges";
 import { authRoutes } from "./auth";
 import { registerRoutes } from "./register";
 import { adminRoutes } from "./admin";
@@ -267,7 +268,44 @@ app.get("/leaderboard", async (c) => {
     formation: r.formation,
     promoStart: r.promo_start,
     promoEnd: r.promo_end,
+    badges: [],
   }));
+
+  // Badges (B5.8) : une passe de stats par joueur, champs scalaires extraits du
+  // JSONB (pas de payload lourd), agrégés en mémoire par la logique pure.
+  const badgeRows = await db.execute<{
+    player_id: string;
+    played_at: string; // SQL brut → string ISO (à convertir), pas un Date typé Drizzle
+    result: number;
+    hs: number;
+    entry_count: number;
+    entry_wins: number;
+    clutch_count: number;
+    clutch_wins: number;
+  }>(sql`
+    select player_id, played_at, result,
+           coalesce((stats->>'hsPercent')::float, 0) as hs,
+           coalesce((stats->>'entryCount')::int, 0) as entry_count,
+           coalesce((stats->>'entryWins')::int, 0) as entry_wins,
+           coalesce((stats->>'clutch1v1Count')::int, 0) + coalesce((stats->>'clutch1v2Count')::int, 0) as clutch_count,
+           coalesce((stats->>'clutch1v1Wins')::int, 0) + coalesce((stats->>'clutch1v2Wins')::int, 0) as clutch_wins
+    from faceit_match_stats
+  `);
+  const matchesByPlayer = new Map<string, BadgeMatch[]>();
+  for (const r of badgeRows) {
+    const list = matchesByPlayer.get(r.player_id) ?? [];
+    list.push({
+      playedAt: new Date(r.played_at),
+      result: r.result,
+      hsPercent: r.hs,
+      entryCount: r.entry_count,
+      entryWins: r.entry_wins,
+      clutchCount: r.clutch_count,
+      clutchWins: r.clutch_wins,
+    });
+    matchesByPlayer.set(r.player_id, list);
+  }
+  for (const entry of leaderboard) entry.badges = computeBadges(matchesByPlayer.get(entry.id) ?? []);
 
   if (sparkline) {
     const points = await db.execute<{ player_id: string; points: number[] }>(sql`
@@ -311,11 +349,25 @@ app.get("/players/:id", async (c) => {
     .orderBy(desc(playtimeSnapshots.capturedAt))
     .limit(1);
 
-  const results = await db
-    .select({ result: faceitMatchStats.result })
+  const matchRows = await db
+    .select({
+      result: faceitMatchStats.result,
+      playedAt: faceitMatchStats.playedAt,
+      stats: faceitMatchStats.stats,
+    })
     .from(faceitMatchStats)
     .where(eq(faceitMatchStats.playerId, id))
     .orderBy(desc(faceitMatchStats.playedAt));
+
+  const badgeMatches: BadgeMatch[] = matchRows.map((r) => ({
+    playedAt: r.playedAt,
+    result: r.result,
+    hsPercent: r.stats.hsPercent,
+    entryCount: r.stats.entryCount,
+    entryWins: r.stats.entryWins,
+    clutchCount: r.stats.clutch1v1Count + r.stats.clutch1v2Count,
+    clutchWins: r.stats.clutch1v1Wins + r.stats.clutch1v2Wins,
+  }));
 
   const detail: PlayerDetail = {
     id: player.id,
@@ -332,7 +384,8 @@ app.get("/players/:id", async (c) => {
     createdAt: player.createdAt.toISOString(),
     history: await eloHistory(id, source),
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
-    streak: computeStreak(results.map((r) => r.result)),
+    streak: computeStreak(matchRows.map((r) => r.result)),
+    badges: computeBadges(badgeMatches),
   };
 
   return c.json(detail);

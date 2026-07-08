@@ -19,10 +19,32 @@ export interface PlayerSummary {
   promoEnd: number | null;
 }
 
+/** Badges emoji (B5.8) — flex gagné selon les stats, calculé côté API.
+ *  Les seuils vivent dans le code (`apps/api/src/badges.ts`). */
+export type BadgeId = "streak" | "headshot" | "entry" | "clutch" | "grind";
+
+export interface BadgeDef {
+  emoji: string;
+  label: string;
+  /** Ce qu'il faut faire pour le décrocher (tooltip front). */
+  description: string;
+}
+
+/** Catalogue partagé front/back : emoji + libellé de chaque badge. */
+export const BADGE_CATALOG: Record<BadgeId, BadgeDef> = {
+  streak: { emoji: "🔥", label: "En feu", description: "Série de victoires en cours" },
+  headshot: { emoji: "🎯", label: "Machine à HS", description: "Gros pourcentage de headshots" },
+  entry: { emoji: "💣", label: "Entry fragger", description: "Gagne ses duels d'entrée" },
+  clutch: { emoji: "🧠", label: "Roi du clutch", description: "Gagne ses clutchs 1v1 / 1v2" },
+  grind: { emoji: "🚿", label: "Grind-day", description: "Grosse journée de matchs" },
+};
+
 export interface LeaderboardEntry extends PlayerSummary {
   rank: number;
   /** Last N ELO points, oldest first — only when the request asks for it. */
   sparkline?: number[];
+  /** Badges décrochés (B5.8) ; liste vide si aucun. */
+  badges: BadgeId[];
 }
 
 export type MoversWindow = "24h" | "7d";
@@ -80,6 +102,8 @@ export interface PlayerDetail extends PlayerSummary {
   /** true = ses heures de jeu Steam sont privées (hint front) ; null = pas encore échantillonné. */
   playtimePrivate?: boolean | null;
   streak: PlayerStreak;
+  /** Badges décrochés (B5.8) ; liste vide si aucun. */
+  badges: BadgeId[];
 }
 
 /** Dépassement au classement (B5.5) : `passer` est passé devant `passed` sur la fenêtre. */

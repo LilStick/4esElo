@@ -156,6 +156,7 @@ test("GET /players/:id returns profile, latest elo and chronological history", {
   assert.equal(body.history[0]!.elo, 1000); // oldest first
   assert.equal(body.history[1]!.elo, 1100);
   assert.equal(body.playtimePrivate, null); // jamais échantillonné
+  assert.deepEqual(body.badges, []); // stats trop faibles → aucun badge
 });
 
 test("GET /players/:id flags private playtime from the last snapshot", { skip }, async () => {
@@ -385,6 +386,40 @@ test("GET /leaderboard rejects an invalid sparkline with 400", { skip }, async (
   for (const q of ["sparkline=0", "sparkline=999", "sparkline=abc"]) {
     const res = await app.request(`/leaderboard?${q}`);
     assert.equal(res.status, 400, q);
+  }
+});
+
+test("B5.8: badges gagnés visibles sur le classement et le détail joueur", { skip }, async () => {
+  const [bp] = await db
+    .insert(players)
+    .values({ discordName: "ibadge", faceitNickname: "ibadge_nick", steamId64: "765_ibadge" })
+    .returning({ id: players.id });
+  const bid = bp!.id;
+  const base = new Date("2026-05-10T00:00:00Z").getTime();
+  // 6 matchs le même jour UTC (grind) + 4 sur des jours distincts ; tous gagnés
+  // (streak) ; HS% 60 sur 10 matchs (headshot).
+  const rows = Array.from({ length: 10 }, (_, i) => ({
+    matchId: `ibadge-${i}`,
+    playerId: bid,
+    map: "de_mirage",
+    playedAt: i < 6 ? new Date(base + i * HOUR) : new Date(base + (30 + i) * 24 * HOUR),
+    result: 1,
+    stats: makeStats({ hsPercent: 60 }),
+  }));
+  await db.insert(faceitMatchStats).values(rows);
+  try {
+    const lb = (await (await app.request(`/leaderboard`)).json()) as LeaderboardResponse;
+    const entry = lb.leaderboard.find((e) => e.id === bid);
+    assert.ok(entry, "le joueur doit apparaître au classement");
+    assert.ok(entry!.badges.includes("streak"));
+    assert.ok(entry!.badges.includes("headshot"));
+    assert.ok(entry!.badges.includes("grind"));
+    assert.ok(!entry!.badges.includes("clutch")); // aucun clutch tenté
+
+    const detail = (await (await app.request(`/players/${bid}`)).json()) as PlayerDetail;
+    assert.deepEqual(detail.badges, entry!.badges); // mêmes badges des deux côtés
+  } finally {
+    await db.delete(players).where(eq(players.id, bid)); // cascade → supprime les matchs
   }
 });
 
