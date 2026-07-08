@@ -1,3 +1,4 @@
+import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { HomeHero } from "../components/HomeHero";
 import { PlayerOfTheDay } from "../components/PlayerOfTheDay";
 import { RecentMovements } from "../components/RecentMovements";
@@ -23,6 +24,8 @@ export function Dashboard() {
         <LivePresence />
         <RecentMovements />
       </div>
+
+      <ActivityHeatmap title="Activité du pôle" />
 
       <PoleRecords />
 

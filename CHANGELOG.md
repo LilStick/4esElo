@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-08
+
+- Web : heatmap d'activité façon GitHub branchée sur l'API `/activity` — sur le profil (le joueur) et sur la home (le pôle entier, matchs partagés dédupliqués), 52 semaines, tooltip par jour, grille vide propre sans matchs. (#230)
+
 ## 2026-07-07
 
 - Engagement : les streaks & dépassements — `/players/:id` porte la série en cours + records (`streak`), et `GET /leaderboard/overtakes?window=24h|7d` liste qui est passé devant qui. Le front (#256) et les badges (#258) sont débloqués. (#255)
