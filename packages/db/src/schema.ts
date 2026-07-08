@@ -111,6 +111,25 @@ export const announcements = pgTable(
   (t) => [index("announcements_published_idx").on(t.publishedAt)],
 );
 
+/** Boîte à idées (B17.7) : suggestions des membres connectés, relayées sur Discord.
+ *  `discord_id` = auteur (issu de la session signée, non spoofable). */
+export const ideas = pgTable(
+  "ideas",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    discordId: text("discord_id").notNull(),
+    /** Nom d'affichage au moment du dépôt (dénormalisé pour la page). */
+    discordName: text("discord_name"),
+    text: text("text").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    // rate-limit (idées d'un membre sur 24 h) + fil récent global.
+    index("ideas_author_created_idx").on(t.discordId, t.createdAt),
+    index("ideas_created_idx").on(t.createdAt),
+  ],
+);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
@@ -119,3 +138,5 @@ export type NewFaceitMatchStat = typeof faceitMatchStats.$inferInsert;
 export type PlaytimeSnapshot = typeof playtimeSnapshots.$inferSelect;
 export type Announcement = typeof announcements.$inferSelect;
 export type NewAnnouncement = typeof announcements.$inferInsert;
+export type Idea = typeof ideas.$inferSelect;
+export type NewIdea = typeof ideas.$inferInsert;
