@@ -70,6 +70,8 @@ export const faceitMatchStats = pgTable(
     primaryKey({ columns: [t.matchId, t.playerId] }),
     index("faceit_match_stats_player_played_idx").on(t.playerId, t.playedAt),
     index("faceit_match_stats_player_map_idx").on(t.playerId, t.map),
+    // Flux de matchs récents tous joueurs confondus (B15.11) : tri global par date.
+    index("faceit_match_stats_played_idx").on(t.playedAt),
   ],
 );
 

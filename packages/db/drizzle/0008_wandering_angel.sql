@@ -1,0 +1,1 @@
+CREATE INDEX "faceit_match_stats_played_idx" ON "faceit_match_stats" USING btree ("played_at");

@@ -12,6 +12,7 @@ import type {
   EloCurveResponse,
   LeaderboardResponse,
   MatchesResponse,
+  RecentMatchesResponse,
   FaceitMatchStats,
   MoversResponse,
   OvertakesResponse,
@@ -685,4 +686,83 @@ test("B11.1: CORS allows the configured front origin only", { skip }, async () =
   assert.equal(allowed.headers.get("access-control-allow-origin"), "http://localhost:5173");
   const denied = await app.request(`/health`, { headers: { Origin: "https://evil.example" } });
   assert.equal(denied.headers.get("access-control-allow-origin"), null);
+});
+
+test(
+  "B15.11: GET /matches/recent — flux global, plus récent d'abord, avec joueur + eloDelta",
+  { skip },
+  async () => {
+    const [feedP] = await db
+      .insert(players)
+      .values({
+        discordName: "ifeed",
+        faceitNickname: "ifeed_nick",
+        discordId: "ifeed_did",
+        discordAvatar: "ifeed_hash",
+        steamId64: "765_ifeed",
+      })
+      .returning({ id: players.id });
+    const fid = feedP!.id;
+    // Dates dans le futur → garanties en tête du flux quelles que soient les données déjà présentes.
+    await db.insert(faceitMatchStats).values([
+      {
+        matchId: "ifeed-old",
+        playerId: fid,
+        map: "de_nuke",
+        playedAt: new Date("2999-01-01T20:00:00Z"),
+        result: 0,
+        eloDelta: -18,
+        stats: makeStats(),
+      },
+      {
+        matchId: "ifeed-mid",
+        playerId: fid,
+        map: "de_mirage",
+        playedAt: new Date("2999-01-02T20:00:00Z"),
+        result: 1,
+        eloDelta: null,
+        stats: makeStats(),
+      },
+      {
+        matchId: "ifeed-new",
+        playerId: fid,
+        map: "de_inferno",
+        playedAt: new Date("2999-01-03T20:00:00Z"),
+        result: 1,
+        eloDelta: 25,
+        stats: makeStats(),
+      },
+    ]);
+    try {
+      const res = await app.request(`/matches/recent?limit=50`);
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as RecentMatchesResponse;
+      assert.ok(Array.isArray(body.items));
+      // Mes 3 matchs futurs sont en tête, plus récent d'abord.
+      assert.deepEqual(
+        body.items.slice(0, 3).map((m) => m.matchId),
+        ["ifeed-new", "ifeed-mid", "ifeed-old"],
+      );
+      const top = body.items[0]!;
+      assert.equal(top.map, "de_inferno");
+      assert.equal(top.result, 1);
+      assert.equal(top.eloDelta, 25);
+      assert.equal(top.player.id, fid);
+      assert.equal(top.player.nickname, "ifeed_nick");
+      assert.equal(top.player.discordId, "ifeed_did");
+      assert.equal(top.player.discordAvatar, "ifeed_hash");
+      assert.equal(typeof top.playedAt, "string");
+      // eloDelta null préservé (match pas encore backfillé).
+      assert.equal(body.items.find((m) => m.matchId === "ifeed-mid")!.eloDelta, null);
+    } finally {
+      await db.delete(players).where(eq(players.id, fid)); // cascade → supprime les matchs
+    }
+  },
+);
+
+test("B15.11: GET /matches/recent valide limit (400 si invalide, défaut OK)", { skip }, async () => {
+  for (const q of ["limit=0", "limit=-5", "limit=abc", "limit=1000"]) {
+    assert.equal((await app.request(`/matches/recent?${q}`)).status, 400, q);
+  }
+  assert.equal((await app.request(`/matches/recent`)).status, 200); // défaut = 20
 });
