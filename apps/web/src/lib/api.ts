@@ -1,4 +1,5 @@
 import type {
+  ActivityResponse,
   AdminPlayerPatch,
   Announcement,
   AnnouncementsResponse,
@@ -101,6 +102,14 @@ export function getPlayerStats(id: string, range: StatsRange = "all") {
 
 export function getPlayerMatches(id: string, limit = 10) {
   return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
+}
+
+export function getActivity(days = 364) {
+  return get<ActivityResponse>(`/activity?days=${days}`);
+}
+
+export function getPlayerActivity(id: string, days = 364) {
+  return get<ActivityResponse>(`/players/${id}/activity?days=${days}`);
 }
 
 export function getDuos() {
