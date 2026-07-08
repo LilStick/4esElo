@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-09
+
+- API : flux de matchs récents du pôle — `GET /matches/recent?limit=N` renvoie les derniers matchs tous joueurs confondus (joueur, map, résultat, ±ELO, date), triés par date, index dédié sur `played_at` ; débloque le fil d'activité de la home (#285). (#284)
+
 ## 2026-07-08
 
 - Web : heatmap d'activité façon GitHub branchée sur l'API `/activity` — sur le profil (le joueur) et sur la home (le pôle entier, matchs partagés dédupliqués), 52 semaines, tooltip par jour, grille vide propre sans matchs. (#230)

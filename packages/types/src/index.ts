@@ -161,6 +161,27 @@ export interface MatchesResponse {
   total: number;
 }
 
+/** Flux de matchs récents du pôle (B15.11), tous joueurs confondus.
+ *  Un même match apparaît une fois par membre y ayant joué (chacun son eloDelta). */
+export interface RecentMatchEntry {
+  matchId: string;
+  player: {
+    id: string;
+    nickname: string;
+    discordId: string | null;
+    discordAvatar: string | null;
+  };
+  map: string;
+  playedAt: string; // ISO
+  result: number; // 1 win, 0 loss
+  /** Vrai ±ELO du match (backfill #141) ; null tant que non récupéré. */
+  eloDelta: number | null;
+}
+
+export interface RecentMatchesResponse {
+  items: RecentMatchEntry[];
+}
+
 export type StatsRange = "7d" | "30d" | "3m" | "all";
 
 /** Aggregated stats over a time window, computed from stored matches. */

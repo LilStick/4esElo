@@ -57,6 +57,13 @@
       "when": 1783416805423,
       "tag": "0007_announcements_body",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783551331356,
+      "tag": "0008_wandering_angel",
+      "breakpoints": true
     }
   ]
 }
