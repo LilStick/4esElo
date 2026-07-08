@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES, type SocialMatchRow } from "./social";
 
 const PLAYERS = [
-  { id: "p1", nickname: "alice" },
-  { id: "p2", nickname: "bob" },
-  { id: "p3", nickname: "carol" },
+  { id: "p1", nickname: "alice", discordId: null, discordAvatar: null },
+  { id: "p2", nickname: "bob", discordId: null, discordAvatar: null },
+  { id: "p3", nickname: "carol", discordId: null, discordAvatar: null },
 ];
 
 /** n matchs où les deux joueurs ont le même résultat (coéquipiers). */

@@ -5,6 +5,7 @@ import { TbConfetti, TbSparkles } from "react-icons/tb";
 import type { AwardKey, AwardWinner } from "@4eselo/types";
 import { getWrapped } from "../lib/api";
 import { parsePeriod, monthLabel } from "../lib/period";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { MapBackdrop } from "../components/MapBackdrop";
@@ -16,22 +17,35 @@ type Group = {
   emoji: string;
   title: string;
   punchline: string;
-  winners: { playerId: string; nickname: string; value: number }[];
+  winners: {
+    playerId: string;
+    nickname: string;
+    value: number;
+    discordId: string | null;
+    discordAvatar: string | null;
+  }[];
 };
 
 /** Regroupe les gagnants par award (ex æquo → une seule carte). */
 function groupAwards(awards: AwardWinner[]): Group[] {
   const map = new Map<AwardKey, Group>();
   for (const a of awards) {
+    const winner = {
+      playerId: a.playerId,
+      nickname: a.nickname,
+      value: a.value,
+      discordId: a.discordId,
+      discordAvatar: a.discordAvatar,
+    };
     const g = map.get(a.award);
-    if (g) g.winners.push({ playerId: a.playerId, nickname: a.nickname, value: a.value });
+    if (g) g.winners.push(winner);
     else
       map.set(a.award, {
         award: a.award,
         emoji: a.emoji,
         title: a.title,
         punchline: a.punchline,
-        winners: [{ playerId: a.playerId, nickname: a.nickname, value: a.value }],
+        winners: [winner],
       });
   }
   return [...map.values()];
@@ -52,7 +66,7 @@ function AwardCard({ g, period }: { g: Group; period: string }) {
             to={`/wrapped/${period}/${w.playerId}`}
             className="group flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5"
           >
-            <Avatar name={w.nickname} size={26} />
+            <Avatar name={w.nickname} size={26} src={discordAvatarUrl(w.discordId, w.discordAvatar)} />
             <span className="flex-1 truncate text-sm font-semibold transition-colors group-hover:text-brand-hi">
               {w.nickname}
             </span>

@@ -63,8 +63,8 @@ function games(
 function inputs(over: Partial<WrappedInputs> = {}): WrappedInputs {
   return {
     players: [
-      { id: "p1", nickname: "alice" },
-      { id: "p2", nickname: "bob" },
+      { id: "p1", nickname: "alice", discordId: null, discordAvatar: null },
+      { id: "p2", nickname: "bob", discordId: null, discordAvatar: null },
     ],
     matches: [],
     eloSnapshots: [],

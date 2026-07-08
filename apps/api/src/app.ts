@@ -90,6 +90,8 @@ app.get("/presence", async (c) => {
       id: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
       steamId64: players.steamId64,
       faceitId: players.faceitId,
     })
@@ -428,11 +430,15 @@ async function loadSocialInputs() {
       id: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
     })
     .from(players);
   const members: DuoPlayer[] = playerRows.map((p) => ({
     id: p.id,
     nickname: p.faceitNickname ?? p.discordName ?? p.id,
+    discordId: p.discordId,
+    discordAvatar: p.discordAvatar,
   }));
   const matchRows = await db
     .select({

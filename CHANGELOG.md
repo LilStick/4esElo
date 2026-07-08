@@ -11,7 +11,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 - Web : home — joueur du jour, grimpeur, présence, mouvements et records du pôle passent dans une colonne latérale gauche, liste complète visible sans clic (fini la modale « voir tout »), largeur de page alignée sur celle du profil. (#274)
 - Web : série en cours + record perso sur le profil (🔥 wins / ❄️ losses, données réelles au lieu d'une approximation sur 30 matchs) et « Dépassements récents » dans le rail de la home (qui passe devant qui au classement). (#256)
 - Web : refonte du shell — sidebar repliable (icônes fixes + tooltips, état persisté), toggle dans le coin du contenu, compte en popover façon menu, contenu dans un cadre qui défile en interne pendant que la sidebar reste fixe. (#251)
-- Web/API : vraies photos Discord partout (classement, profil, home, comparaison, panel admin…) au lieu des initiales — `/me` renvoie l'avatar frais de la session, et le snapshot DB se rafraîchit à chaque connexion au lieu de rester figé depuis l'inscription. (#279)
+- Web/API : vraies photos Discord partout (classement, profil, home, comparaison, panel admin, Wrapped, social, présence live…) au lieu des initiales — `/me` renvoie l'avatar frais de la session, et le snapshot DB se rafraîchit à chaque connexion au lieu de rester figé depuis l'inscription. (#279)
 
 ## 2026-07-07
 

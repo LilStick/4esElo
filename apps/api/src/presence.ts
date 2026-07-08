@@ -13,6 +13,8 @@ export interface PresencePlayerRow {
   id: string;
   faceitNickname: string | null;
   discordName: string | null;
+  discordId: string | null;
+  discordAvatar: string | null;
   steamId64: string | null;
   faceitId: string | null;
 }
@@ -54,6 +56,8 @@ export async function getPresence(rows: PresencePlayerRow[]): Promise<PresenceRe
       id: row.id,
       faceitNickname: row.faceitNickname,
       discordName: row.discordName,
+      discordId: row.discordId,
+      discordAvatar: row.discordAvatar,
       online: steam?.online ?? null,
       inGameCs2: steam?.inGameCs2 ?? false,
       inFaceitMatch: null,

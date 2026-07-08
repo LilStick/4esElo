@@ -12,6 +12,8 @@ export async function loadWrappedInputs(year: number, month: number): Promise<Wr
       id: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
     })
     .from(players);
 
@@ -54,6 +56,8 @@ export async function loadWrappedInputs(year: number, month: number): Promise<Wr
     players: playerRows.map((p) => ({
       id: p.id,
       nickname: p.faceitNickname ?? p.discordName ?? p.id,
+      discordId: p.discordId,
+      discordAvatar: p.discordAvatar,
     })),
     matches,
     eloSnapshots: elo,
