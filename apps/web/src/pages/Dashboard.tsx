@@ -17,20 +17,17 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <AnnouncementBanner />
 
-      <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
-        {/* Rail annexe : qui est en jeu + qui a bougé, en entier, sans clic (comme sur le profil) */}
-        <aside className="flex flex-col gap-4">
+      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
+        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements — en entier, sans clic */}
+        <aside className="flex flex-col gap-4 xl:w-[300px]">
+          <PlayerOfTheDay />
+          <TopClimber />
           <LivePresence />
           <RecentMovements />
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
           <HomeHero />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <PlayerOfTheDay />
-            <TopClimber />
-          </div>
 
           <ActivityHeatmap title="Activité du pôle" />
 
