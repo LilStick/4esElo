@@ -77,7 +77,7 @@ export function PoleRecords() {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3">
           {Array.from({ length: 4 }, (_, i) => (
             <Card key={i} className="flex items-center gap-3 p-4">
               <Skeleton className="size-10 rounded-xl" />
@@ -89,7 +89,7 @@ export function PoleRecords() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3">
           <RecordCard
             icon={TbCrown}
             label="Plus haut ELO"
