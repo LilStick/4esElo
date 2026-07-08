@@ -9,6 +9,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 - Web : heatmap d'activité façon GitHub branchée sur l'API `/activity` — sur le profil (le joueur) et sur la home (le pôle entier, matchs partagés dédupliqués), 52 semaines, tooltip par jour, grille vide propre sans matchs. (#230)
 - Web : home — joueur du jour, grimpeur, présence, mouvements et records du pôle passent dans une colonne latérale gauche, liste complète visible sans clic (fini la modale « voir tout »), largeur de page alignée sur celle du profil. (#274)
+- Web : série en cours + record perso sur le profil (🔥 wins / ❄️ losses, données réelles au lieu d'une approximation sur 30 matchs) et « Dépassements récents » dans le rail de la home (qui passe devant qui au classement). (#256)
 
 ## 2026-07-07
 
