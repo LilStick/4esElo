@@ -109,6 +109,13 @@ authRoutes.get("/auth/callback", async (c) => {
     }
     const user = await oauth.getUser(token);
     await writeSession(c, { discordId: user.id, displayName: user.displayName, avatar: user.avatar });
+    // Rafraîchit le snapshot DB à chaque connexion (pas seulement à l'inscription) —
+    // sinon le nom/avatar affichés ailleurs (classement, profil…) restent figés.
+    // No-op si le membre n'est pas encore inscrit (aucune ligne à matcher).
+    await db
+      .update(players)
+      .set({ discordName: user.displayName, discordAvatar: user.avatar ?? null })
+      .where(eq(players.discordId, user.id));
     return c.redirect(`${webHome()}/?auth=ok`);
   } catch (err) {
     console.error("[auth] callback failed:", err instanceof Error ? err.message : err);
@@ -151,6 +158,7 @@ authRoutes.get("/me", async (c) => {
     player: player
       ? {
           id: player.id,
+          discordId: session.discordId, // matché via discord_id, donc identique
           discordName: player.discordName,
           faceitNickname: player.faceitNickname,
           steamId64: player.steamId64,

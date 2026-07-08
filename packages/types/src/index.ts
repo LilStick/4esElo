@@ -2,6 +2,8 @@ export type EloSource = "faceit" | "premier";
 
 export interface PlayerSummary {
   id: string;
+  /** Snowflake Discord — nécessaire pour construire l'URL CDN de l'avatar. */
+  discordId: string | null;
   discordName: string | null;
   faceitNickname: string | null;
   steamId64: string | null;
@@ -81,6 +83,7 @@ export interface PlayerDetail extends PlayerSummary {
 /** Dépassement au classement (B5.5) : `passer` est passé devant `passed` sur la fenêtre. */
 export interface OvertakePlayer {
   id: string;
+  discordId: string | null;
   faceitNickname: string | null;
   discordName: string | null;
   discordAvatar: string | null;

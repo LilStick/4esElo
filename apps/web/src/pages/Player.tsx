@@ -14,6 +14,7 @@ import {
 } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Button, Card, RangeTabs, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { StatsBento } from "../components/StatsBento";
@@ -111,7 +112,7 @@ export function Player() {
           {/* Rail annexe : identité + activité (dans le gutter gauche, collé au centre) */}
           <aside className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-end">
             <Card className="flex flex-col items-center gap-4 p-6 text-center">
-              <Avatar name={name} size={104} />
+              <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
               <div className="min-w-0">
                 <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
                 <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">

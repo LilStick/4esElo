@@ -5,6 +5,7 @@ import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
+import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
@@ -124,7 +125,7 @@ export function Leaderboard() {
           )}
         </span>
         <EloDelta delta={eloMove.get(e.id)} />
-        <Avatar name={nameOf(e)} size={34} />
+        <Avatar name={nameOf(e)} size={34} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
         <LevelBadge level={e.level} size={24} />
         <span className={cn("flex-1 truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
           {nameOf(e)}

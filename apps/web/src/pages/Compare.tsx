@@ -18,6 +18,7 @@ import {
 import type { IconType } from "react-icons";
 import type { LeaderboardEntry, StatsAggregate } from "@4eselo/types";
 import { getLeaderboard, getPlayerStats } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Modal } from "../ui";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
@@ -95,7 +96,11 @@ function PlayerPanel({
       />
       {entry ? (
         <div className="relative flex flex-col items-center gap-3">
-          <Avatar name={nameOf(entry)} size={84} />
+          <Avatar
+            name={nameOf(entry)}
+            size={84}
+            src={discordAvatarUrl(entry.discordId, entry.discordAvatar)}
+          />
           <div>
             <div className="text-lg font-extrabold" style={{ color }}>
               {nameOf(entry)}
@@ -354,7 +359,7 @@ export function Compare() {
                 onClick={() => pick(p.id)}
                 className="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-white/[0.05]"
               >
-                <Avatar name={nameOf(p)} size={32} />
+                <Avatar name={nameOf(p)} size={32} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
                 <LevelBadge level={p.level} size={20} />
                 <span className="flex-1 truncate text-sm font-semibold">{nameOf(p)}</span>
                 <span className="font-mono text-sm font-bold text-brand tabular-nums">{p.elo ?? "—"}</span>

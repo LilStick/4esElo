@@ -6,6 +6,7 @@ import type { IconType } from "react-icons";
 import { useQuery } from "@tanstack/react-query";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, LevelBadge } from "../ui";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -106,7 +107,11 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                         onSelect={() => go(`/player/${e.id}`)}
                         className={itemCls}
                       >
-                        <Avatar name={nameOf(e)} size={30} />
+                        <Avatar
+                          name={nameOf(e)}
+                          size={30}
+                          src={discordAvatarUrl(e.discordId, e.discordAvatar)}
+                        />
                         <LevelBadge level={e.level} size={22} />
                         <span className="flex-1 truncate text-sm font-semibold">{nameOf(e)}</span>
                         <span className="font-mono text-sm font-bold text-brand tabular-nums">

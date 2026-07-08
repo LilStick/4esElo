@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TbArrowsUpDown } from "react-icons/tb";
 import type { MoverEntry } from "@4eselo/types";
 import { getMovers } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
@@ -63,7 +64,7 @@ export function RecentMovements() {
             const up = (m.delta ?? 0) > 0;
             return (
               <>
-                <Avatar name={nameOf(m)} size={40} />
+                <Avatar name={nameOf(m)} size={40} src={discordAvatarUrl(m.discordId, m.discordAvatar)} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate font-semibold">{nameOf(m)}</span>

@@ -134,6 +134,7 @@ registerRoutes.post("/register", async (c) => {
     {
       player: {
         id: created.id,
+        discordId: created.discordId,
         discordName: created.discordName,
         faceitNickname: created.faceitNickname,
         steamId64: created.steamId64,

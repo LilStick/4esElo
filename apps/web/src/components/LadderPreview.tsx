@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbTrophy } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
+import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
@@ -46,7 +47,7 @@ export function LadderPreview({ top = 5 }: { top?: number }) {
             children={(e) => (
               <>
                 <span className="w-5 text-center font-mono font-bold text-ink-faint">{e.rank}</span>
-                <Avatar name={nameOf(e)} size={32} />
+                <Avatar name={nameOf(e)} size={32} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
                 <LevelBadge level={e.level} size={22} />
                 <span className="flex-1 truncate font-semibold">{nameOf(e)}</span>
                 <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "—"}</span>
