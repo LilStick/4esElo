@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import type { IconType } from "react-icons";
-import { TbArrowsDiagonal, TbDeviceGamepad2, TbSwords } from "react-icons/tb";
+import { TbDeviceGamepad2, TbSwords } from "react-icons/tb";
 import type { PresenceEntry } from "@4eselo/types";
 import { getPresence } from "../lib/api";
-import { Avatar, Card, Modal, Skeleton } from "../ui";
+import { Avatar, Card, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
 const nameOf = (p: PresenceEntry) => p.faceitNickname ?? p.discordName ?? "—";
@@ -61,39 +60,24 @@ function PresenceRow({ p, s }: { p: PresenceEntry; s: Status }) {
   );
 }
 
-/** Widget « En jeu maintenant » : un membre actif en vedette, le reste dans une modale. Rafraîchi 60 s. */
+/** Widget « En jeu maintenant » : liste complète des membres actifs. Rafraîchi 60 s. */
 export function LivePresence() {
   const { data, isLoading } = useQuery({
     queryKey: ["presence"],
     queryFn: getPresence,
     refetchInterval: 60_000,
   });
-  const [open, setOpen] = useState(false);
 
   const active = (data?.players ?? [])
     .map((p) => ({ p, s: statusOf(p) }))
     .filter((x): x is { p: PresenceEntry; s: Status } => x.s !== null)
     .sort((a, b) => a.s.rank - b.s.rank);
-  const top = active[0];
 
   return (
-    <Card className="flex h-full flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 truncate text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-          <TbDeviceGamepad2 size={14} className="shrink-0 text-brand" />
-          <span className="truncate">En jeu maintenant</span>
-        </div>
-        {active.length > 1 && (
-          <button
-            onClick={() => setOpen(true)}
-            aria-label="Voir tout"
-            title={`Voir tout (${active.length})`}
-            className="flex shrink-0 cursor-pointer items-center gap-1 font-mono text-[11px] font-bold text-ink-dim tabular-nums transition-colors hover:text-brand-hi"
-          >
-            {active.length}
-            <TbArrowsDiagonal size={13} />
-          </button>
-        )}
+    <Card className="flex flex-col gap-3 p-4">
+      <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        <TbDeviceGamepad2 size={14} className="shrink-0 text-brand" />
+        En jeu maintenant
       </div>
 
       {isLoading ? (
@@ -104,17 +88,15 @@ export function LivePresence() {
             <Skeleton className="mt-1.5 h-3 w-16" />
           </div>
         </div>
-      ) : top ? (
-        <PresenceRow p={top.p} s={top.s} />
+      ) : active.length > 0 ? (
+        <div className="flex flex-col gap-0.5">
+          {active.map(({ p, s }) => (
+            <PresenceRow key={p.id} p={p} s={s} />
+          ))}
+        </div>
       ) : (
         <div className="py-2 text-sm text-ink-dim">Personne en ligne.</div>
       )}
-
-      <Modal open={open} onClose={() => setOpen(false)} title="En ligne">
-        {active.map(({ p, s }) => (
-          <PresenceRow key={p.id} p={p} s={s} />
-        ))}
-      </Modal>
     </Card>
   );
 }

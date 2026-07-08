@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { TbArrowsDiagonal, TbArrowsUpDown } from "react-icons/tb";
+import { TbArrowsUpDown } from "react-icons/tb";
 import type { MoverEntry } from "@4eselo/types";
 import { getMovers } from "../lib/api";
-import { Avatar, Card, LevelBadge, Modal, Skeleton } from "../ui";
+import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
 const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "—";
@@ -34,32 +33,19 @@ function MoverRow({ m }: { m: MoverEntry }) {
   );
 }
 
-/** Widget « Mouvements récents » : le plus gros mouvement d'ELO sur 7 j, le reste dans une modale. */
+/** Widget « Mouvements récents » : liste complète des mouvements d'ELO sur 7 j, plus gros en premier. */
 export function RecentMovements() {
   const { data, isLoading } = useQuery({ queryKey: ["movers", "7d"], queryFn: () => getMovers("7d") });
-  const [open, setOpen] = useState(false);
 
-  const moved = (data?.movers ?? []).filter((m) => m.delta != null && m.delta !== 0);
-  const headliner = [...moved].sort((a, b) => Math.abs(b.delta!) - Math.abs(a.delta!))[0];
+  const moved = (data?.movers ?? [])
+    .filter((m) => m.delta != null && m.delta !== 0)
+    .sort((a, b) => Math.abs(b.delta!) - Math.abs(a.delta!));
 
   return (
-    <Card className="flex h-full flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 truncate text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-          <TbArrowsUpDown size={14} className="shrink-0 text-brand" />
-          <span className="truncate">Mouvements récents</span>
-        </div>
-        {moved.length > 1 && (
-          <button
-            onClick={() => setOpen(true)}
-            aria-label="Voir tout"
-            title={`Voir tout (${moved.length})`}
-            className="flex shrink-0 cursor-pointer items-center gap-1 font-mono text-[11px] font-bold text-ink-dim tabular-nums transition-colors hover:text-brand-hi"
-          >
-            {moved.length}
-            <TbArrowsDiagonal size={13} />
-          </button>
-        )}
+    <Card className="flex flex-col gap-3 p-4">
+      <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        <TbArrowsUpDown size={14} className="shrink-0 text-brand" />
+        Mouvements récents
       </div>
 
       {isLoading ? (
@@ -70,17 +56,15 @@ export function RecentMovements() {
             <Skeleton className="mt-1.5 h-3 w-16" />
           </div>
         </div>
-      ) : headliner ? (
-        <MoverRow m={headliner} />
+      ) : moved.length > 0 ? (
+        <div className="flex flex-col gap-0.5">
+          {moved.map((m) => (
+            <MoverRow key={m.id} m={m} />
+          ))}
+        </div>
       ) : (
         <div className="py-2 text-sm text-ink-dim">Rien n'a bougé cette semaine.</div>
       )}
-
-      <Modal open={open} onClose={() => setOpen(false)} title="Mouvements · 7 jours">
-        {moved.map((m) => (
-          <MoverRow key={m.id} m={m} />
-        ))}
-      </Modal>
     </Card>
   );
 }

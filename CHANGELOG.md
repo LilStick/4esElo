@@ -8,6 +8,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 ## 2026-07-08
 
 - Web : heatmap d'activité façon GitHub branchée sur l'API `/activity` — sur le profil (le joueur) et sur la home (le pôle entier, matchs partagés dédupliqués), 52 semaines, tooltip par jour, grille vide propre sans matchs. (#230)
+- Web : home — « En jeu maintenant » et « Mouvements récents » passent dans une colonne latérale gauche, liste complète visible sans clic (fini la modale « voir tout »). (#274)
 
 ## 2026-07-07
 
