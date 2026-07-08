@@ -26,6 +26,8 @@ const env = loadEnv(
     DISCORD_OAUTH_REDIRECT_URI: z.string().url().optional(),
     DISCORD_ASSO_GUILD_ID: z.string().optional(),
     DISCORD_ASSO_INVITE_URL: z.string().url().optional(),
+    /** Webhook du salon idées (dev). Absent = idées stockées sans relais Discord (B17.7). */
+    DISCORD_IDEAS_WEBHOOK_URL: z.string().url().optional(),
     SESSION_SECRET: z.string().min(32, "SESSION_SECRET : 32 caractères minimum").optional(),
     /** Whitelist admin : discord_id séparés par des virgules. */
     ADMIN_DISCORD_IDS: z.string().default(""),
@@ -35,6 +37,7 @@ const env = loadEnv(
 export const API_PORT = env.API_PORT;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
 export const FACEIT_API_KEY = env.FACEIT_API_KEY;
+export const DISCORD_IDEAS_WEBHOOK_URL = env.DISCORD_IDEAS_WEBHOOK_URL;
 /** Origines autorisées par le CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
 

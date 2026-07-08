@@ -351,6 +351,29 @@ export interface AnnouncementsResponse {
   announcements: Announcement[];
 }
 
+/** Boîte à idées (B17.7) — suggestion d'un membre pour le site. */
+export interface IdeaItem {
+  id: string;
+  text: string;
+  /** Nom d'affichage de l'auteur (Discord), null si inconnu. */
+  author: string | null;
+  createdAt: string; // ISO
+  /** true = idée du membre connecté. */
+  mine: boolean;
+}
+
+export interface IdeasResponse {
+  items: IdeaItem[];
+}
+
+export interface PostIdeaRequest {
+  text: string;
+}
+
+export interface PostIdeaResponse {
+  idea: IdeaItem;
+}
+
 /** Wrapped mensuel (B7.2) — awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"

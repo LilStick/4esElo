@@ -7,6 +7,7 @@ export {
   faceitMatchStats,
   playtimeSnapshots,
   announcements,
+  ideas,
   eloSource,
   type Player,
   type NewPlayer,
@@ -16,4 +17,6 @@ export {
   type PlaytimeSnapshot,
   type Announcement,
   type NewAnnouncement,
+  type Idea,
+  type NewIdea,
 } from "./schema";

@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : boîte à idées — `POST /ideas` (session requise, texte 500 car. max, 3 idées/jour/membre) relayée dans le salon Discord dev via webhook (mentions désactivées → aucun ping abusif ; webhook absent/mort → idée stockée quand même), + `GET /ideas` (fil récent, marque les siennes). (#267)
 - API : badges emoji sur le classement et le profil — 🔥 série en cours, 🎯 machine à HS, 💣 entry fragger, 🧠 roi du clutch, 🚿 grind-day, calculés depuis les stats stockées (seuils documentés, échantillon minimal par règle) ; catalogue partagé dans `packages/types`. (#258)
 - API : flux de matchs récents du pôle — `GET /matches/recent?limit=N` renvoie les derniers matchs tous joueurs confondus (joueur, map, résultat, ±ELO, date), triés par date, index dédié sur `played_at` ; débloque le fil d'activité de la home (#285). (#284)
 

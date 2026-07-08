@@ -5,3 +5,9 @@ export {
   type DiscordOAuthOptions,
   type DiscordUser,
 } from "./oauth";
+export {
+  DiscordWebhookClient,
+  type DiscordWebhook,
+  type DiscordWebhookMessage,
+  type DiscordWebhookOptions,
+} from "./webhook";

@@ -64,6 +64,13 @@
       "when": 1783551331356,
       "tag": "0008_wandering_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783554212547,
+      "tag": "0009_stiff_killraven",
+      "breakpoints": true
     }
   ]
 }
