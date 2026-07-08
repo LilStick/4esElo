@@ -130,6 +130,17 @@ export const ideas = pgTable(
   ],
 );
 
+/** Comptes Discord bannis du site (B17.9). Le check en cache court dans
+ *  `readSession` coupe même les sessions déjà ouvertes ; le callback OAuth
+ *  refuse le login. Clé = discord_id (pas de FK : on peut bannir un non-inscrit). */
+export const bannedDiscordIds = pgTable("banned_discord_ids", {
+  discordId: text("discord_id").primaryKey(),
+  reason: text("reason"),
+  /** discord_id de l'admin qui a posé le ban. */
+  bannedBy: text("banned_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
@@ -140,3 +151,5 @@ export type Announcement = typeof announcements.$inferSelect;
 export type NewAnnouncement = typeof announcements.$inferInsert;
 export type Idea = typeof ideas.$inferSelect;
 export type NewIdea = typeof ideas.$inferInsert;
+export type BannedDiscordId = typeof bannedDiscordIds.$inferSelect;
+export type NewBannedDiscordId = typeof bannedDiscordIds.$inferInsert;

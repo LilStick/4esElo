@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { announcements, db, players } from "@4eselo/db";
-import type { Announcement, WrappedResponse } from "@4eselo/types";
-import { requireAdmin } from "./auth";
+import { desc, eq } from "drizzle-orm";
+import { announcements, bannedDiscordIds, db, players } from "@4eselo/db";
+import type { Announcement, BanEntry, BansResponse, WrappedResponse } from "@4eselo/types";
+import { requireAdmin, readSession, authDeps } from "./auth";
+import { invalidateBanCache } from "./banCache";
 import { computeAwards } from "./wrapped";
 import { loadWrappedInputs } from "./wrappedData";
 
@@ -147,4 +148,54 @@ adminRoutes.post("/admin/wrapped/:year/:month/regenerate", async (c) => {
     .onConflictDoUpdate({ target: announcements.dedupeKey, set: values });
 
   return c.json<WrappedResponse>({ year, month, awards });
+});
+
+// --- Bans (B17.9) : couper l'accès au site à un compte Discord. ---
+const discordIdSchema = z.string().regex(/^\d{5,32}$/, "snowflake Discord attendu");
+const banBodySchema = z.object({ reason: z.string().trim().max(300).optional() }).strict();
+
+adminRoutes.get("/admin/bans", async (c) => {
+  const rows = await db.select().from(bannedDiscordIds).orderBy(desc(bannedDiscordIds.createdAt));
+  const bans: BanEntry[] = rows.map((r) => ({
+    discordId: r.discordId,
+    reason: r.reason,
+    bannedBy: r.bannedBy,
+    createdAt: r.createdAt.toISOString(),
+  }));
+  return c.json<BansResponse>({ bans });
+});
+
+adminRoutes.put("/admin/bans/:discordId", async (c) => {
+  const id = discordIdSchema.safeParse(c.req.param("discordId"));
+  if (!id.success) return c.json({ error: "invalid discord id" }, 400);
+  // Filet anti-lockout : on ne bannit pas un admin whitelisté.
+  if (authDeps.config?.adminDiscordIds.includes(id.data)) {
+    return c.json({ error: "impossible de bannir un admin" }, 400);
+  }
+  let body: unknown = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    // corps optionnel (ban sans raison) → {} par défaut
+  }
+  const parsed = banBodySchema.safeParse(body ?? {});
+  if (!parsed.success) return c.json({ error: "invalid body" }, 400);
+
+  const session = await readSession(c); // requireAdmin garantit une session admin
+  const reason = parsed.data.reason ?? null;
+  const bannedBy = session?.discordId ?? null;
+  await db
+    .insert(bannedDiscordIds)
+    .values({ discordId: id.data, reason, bannedBy })
+    .onConflictDoUpdate({ target: bannedDiscordIds.discordId, set: { reason, bannedBy } });
+  invalidateBanCache(); // effet immédiat : coupe aussi les sessions déjà ouvertes
+  return c.json({ ok: true });
+});
+
+adminRoutes.delete("/admin/bans/:discordId", async (c) => {
+  const id = discordIdSchema.safeParse(c.req.param("discordId"));
+  if (!id.success) return c.json({ error: "invalid discord id" }, 400);
+  await db.delete(bannedDiscordIds).where(eq(bannedDiscordIds.discordId, id.data));
+  invalidateBanCache();
+  return c.json({ ok: true });
 });

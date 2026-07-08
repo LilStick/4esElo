@@ -6,6 +6,7 @@ import { db, players } from "@4eselo/db";
 import { DiscordOAuthClient, type DiscordOAuth } from "@4eselo/discord";
 import type { MeResponse } from "@4eselo/types";
 import { AUTH_CONFIG, WEB_ORIGINS, type AuthConfig } from "./env";
+import { isBanned } from "./banCache";
 
 /**
  * Auth Discord (B17.1) : OAuth → session en cookie httpOnly signé (HMAC via
@@ -51,6 +52,8 @@ export async function readSession(c: Context): Promise<SessionPayload | null> {
     const parsed = JSON.parse(raw) as SessionPayload;
     if (typeof parsed.discordId !== "string" || typeof parsed.exp !== "number") return null;
     if (parsed.exp * 1000 < Date.now()) return null;
+    // Ban (B17.9) : coupe une session déjà ouverte, même si le cookie est valide.
+    if (await isBanned(parsed.discordId)) return null;
     return parsed;
   } catch {
     return null; // cookie corrompu → anonyme, pas une 500
@@ -108,6 +111,8 @@ authRoutes.get("/auth/callback", async (c) => {
       return c.redirect(`${webHome()}/?auth=not-member${invite}`);
     }
     const user = await oauth.getUser(token);
+    // Banni (B17.9) : pas de session posée, le front affiche l'écran adéquat.
+    if (await isBanned(user.id)) return c.redirect(`${webHome()}/?auth=banned`);
     await writeSession(c, { discordId: user.id, displayName: user.displayName, avatar: user.avatar });
     // Rafraîchit le snapshot DB à chaque connexion (pas seulement à l'inscription) —
     // sinon le nom/avatar affichés ailleurs (classement, profil…) restent figés.

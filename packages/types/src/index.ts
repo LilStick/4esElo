@@ -374,6 +374,19 @@ export interface PostIdeaResponse {
   idea: IdeaItem;
 }
 
+/** Ban d'un compte Discord (B17.9, admin). */
+export interface BanEntry {
+  discordId: string;
+  reason: string | null;
+  /** discord_id de l'admin qui a posé le ban, null si inconnu. */
+  bannedBy: string | null;
+  createdAt: string; // ISO
+}
+
+export interface BansResponse {
+  bans: BanEntry[];
+}
+
 /** Wrapped mensuel (B7.2) — awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"
