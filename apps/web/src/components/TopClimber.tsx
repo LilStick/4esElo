@@ -13,37 +13,39 @@ export function TopClimber() {
   const best = (data?.movers ?? []).filter((m) => m.delta != null && m.delta > 0)[0];
 
   return (
-    <Card className="flex h-full flex-col gap-3 p-4">
+    <section className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
         <TbTrendingUp size={14} className="text-brand" />
         Grimpeur de la semaine
       </div>
 
       {isLoading ? (
-        <div className="flex items-center gap-3">
+        <Card className="flex items-center gap-3 p-4">
           <Skeleton className="size-10 rounded-full" />
           <div className="flex-1">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="mt-1.5 h-3 w-16" />
           </div>
-        </div>
+        </Card>
       ) : best ? (
-        <Link to={`/player/${best.id}`} className="group flex cursor-pointer items-center gap-3">
-          <Avatar name={nameOf(best)} size={40} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <span className="truncate font-semibold transition-colors group-hover:text-brand-hi">
-                {nameOf(best)}
-              </span>
-              <LevelBadge level={best.level} size={18} />
+        <Card className="p-4">
+          <Link to={`/player/${best.id}`} className="group flex cursor-pointer items-center gap-3">
+            <Avatar name={nameOf(best)} size={40} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate font-semibold transition-colors group-hover:text-brand-hi">
+                  {nameOf(best)}
+                </span>
+                <LevelBadge level={best.level} size={18} />
+              </div>
+              <div className="text-xs text-ink-faint">{best.elo ?? "—"} ELO</div>
             </div>
-            <div className="text-xs text-ink-faint">{best.elo ?? "—"} ELO</div>
-          </div>
-          <span className="font-mono text-xl font-extrabold text-win tabular-nums">+{best.delta}</span>
-        </Link>
+            <span className="font-mono text-xl font-extrabold text-win tabular-nums">+{best.delta}</span>
+          </Link>
+        </Card>
       ) : (
-        <div className="py-2 text-sm text-ink-dim">Personne n'a grimpé cette semaine.</div>
+        <Card className="p-6 text-center text-sm text-ink-dim">Personne n'a grimpé cette semaine.</Card>
       )}
-    </Card>
+    </section>
   );
 }

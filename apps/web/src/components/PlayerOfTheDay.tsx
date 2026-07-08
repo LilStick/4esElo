@@ -21,22 +21,22 @@ export function PlayerOfTheDay() {
   const worst = losers.at(-1);
 
   return (
-    <Card className="flex h-full flex-col gap-3 p-4">
+    <section className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
         <TbFlame size={14} className="text-brand" />
         Joueur du jour
       </div>
 
       {isLoading ? (
-        <div className="flex items-center gap-3">
+        <Card className="flex items-center gap-3 p-4">
           <Skeleton className="size-10 rounded-full" />
           <div className="flex-1">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="mt-1.5 h-3 w-16" />
           </div>
-        </div>
+        </Card>
       ) : best ? (
-        <>
+        <Card className="flex flex-col gap-3 p-4">
           <Link to={`/player/${best.id}`} className="group flex cursor-pointer items-center gap-3">
             <Avatar name={nameOf(best)} size={40} />
             <div className="min-w-0 flex-1">
@@ -52,7 +52,7 @@ export function PlayerOfTheDay() {
           </Link>
 
           {worst && (
-            <div className="mt-auto border-t border-white/[0.06] pt-2 text-xs text-ink-dim">
+            <div className="border-t border-white/[0.06] pt-2 text-xs text-ink-dim">
               Plus grosse chute :{" "}
               <Link
                 to={`/player/${worst.id}`}
@@ -63,10 +63,10 @@ export function PlayerOfTheDay() {
               <span className="font-mono font-bold text-loss tabular-nums">{worst.delta}</span>
             </div>
           )}
-        </>
+        </Card>
       ) : (
-        <div className="py-2 text-sm text-ink-dim">Personne n'a bougé son ELO aujourd'hui.</div>
+        <Card className="p-6 text-center text-sm text-ink-dim">Personne n'a bougé son ELO aujourd'hui.</Card>
       )}
-    </Card>
+    </section>
   );
 }

@@ -13,7 +13,7 @@ type Status = { rank: number; label: string; text: string; dot: string; pulse: b
 
 function Header() {
   return (
-    <div className="flex items-center gap-2 px-4 pt-2 pb-1 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+    <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
       <TbDeviceGamepad2 size={14} className="shrink-0 text-brand" />
       En jeu maintenant
     </div>
@@ -66,50 +66,52 @@ export function LivePresence() {
 
   if (isLoading) {
     return (
-      <Card className="p-2">
+      <section className="flex flex-col gap-3">
         <Header />
-        <div className="flex items-center gap-3 px-4 py-2">
+        <Card className="flex items-center gap-3 p-4">
           <Skeleton className="size-10 rounded-full" />
           <div className="flex-1">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="mt-1.5 h-3 w-16" />
           </div>
-        </div>
-      </Card>
+        </Card>
+      </section>
     );
   }
 
   if (active.length === 0) {
     return (
-      <Card className="p-2">
+      <section className="flex flex-col gap-3">
         <Header />
-        <div className="px-4 py-4 text-sm text-ink-dim">Personne en ligne.</div>
-      </Card>
+        <Card className="p-6 text-center text-sm text-ink-dim">Personne en ligne.</Card>
+      </section>
     );
   }
 
   return (
-    <Card className="p-2">
+    <section className="flex flex-col gap-3">
       <Header />
-      <HoverBarList
-        items={active}
-        rowHeight={60}
-        keyOf={(x) => x.p.id}
-        onSelect={(x) => navigate(`/player/${x.p.id}`)}
-        children={(x) => (
-          <>
-            <Avatar name={nameOf(x.p)} size={40} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold">{nameOf(x.p)}</div>
-              <div className={cn("flex items-center gap-1 text-xs", x.s.text)}>
-                {x.s.icon && <x.s.icon size={12} className="shrink-0" />}
-                {x.s.label}
+      <Card className="p-2">
+        <HoverBarList
+          items={active}
+          rowHeight={60}
+          keyOf={(x) => x.p.id}
+          onSelect={(x) => navigate(`/player/${x.p.id}`)}
+          children={(x) => (
+            <>
+              <Avatar name={nameOf(x.p)} size={40} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold">{nameOf(x.p)}</div>
+                <div className={cn("flex items-center gap-1 text-xs", x.s.text)}>
+                  {x.s.icon && <x.s.icon size={12} className="shrink-0" />}
+                  {x.s.label}
+                </div>
               </div>
-            </div>
-            <span className={cn("size-2.5 rounded-full", x.s.dot, x.s.pulse && "animate-pulse")} />
-          </>
-        )}
-      />
-    </Card>
+              <span className={cn("size-2.5 rounded-full", x.s.dot, x.s.pulse && "animate-pulse")} />
+            </>
+          )}
+        />
+      </Card>
+    </section>
   );
 }
