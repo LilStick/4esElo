@@ -17,9 +17,11 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <AnnouncementBanner />
 
-      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
-        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements — en entier, sans clic */}
-        <aside className="flex flex-col gap-4 xl:w-[300px]">
+      <div className="grid gap-4 2xl:grid-cols-[280px_minmax(0,1fr)] 2xl:items-start">
+        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements — en entier, sans clic.
+            Grille 2 col sous 2xl (comme avant) : un vrai rail 1 colonne écraserait trop
+            la colonne centrale en dessous de cette largeur. */}
+        <aside className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:flex 2xl:w-[280px] 2xl:flex-col">
           <PlayerOfTheDay />
           <TopClimber />
           <LivePresence />
