@@ -224,6 +224,8 @@ export type MeResponse =
       discordId: string;
       displayName: string;
       isAdmin: boolean;
+      /** Hash d'avatar Discord de la session (frais à chaque connexion), null si aucun. */
+      avatar: string | null;
       player: PlayerSummary | null;
     };
 

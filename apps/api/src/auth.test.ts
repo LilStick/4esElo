@@ -38,9 +38,9 @@ const FAKE_CONFIG = {
 
 /** Mock complet : `member` pilote l'appartenance au serveur, `user` l'identité. */
 function fakeOAuth(
-  over: { member?: boolean; user?: { id: string; displayName: string } } = {},
+  over: { member?: boolean; user?: { id: string; displayName: string; avatar?: string | null } } = {},
 ): DiscordOAuth {
-  const user = over.user ?? { id: "member-discord-id", displayName: "Noé" };
+  const user = over.user ?? { id: "member-discord-id", displayName: "Noé", avatar: null };
   return {
     authorizeUrl: (state) => `https://discord.test/authorize?state=${state}`,
     exchangeCode: async () => "fake-token",
@@ -49,7 +49,7 @@ function fakeOAuth(
       id: user.id,
       username: user.displayName,
       displayName: user.displayName,
-      avatar: null,
+      avatar: user.avatar ?? null,
     }),
   };
 }
@@ -68,6 +68,7 @@ before(async () => {
       discordName: "iauth",
       faceitNickname: "iauth_nick",
       steamId64: "765_iauth",
+      discordAvatar: "stale-db-snapshot-hash",
     })
     .returning({ id: players.id });
   memberPlayerId = p!.id;
@@ -125,7 +126,21 @@ test("callback membre → session httpOnly posée, redirect ?auth=ok ; /me le re
   if (body.authenticated) {
     assert.equal(body.discordId, "member-discord-id");
     assert.equal(body.isAdmin, false);
+    assert.equal(body.avatar, null); // fakeOAuth() par défaut n'a pas d'avatar
     assert.equal(body.player?.faceitNickname, "iauth_nick"); // matché via players.discord_id
+  }
+});
+
+test("/me : avatar de session (frais) prioritaire sur le snapshot DB du joueur", { skip }, async () => {
+  const { session } = await loginAs(
+    fakeOAuth({ user: { id: "member-discord-id", displayName: "Noé", avatar: "fresh-session-hash" } }),
+  );
+  const me = (await (await app.request("/me", { headers: { cookie: session } })).json()) as MeResponse;
+  assert.equal(me.authenticated, true);
+  if (me.authenticated) {
+    assert.equal(me.avatar, "fresh-session-hash");
+    assert.equal(me.player?.discordAvatar, "stale-db-snapshot-hash"); // snapshot inchangé, juste plus prioritaire
+    assert.notEqual(me.avatar, me.player?.discordAvatar);
   }
 });
 

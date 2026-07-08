@@ -145,6 +145,9 @@ authRoutes.get("/me", async (c) => {
     discordId: session.discordId,
     displayName: session.displayName,
     isAdmin: authDeps.config?.adminDiscordIds.includes(session.discordId) ?? false,
+    // Hash frais de la session (capturé à chaque login) — prioritaire sur le
+    // snapshot DB du joueur, pris une seule fois à l'inscription (register.ts).
+    avatar: session.avatar ?? null,
     player: player
       ? {
           id: player.id,
