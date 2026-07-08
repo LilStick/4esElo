@@ -2,6 +2,7 @@ import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { HomeHero } from "../components/HomeHero";
 import { PlayerOfTheDay } from "../components/PlayerOfTheDay";
 import { RecentMovements } from "../components/RecentMovements";
+import { Overtakes } from "../components/Overtakes";
 import { LivePresence } from "../components/LivePresence";
 import { TopClimber } from "../components/TopClimber";
 import { PoleRecords } from "../components/PoleRecords";
@@ -18,12 +19,13 @@ export function Dashboard() {
       <AnnouncementBanner />
 
       <div className="grid gap-4 2xl:grid-cols-[280px_minmax(0,1fr)] 2xl:items-start">
-        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements, records — en entier, sans clic */}
+        {/* Rail annexe : joueur du jour, grimpeur, présence, mouvements, dépassements, records — en entier, sans clic */}
         <aside className="flex flex-col gap-4 2xl:w-[280px]">
           <PlayerOfTheDay />
           <TopClimber />
           <LivePresence />
           <RecentMovements />
+          <Overtakes />
           <PoleRecords />
         </aside>
 

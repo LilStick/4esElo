@@ -190,7 +190,7 @@ export function Player() {
             <EloSummaryCard id={id} elo={data.elo} level={data.level} />
 
             {/* Performances récentes — courbe + forme + récap */}
-            <RecentPerformance id={id} history={data.history} elo={data.elo} />
+            <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
 
             {/* Statistiques agrégées (depuis les matchs), filtrables par période */}
             <div>

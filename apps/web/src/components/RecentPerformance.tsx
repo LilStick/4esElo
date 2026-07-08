@@ -1,37 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { TbChartLine } from "react-icons/tb";
-import type { EloPoint } from "@4eselo/types";
+import type { EloPoint, PlayerStreak } from "@4eselo/types";
 import { getPlayerMatches } from "../lib/api";
 import { Card, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { EloChart } from "./EloChart";
 
-function longestWinStreak(chrono: number[]): number {
-  let max = 0;
-  let cur = 0;
-  for (const r of chrono) {
-    if (r === 1) {
-      cur += 1;
-      max = Math.max(max, cur);
-    } else {
-      cur = 0;
-    }
-  }
-  return max;
-}
-
 /**
  * Bloc « Performances récentes » façon Faceit : courbe d'ELO + bandeau V/D
- * dessous, panneau récap (V/L, min/actuel/max, Δ ELO, plus longue série).
+ * dessous, panneau récap (V/L, min/actuel/max, Δ ELO, série en cours + record).
  */
 export function RecentPerformance({
   id,
   history,
   elo,
+  streak,
 }: {
   id: string;
   history: EloPoint[];
   elo: number | null;
+  streak: PlayerStreak;
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["matches", id, 30],
@@ -42,7 +30,6 @@ export function RecentPerformance({
   const wins = items.filter((m) => m.result === 1).length;
   const losses = items.length - wins;
   const chrono = [...items].reverse(); // récent à droite
-  const streak = longestWinStreak(chrono.map((m) => m.result));
 
   const elos = history.map((h) => h.elo);
   const min = elos.length ? Math.min(...elos) : (elo ?? 0);
@@ -114,8 +101,23 @@ export function RecentPerformance({
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-ink-dim">Plus longue série</span>
-                  <span className="font-mono font-bold tabular-nums">🔥 {streak}</span>
+                  <span className="text-ink-dim">Série en cours</span>
+                  {streak.current ? (
+                    <span
+                      className={cn(
+                        "font-mono font-bold tabular-nums",
+                        streak.current.type === "win" ? "text-win" : "text-loss",
+                      )}
+                    >
+                      {streak.current.type === "win" ? "🔥" : "❄️"} {streak.current.length}
+                    </span>
+                  ) : (
+                    <span className="font-mono font-bold text-ink-faint tabular-nums">—</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-ink-dim">Meilleure série</span>
+                  <span className="font-mono font-bold tabular-nums">🔥 {streak.bestWinStreak}</span>
                 </div>
               </div>
             )}

@@ -11,6 +11,7 @@ import type {
   MeResponse,
   MoversResponse,
   MoversWindow,
+  OvertakesResponse,
   PlayerDetail,
   PlayerDuosResponse,
   PlayerStatsResponse,
@@ -74,6 +75,10 @@ export function getLeaderboard(source: EloSource = "faceit", sparkline?: number)
 
 export function getMovers(window: MoversWindow = "24h", source: EloSource = "faceit") {
   return get<MoversResponse>(`/leaderboard/movers?window=${window}&source=${source}`);
+}
+
+export function getOvertakes(window: MoversWindow = "7d", source: EloSource = "faceit") {
+  return get<OvertakesResponse>(`/leaderboard/overtakes?window=${window}&source=${source}`);
 }
 
 export function getPresence() {
