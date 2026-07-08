@@ -6,6 +6,8 @@ import {
   TbGitCompare,
   TbInfoCircle,
   TbLayoutDashboard,
+  TbLayoutSidebarFilled,
+  TbLayoutSidebarRightFilled,
   TbMenu2,
   TbSearch,
   TbSparkles,
@@ -21,23 +23,41 @@ import { AuthMenu } from "./AuthMenu";
 import { AuthToast } from "./AuthToast";
 import { Footer } from "./Footer";
 import lockup from "../assets/logo/4esElo_lockup_transparent.png";
+import mark from "../assets/logo/4esElo_mark_transparent.png";
 
-/** Déclencheur de la recherche globale (Ctrl/Cmd+K). */
-function SearchTrigger({ onClick, className }: { onClick: () => void; className?: string }) {
+const SIDEBAR_KEY = "4eselo:sidebar-collapsed";
+
+/**
+ * Déclencheur de la recherche globale (Ctrl/Cmd+K). Une seule structure pour
+ * les deux états — l'icône reste dans un slot fixe (jamais de saut), seul le
+ * libellé + le raccourci se rétractent en largeur/opacité au repli.
+ */
+function SearchTrigger({ onClick, collapsed }: { onClick: () => void; collapsed?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label="Rechercher"
+      title="Rechercher (⌘K)"
       className={cn(
-        "flex items-center gap-2 rounded-xl border border-white/[0.09] bg-white/[0.02] px-3 py-2 text-sm text-ink-dim transition-colors hover:border-white/[0.16] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
-        className,
+        "flex h-10 items-center rounded-xl border border-white/[0.09] bg-white/[0.02] text-ink-dim transition-[width,color,border-color] duration-200 ease-out hover:border-white/[0.16] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+        collapsed ? "w-10" : "w-full",
       )}
     >
-      <TbSearch size={16} />
-      <span className="flex-1 text-left">Rechercher</span>
-      <kbd className="rounded border border-white/[0.12] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">
-        ⌘K
-      </kbd>
+      <span className="grid size-10 shrink-0 place-items-center">
+        <TbSearch size={16} />
+      </span>
+      <span
+        className={cn(
+          "flex min-w-0 items-center gap-2 overflow-hidden pr-3 text-sm whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+          collapsed ? "max-w-0 opacity-0" : "max-w-[160px] opacity-100",
+        )}
+      >
+        <span className="flex-1 text-left">Rechercher</span>
+        <kbd className="rounded border border-white/[0.12] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">
+          ⌘K
+        </kbd>
+      </span>
     </button>
   );
 }
@@ -53,11 +73,59 @@ const NAV = [
   { to: "/changelog", label: "Nouveautés", icon: TbSparkles, end: false },
 ];
 
-function Brand() {
+function Brand({ collapsed }: { collapsed?: boolean }) {
+  if (collapsed) {
+    return (
+      <Link to="/" className="flex size-10 shrink-0 items-center">
+        <img src={mark} alt="4esElo" className="size-7 w-auto invert" />
+      </Link>
+    );
+  }
   return (
-    <Link to="/" className="flex items-center">
+    <Link to="/" className="flex h-10 items-center">
       <img src={lockup} alt="4esElo" className="h-9 w-auto invert" />
     </Link>
+  );
+}
+
+/**
+ * Bascule replier/déplier la sidebar (état persisté), posée en haut à gauche
+ * du contenu — pas dans la sidebar elle-même. Icône nue, sans contour.
+ * L'icône change selon l'état.
+ */
+function CollapseToggle({
+  collapsed,
+  onClick,
+  className,
+}: {
+  collapsed: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={collapsed ? "Déplier la navigation" : "Replier la navigation"}
+      title={collapsed ? "Déplier" : "Replier"}
+      className={cn(
+        "hidden size-9 shrink-0 place-items-center text-ink-dim transition-colors duration-150 ease-out hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 lg:grid",
+        className,
+      )}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={collapsed ? "collapsed" : "expanded"}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          className="grid place-items-center"
+        >
+          {collapsed ? <TbLayoutSidebarRightFilled size={20} /> : <TbLayoutSidebarFilled size={20} />}
+        </motion.span>
+      </AnimatePresence>
+    </button>
   );
 }
 
@@ -65,8 +133,9 @@ const NAV_ROW = 40; // hauteur d'un item (h-10)
 const NAV_STEP = NAV_ROW + 4; // + gap-1
 
 /** Nav vertical avec une barre unique qui glisse derrière l'item survolé, et
- *  revient sur l'item actif au repos — comme les listes du site. */
-function NavList({ onNavigate }: { onNavigate?: () => void }) {
+ *  revient sur l'item actif au repos — comme les listes du site. Replié :
+ *  icônes seules + tooltip au survol (façon Taskk/Widelab). */
+function NavList({ onNavigate, collapsed }: { onNavigate?: () => void; collapsed?: boolean }) {
   const { pathname } = useLocation();
   const reduce = useReducedMotion();
   const [hovered, setHovered] = useState<number | null>(null);
@@ -90,8 +159,8 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="relative flex flex-col gap-1" onMouseLeave={() => setHovered(null)}>
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 rounded-xl bg-brand/12"
-        style={{ y, height: NAV_ROW }}
+        className="pointer-events-none absolute top-0 left-0 rounded-xl bg-brand/12 transition-[width] duration-200 ease-out"
+        style={{ y, height: NAV_ROW, width: collapsed ? NAV_ROW : "100%" }}
         animate={{ opacity: barVisible ? 1 : 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
       />
@@ -104,7 +173,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
           onMouseEnter={() => setHovered(i)}
           className={({ isActive }) =>
             cn(
-              "relative z-10 flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
+              "group relative z-10 flex h-10 items-center rounded-xl text-sm font-semibold transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
               isActive ? "text-ink" : "text-ink-dim hover:text-ink",
             )
@@ -112,8 +181,22 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
         >
           {({ isActive }) => (
             <>
-              <item.icon size={18} className={isActive ? "text-brand" : undefined} />
-              {item.label}
+              <span className="grid size-10 shrink-0 place-items-center">
+                <item.icon size={18} className={isActive ? "text-brand" : undefined} />
+              </span>
+              <span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+                  collapsed ? "max-w-0 opacity-0" : "max-w-[160px] opacity-100",
+                )}
+              >
+                {item.label}
+              </span>
+              {collapsed && (
+                <span className="pointer-events-none absolute left-full z-50 ml-3 whitespace-nowrap rounded-lg border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-xs font-semibold text-ink opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+                  {item.label}
+                </span>
+              )}
             </>
           )}
         </NavLink>
@@ -122,16 +205,22 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-const FOOTER = <div className="px-3 text-xs text-ink-faint">Pôle CS2 · données Faceit</div>;
-
 const GOTO: Record<string, string> = { h: "/", c: "/classement", a: "/asso" };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
   const [help, setHelp] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_KEY) === "1");
   const reduce = useReducedMotion();
   const navigate = useNavigate();
+
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      localStorage.setItem(SIDEBAR_KEY, c ? "0" : "1");
+      return !c;
+    });
+  };
   // Raccourcis « G maintenu + h/c/a » pour naviguer (inactif quand on tape dans un champ).
   useEffect(() => {
     let gHeld = false;
@@ -204,23 +293,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const off = reduce ? 0 : "-100%";
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden bg-bg">
       <AuthToast />
       {/* Sidebar desktop */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/[0.08] bg-white/[0.015] px-4 py-6 lg:flex">
-        <div className="px-2">
-          <Brand />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 hidden flex-col py-6 transition-[width] duration-200 ease-out lg:flex",
+          "px-6",
+          collapsed ? "w-24" : "w-60",
+        )}
+      >
+        <div className="flex h-10 items-center">
+          <Brand collapsed={collapsed} />
         </div>
         <div data-tour="search" className="mt-6">
-          <SearchTrigger onClick={() => setSearch(true)} className="w-full" />
+          <SearchTrigger onClick={() => setSearch(true)} collapsed={collapsed} />
         </div>
         <div data-tour="nav" className="mt-4 flex-1">
-          <NavList />
+          <NavList collapsed={collapsed} />
         </div>
-        <div data-tour="auth" className="mb-3 border-t border-white/[0.06] pt-3">
-          <AuthMenu />
+        <div data-tour="auth" className="border-t border-white/[0.06] pt-3">
+          <AuthMenu collapsed={collapsed} />
         </div>
-        {FOOTER}
       </aside>
 
       {/* Header mobile */}
@@ -255,7 +349,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               onClick={() => setOpen(false)}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/[0.08] bg-bg px-4 py-6"
+              className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-bg px-4 py-6"
               initial={{ x: off }}
               animate={{ x: 0 }}
               exit={{ x: off }}
@@ -274,21 +368,44 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="mt-8 flex-1">
                 <NavList onNavigate={() => setOpen(false)} />
               </div>
-              <div className="mb-3 border-t border-white/[0.06] pt-3">
+              <div className="border-t border-white/[0.06] pt-3">
                 <AuthMenu onNavigate={() => setOpen(false)} />
               </div>
-              {FOOTER}
             </motion.aside>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Contenu — la largeur max est portée par chaque page (évite le reflow pendant la transition). */}
-      <div className="flex flex-1 flex-col lg:pl-60">
-        <main className="flex w-full flex-1 flex-col px-4 py-8 lg:px-8 lg:py-10">
-          <div className="flex-1">{children}</div>
-          <div className="mx-auto w-full max-w-[1400px]">
-            <Footer />
+      {/* Contenu — la largeur max est portée par chaque page (évite le reflow pendant la transition).
+          Le shell (sidebar + marge) reste fixe à l'écran ; seule la bulle défile en interne. */}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col transition-[padding-left] duration-200 ease-out",
+          collapsed ? "lg:pl-24" : "lg:pl-60",
+        )}
+      >
+        <main className="flex w-full min-h-0 flex-1 flex-col px-4 py-6 lg:py-6 lg:pr-6 lg:pl-0">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-gradient-to-b from-surface to-bg">
+            {/* Décor — en dehors du conteneur qui défile, reste fixe avec le cadre. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-32 -right-32 size-96 rounded-full bg-brand/10 blur-3xl"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-40 -left-32 size-80 rounded-full bg-brand/[0.06] blur-3xl"
+            />
+            <CollapseToggle
+              collapsed={collapsed}
+              onClick={toggleCollapsed}
+              className="absolute top-2 left-2 z-20 lg:top-3 lg:left-3"
+            />
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden p-4 lg:p-8">
+              <div className="flex flex-1 flex-col">{children}</div>
+              <div className="mx-auto mt-6 w-full max-w-[1400px]">
+                <Footer />
+              </div>
+            </div>
           </div>
         </main>
       </div>
