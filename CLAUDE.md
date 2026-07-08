@@ -42,6 +42,14 @@ git switch -c feat/B<n>.<x>-slug           # brancher depuis un main à jour
 
 ---
 
+## ⚠️ RÈGLE N°3 — Répartition back / front (stricte)
+
+- **Noé (`lilstick`) = back** : `apps/api`, `apps/worker`, `apps/bot`, `packages/*`, DB, data. **Ne touche jamais au front.**
+- **Arthur (`arthur`) = front** : `apps/web`, UI, design. **Ne touche jamais au back.**
+- Un besoin qui **déborde de ton domaine** (le front réclame du back, ou l'inverse) **ne se code pas soi-même** : on le poste dans **#features talk** (Discord), et le propriétaire du domaine le prend en ticket. Vaut aussi pour Claude : côté Noé on ne fait que du back → tout correctif front repéré part dans #features talk pour Arthur.
+
+---
+
 ## Setup initial (première fois)
 
 ```bash
