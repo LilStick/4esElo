@@ -1,7 +1,7 @@
 import "./env";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, inArray } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
 import type {
   ActivityResponse,
@@ -629,40 +629,42 @@ test("B4.1: /players/:id/duos → vide sans match commun, 404 inconnu, 400 uuid"
 
 test("B7.4: GET /announcements lists newest first, honors limit, rejects bad limit", { skip }, async () => {
   const { announcements } = await import("@4eselo/db");
+  // Marqueurs uniques au test + dates dans le futur → toujours en tête et jamais
+  // confondus avec de vraies annonces déjà en base (DB dev peuplée). Nettoyage
+  // défensif au cas où un run précédent aurait planté avant le finally.
+  const KEYS = ["itest-annonce-a", "itest-annonce-b"];
+  await db.delete(announcements).where(inArray(announcements.dedupeKey, KEYS));
   const inserted = await db
     .insert(announcements)
     .values([
       {
         type: "wrapped",
-        title: "Le Wrapped de mai est là 🎁",
-        linkUrl: "/wrapped/mai-2026",
-        dedupeKey: "itest-wrapped-2026-05",
-        publishedAt: new Date("2026-06-01T00:00:00Z"),
+        title: "ITEST annonce (ancienne)",
+        linkUrl: "/itest-annonce/ancienne",
+        dedupeKey: "itest-annonce-a",
+        publishedAt: new Date("2999-01-01T00:00:00Z"),
       },
       {
         type: "wrapped",
-        title: "Le Wrapped de juin est là 🎁",
-        linkUrl: "/wrapped/juin-2026",
-        dedupeKey: "itest-wrapped-2026-06",
-        publishedAt: new Date("2026-07-01T00:00:00Z"),
+        title: "ITEST annonce (recente)",
+        linkUrl: "/itest-annonce/recente",
+        dedupeKey: "itest-annonce-b",
+        publishedAt: new Date("2999-01-02T00:00:00Z"),
       },
     ])
     .returning({ id: announcements.id });
   try {
-    const res = await app.request(`/announcements`);
+    const res = await app.request(`/announcements?limit=20`);
     assert.equal(res.status, 200);
     const body = (await res.json()) as AnnouncementsResponse;
-    const ours = body.announcements.filter((a) => a.title.startsWith("Le Wrapped de"));
-    assert.ok(ours.length >= 2);
-    // plus récent d'abord
-    assert.ok(
-      body.announcements.findIndex((a) => a.linkUrl === "/wrapped/juin-2026") <
-        body.announcements.findIndex((a) => a.linkUrl === "/wrapped/mai-2026"),
-    );
+    // Nos 2 annonces futures sont les toutes premières, plus récente d'abord.
+    assert.equal(body.announcements[0]!.linkUrl, "/itest-annonce/recente");
+    assert.equal(body.announcements[1]!.linkUrl, "/itest-annonce/ancienne");
 
     const limited = await app.request(`/announcements?limit=1`);
     const one = (await limited.json()) as AnnouncementsResponse;
     assert.equal(one.announcements.length, 1);
+    assert.equal(one.announcements[0]!.linkUrl, "/itest-annonce/recente"); // la plus récente
 
     for (const q of ["limit=0", "limit=999", "limit=abc"]) {
       const bad = await app.request(`/announcements?${q}`);

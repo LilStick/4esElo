@@ -1,7 +1,7 @@
 import "./env";
 import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, inArray } from "drizzle-orm";
 import { db, players } from "@4eselo/db";
 import type { PresenceResponse } from "@4eselo/types";
 import type { SteamPresence } from "@4eselo/steam";
@@ -24,6 +24,9 @@ let offlineId = "";
 
 before(async () => {
   if (!DB_UP) return;
+  // Un run précédent coupé avant le `after` (ex. --test-force-exit) laisserait ces
+  // joueurs → collision sur faceit_id_unique. On purge avant d'insérer (idempotent).
+  await db.delete(players).where(inArray(players.faceitId, ["f_ingame", "f_off"]));
   const [a] = await db
     .insert(players)
     .values({ faceitNickname: "p_ingame", steamId64: "s_ingame", faceitId: "f_ingame" })
