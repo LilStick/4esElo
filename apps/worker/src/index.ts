@@ -7,7 +7,7 @@ import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
 import { ingestMatches } from "./ingestMatches";
 import { deepIngestPlayers } from "./deepIngest";
-import { attributeEloAfter } from "./eloAfter";
+import { eloToAttribute } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
 import { announceWrapped } from "./announceWrapped";
@@ -111,10 +111,13 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
           `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
         );
       }
-      const attr = syncRes && attributeEloAfter(syncRes, ing);
-      if (attr) {
-        await dbMatchStatsStore.setEloAfter(p.id, attr.matchId, attr.elo);
-        console.log(`[worker] ${p.faceitId}: eloAfter=${attr.elo} → ${attr.matchId}`);
+      // Sur tout changement d'ELO enregistré, on pose elo_after sur le dernier
+      // match du joueur (l'ELO ne bouge que sur un match) — pas besoin qu'il ait
+      // été ingéré ce tick-ci. Le ±ELO (dérivé côté lecture, #316) suit aussitôt.
+      const elo = syncRes ? eloToAttribute(syncRes) : null;
+      if (elo !== null) {
+        const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(p.id, elo);
+        if (matchId) console.log(`[worker] ${p.faceitId}: eloAfter=${elo} → ${matchId}`);
       }
     } catch (err) {
       console.error(`[worker] ${p.faceitId} ingest failed:`, err instanceof Error ? err.message : err);
