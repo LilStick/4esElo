@@ -5,5 +5,11 @@ dist/
 *.log
 .DS_Store
 
+# Playwright (e2e) — artefacts de run
+test-results/
+playwright-report/
+blob-report/
+.last-run.json
+
 # Claude Code local settings
 .claude/settings.local.json
