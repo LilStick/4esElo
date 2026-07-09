@@ -456,7 +456,7 @@ export interface LineupsResponse {
 /** Annonce du site (B7.4) : Wrapped mensuel auto, recap hebdo (B5.7), annonce staff (B17.4). */
 export interface Announcement {
   id: string;
-  type: "wrapped" | "staff" | "weekly-recap";
+  type: "wrapped" | "staff" | "weekly-recap" | "big-wrapped";
   title: string;
   /** Texte libre (recap hebdo, annonce staff), null pour le Wrapped. */
   body: string | null;
@@ -620,3 +620,13 @@ export interface PlayerWrappedResponse {
   /** Ses awards du mois (sous-ensemble de WrappedResponse.awards). */
   awards: AwardWinner[];
 }
+
+/** BIG Wrapped (B7.12) — Wrapped longue période, `period` = "2026" | "2026-H1" | "2026-H2". */
+export interface BigWrappedResponse {
+  period: string;
+  /** Vide si personne d'éligible (période sans matchs). */
+  awards: AwardWinner[];
+}
+
+/** BIG Wrapped perso — mêmes stats que le mensuel, indexées sur une période longue. */
+export type PlayerBigWrappedResponse = { period: string } & Omit<PlayerWrappedResponse, "year" | "month">;

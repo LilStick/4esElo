@@ -5,7 +5,7 @@
  */
 
 export interface AnnouncementToInsert {
-  type: "wrapped" | "weekly-recap";
+  type: "wrapped" | "weekly-recap" | "big-wrapped";
   title: string;
   /** Texte libre de l'annonce (recap hebdo) ; absent pour le Wrapped (le lien suffit). */
   body?: string | null;

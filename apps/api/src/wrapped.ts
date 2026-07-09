@@ -2,6 +2,7 @@ import type {
   AwardKey,
   AwardWinner,
   FaceitMatchStats,
+  PlayerBigWrappedResponse,
   PlayerWrappedResponse,
   WrappedPercentiles,
 } from "@4eselo/types";
@@ -85,6 +86,28 @@ export function monthRange(year: number, month: number): { start: Date; end: Dat
     start: new Date(Date.UTC(year, month - 1, 1)),
     end: new Date(Date.UTC(year, month, 1)),
   };
+}
+
+/**
+ * [début, fin) UTC d'une période longue (B7.12) : `"2026"` (année entière) ou
+ * `"2026-H1"` / `"2026-H2"` (semestre). Renvoie null si le format est invalide.
+ */
+export function periodRange(period: string): { start: Date; end: Date } | null {
+  const year = /^(\d{4})$/.exec(period);
+  if (year) {
+    const y = Number(year[1]);
+    return { start: new Date(Date.UTC(y, 0, 1)), end: new Date(Date.UTC(y + 1, 0, 1)) };
+  }
+  const semester = /^(\d{4})-H([12])$/.exec(period);
+  if (semester) {
+    const y = Number(semester[1]);
+    const startMonth = semester[2] === "1" ? 0 : 6;
+    return {
+      start: new Date(Date.UTC(y, startMonth, 1)),
+      end: new Date(Date.UTC(y, startMonth + 6, 1)), // H2 : mois 12 → 1er janvier N+1
+    };
+  }
+  return null;
 }
 
 const parisHourFmt = new Intl.DateTimeFormat("fr-FR", {
@@ -460,13 +483,10 @@ function percentile(value: number, all: number[]): number {
   return Math.round((all.filter((v) => v <= value).length / all.length) * 100);
 }
 
-/** Le Wrapped perso d'un joueur : sa map, son temps de jeu, son ELO, sa place dans le pôle. */
-export function computePlayerWrapped(
-  playerId: string,
-  year: number,
-  month: number,
-  inputs: WrappedInputs,
-): PlayerWrappedResponse | null {
+/** Cœur du Wrapped perso (sans l'étiquette de période) — partagé mensuel / BIG (B7.12). */
+type PlayerWrappedCore = Omit<PlayerWrappedResponse, "year" | "month">;
+
+function computePlayerWrappedCore(playerId: string, inputs: WrappedInputs): PlayerWrappedCore | null {
   const player = inputs.players.find((p) => p.id === playerId);
   if (!player) return null;
 
@@ -524,8 +544,6 @@ export function computePlayerWrapped(
   }
 
   return {
-    year,
-    month,
     playerId,
     nickname: player.nickname,
     discordId: player.discordId,
@@ -539,4 +557,25 @@ export function computePlayerWrapped(
     percentiles,
     awards: computeAwards(inputs).filter((a) => a.playerId === playerId),
   };
+}
+
+/** Wrapped perso d'un mois (B7.2) : le cœur + l'étiquette année/mois. */
+export function computePlayerWrapped(
+  playerId: string,
+  year: number,
+  month: number,
+  inputs: WrappedInputs,
+): PlayerWrappedResponse | null {
+  const core = computePlayerWrappedCore(playerId, inputs);
+  return core ? { year, month, ...core } : null;
+}
+
+/** Wrapped perso d'une période longue (B7.12) : le cœur + l'étiquette de période. */
+export function computePlayerBigWrapped(
+  playerId: string,
+  period: string,
+  inputs: WrappedInputs,
+): PlayerBigWrappedResponse | null {
+  const core = computePlayerWrappedCore(playerId, inputs);
+  return core ? { period, ...core } : null;
 }

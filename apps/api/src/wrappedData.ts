@@ -6,7 +6,11 @@ import { monthRange, type WrappedInputs } from "./wrapped";
  *  partagé entre /wrapped et l'admin regenerate (B17.4). */
 export async function loadWrappedInputs(year: number, month: number): Promise<WrappedInputs> {
   const { start, end } = monthRange(year, month);
+  return loadWrappedInputsForRange(start, end);
+}
 
+/** Idem sur une fenêtre [start, end) arbitraire (BIG Wrapped semestre/année, B7.12). */
+export async function loadWrappedInputsForRange(start: Date, end: Date): Promise<WrappedInputs> {
   const playerRows = await db
     .select({
       id: players.id,

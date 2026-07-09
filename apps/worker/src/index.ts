@@ -12,6 +12,7 @@ import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
 import { announceWrapped } from "./announceWrapped";
 import { announceWeeklyRecap } from "./weeklyRecap";
+import { announceBigWrapped } from "./announceBigWrapped";
 import { curlFetch } from "./curlFetch";
 import {
   dbStore,
@@ -62,6 +63,15 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
     }
   } catch (err) {
     console.error("[worker] recap hebdo failed:", err instanceof Error ? err.message : err);
+  }
+
+  try {
+    const big = await announceBigWrapped(dbAnnouncementStore, dbAnnouncementStore);
+    if (big.status === "posted") {
+      console.log(`[worker] BIG Wrapped ${big.year} annoncé sur le site 🎆`);
+    }
+  } catch (err) {
+    console.error("[worker] BIG Wrapped announce failed:", err instanceof Error ? err.message : err);
   }
 
   if (STEAM_API_KEY) {

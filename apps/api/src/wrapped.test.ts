@@ -5,11 +5,30 @@ import {
   computeAwards,
   computePlayerWrapped,
   monthRange,
+  periodRange,
   parisHour,
   MIN_MATCHES,
   type WrappedInputs,
   type WrappedMatch,
 } from "./wrapped";
+
+test("periodRange : année entière, semestres H1/H2, format invalide → null", () => {
+  assert.deepEqual(periodRange("2026"), {
+    start: new Date("2026-01-01T00:00:00Z"),
+    end: new Date("2027-01-01T00:00:00Z"),
+  });
+  assert.deepEqual(periodRange("2026-H1"), {
+    start: new Date("2026-01-01T00:00:00Z"),
+    end: new Date("2026-07-01T00:00:00Z"),
+  });
+  assert.deepEqual(periodRange("2026-H2"), {
+    start: new Date("2026-07-01T00:00:00Z"),
+    end: new Date("2027-01-01T00:00:00Z"),
+  });
+  for (const bad of ["nope", "2026-H3", "2026-13", "26", "2026-Q1", ""]) {
+    assert.equal(periodRange(bad), null, bad);
+  }
+});
 
 function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
   return {
