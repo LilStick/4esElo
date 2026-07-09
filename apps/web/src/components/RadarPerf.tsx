@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
-import { TbChartRadar } from "react-icons/tb";
+import { TbChartRadar, TbGitCompare } from "react-icons/tb";
 import type { StatsAggregate, StatsRange } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
 import { Card, Skeleton } from "../ui";
@@ -29,6 +30,7 @@ function buildAxes(o: StatsAggregate) {
 }
 
 export function RadarPerf({ id, range = "all" }: { id: string; range?: StatsRange }) {
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["stats", id, range],
     queryFn: () => getPlayerStats(id, range),
@@ -57,7 +59,15 @@ export function RadarPerf({ id, range = "all" }: { id: string; range?: StatsRang
   const rows = buildAxes(data.overall);
 
   return (
-    <Card className="flex flex-col items-center gap-6 p-4 md:flex-row md:justify-center md:gap-10">
+    <Card className="relative flex flex-col items-center gap-6 p-4 md:flex-row md:justify-center md:gap-10">
+      <button
+        onClick={() => navigate(`/compare?a=${id}`)}
+        aria-label="Comparer ce joueur"
+        title="Comparer"
+        className="absolute top-3 left-3 z-10 grid size-9 cursor-pointer place-items-center rounded-lg border border-white/[0.12] bg-white/[0.04] text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
+      >
+        <TbGitCompare size={17} />
+      </button>
       <div className="h-[280px] w-full max-w-[320px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={rows} outerRadius="72%">
