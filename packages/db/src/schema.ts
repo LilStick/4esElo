@@ -9,7 +9,7 @@ import {
   primaryKey,
   jsonb,
 } from "drizzle-orm/pg-core";
-import type { FaceitMatchStats } from "@4eselo/types";
+import type { FaceitMatchStats, MatchTeam } from "@4eselo/types";
 
 export const eloSource = pgEnum("elo_source", ["faceit", "premier"]);
 
@@ -141,6 +141,23 @@ export const bannedDiscordIds = pgTable("banned_discord_ids", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/** Vue match-level (B4.3) : une ligne par match (clé `matchId` seule), pour la
+ *  composition des équipes et le score — brique des lineups (B4.4). Complète
+ *  `faceit_match_stats` (une ligne par match ET par membre). */
+export const matches = pgTable(
+  "matches",
+  {
+    matchId: text("match_id").primaryKey(),
+    map: text("map").notNull(),
+    playedAt: timestamp("played_at", { withTimezone: true }).notNull(),
+    /** team_id gagnant (faction), null si indéterminé. */
+    winnerTeamId: text("winner_team_id"),
+    /** Composition + score par équipe (taille variable) → JSONB. */
+    teams: jsonb("teams").$type<MatchTeam[]>().notNull(),
+  },
+  (t) => [index("matches_played_idx").on(t.playedAt)],
+);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
@@ -153,3 +170,5 @@ export type Idea = typeof ideas.$inferSelect;
 export type NewIdea = typeof ideas.$inferInsert;
 export type BannedDiscordId = typeof bannedDiscordIds.$inferSelect;
 export type NewBannedDiscordId = typeof bannedDiscordIds.$inferInsert;
+export type Match = typeof matches.$inferSelect;
+export type NewMatch = typeof matches.$inferInsert;

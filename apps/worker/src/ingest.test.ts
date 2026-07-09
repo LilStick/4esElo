@@ -36,6 +36,11 @@ function makeDetail(matchId: string, extra: Partial<FaceitMatchDetail> = {}): Fa
       { playerId: "fc-1", nickname: "noe", result: 1, stats: { ...emptyStats, kills: 20 } },
       { playerId: "fc-2", nickname: "mate", result: 1, stats: { ...emptyStats, kills: 5 } },
     ],
+    teams: [
+      { teamId: "faction1", score: 13, playerIds: ["fc-1", "fc-2"] },
+      { teamId: "faction2", score: 8, playerIds: ["fc-3", "fc-4"] },
+    ],
+    winnerTeamId: "faction1",
     ...extra,
   };
 }

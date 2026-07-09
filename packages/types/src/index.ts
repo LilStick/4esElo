@@ -374,6 +374,16 @@ export interface PostIdeaResponse {
   idea: IdeaItem;
 }
 
+/** Composition + score d'une équipe, stocké dans `matches.teams` (B4.3, vue match-level). */
+export interface MatchTeam {
+  /** faction id Faceit. */
+  teamId: string;
+  /** Manches gagnées, 0 si indisponible. */
+  score: number;
+  /** Faceit player_id des joueurs de l'équipe. */
+  playerIds: string[];
+}
+
 /** Ban d'un compte Discord (B17.9, admin). */
 export interface BanEntry {
   discordId: string;

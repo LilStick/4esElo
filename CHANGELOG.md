@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Data : vue match-level — le client Faceit expose désormais la composition des équipes + le score, stockés dans une nouvelle table `matches` (une ligne par match) alimentée par le worker (nouveaux matchs + backfill des anciens). Socle des lineups (#261). (#260)
 - API : ban d'un compte Discord (admin) — table `banned_discord_ids`, check en cache court dans `readSession` (coupe une session déjà ouverte en < 30 s) + refus au login OAuth (`?auth=banned`), endpoints `GET/PUT/DELETE /admin/bans` ; filet anti-lockout (impossible de bannir un admin). (#269)
 - API : boîte à idées — `POST /ideas` (session requise, texte 500 car. max, 3 idées/jour/membre) relayée dans le salon Discord dev via webhook (mentions désactivées → aucun ping abusif ; webhook absent/mort → idée stockée quand même), + `GET /ideas` (fil récent, marque les siennes). (#267)
 - API : badges emoji sur le classement et le profil — 🔥 série en cours, 🎯 machine à HS, 💣 entry fragger, 🧠 roi du clutch, 🚿 grind-day, calculés depuis les stats stockées (seuils documentés, échantillon minimal par règle) ; catalogue partagé dans `packages/types`. (#258)

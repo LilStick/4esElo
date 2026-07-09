@@ -13,6 +13,8 @@ const MATCH_PAYLOAD = {
       round_stats: { Map: "de_mirage", Score: "13 / 8", Winner: "faction1", Rounds: "21" },
       teams: [
         {
+          team_id: "faction1",
+          team_stats: { "Final Score": "13" },
           players: [
             {
               player_id: "p-win",
@@ -42,6 +44,8 @@ const MATCH_PAYLOAD = {
           ],
         },
         {
+          team_id: "faction2",
+          team_stats: { "Final Score": "8" },
           players: [
             {
               player_id: "p-lose",
@@ -79,4 +83,22 @@ test("getMatchStats normalizes map, result and per-player stats", async () => {
   // missing fields default to 0 (loose parsing)
   assert.equal(loser.stats.clutch1v1Count, 0);
   assert.equal(loser.stats.mvps, 0);
+});
+
+test("getMatchStats expose les équipes (compo + score) et le vainqueur (B4.3)", async () => {
+  const client = new FaceitClient("k", {
+    fetchImpl: fakeFetch(new Response(JSON.stringify(MATCH_PAYLOAD))),
+  });
+  const detail = await client.getMatchStats("m-1");
+  assert.ok(detail);
+  assert.equal(detail.teams.length, 2);
+  assert.equal(detail.winnerTeamId, "faction1");
+
+  const f1 = detail.teams.find((t) => t.teamId === "faction1")!;
+  assert.equal(f1.score, 13);
+  assert.deepEqual(f1.playerIds, ["p-win"]);
+
+  const f2 = detail.teams.find((t) => t.teamId === "faction2")!;
+  assert.equal(f2.score, 8);
+  assert.deepEqual(f2.playerIds, ["p-lose"]);
 });
