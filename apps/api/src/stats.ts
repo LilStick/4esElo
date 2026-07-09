@@ -2,6 +2,8 @@ import {
   hltvRating,
   type FaceitMatchStats,
   type MapStat,
+  type MapLeaderboard,
+  type MapLeaderboardEntry,
   type StatsAggregate,
   type StatsRange,
 } from "@4eselo/types";
@@ -124,4 +126,76 @@ export function computeMapStats(matches: MatchForStats[]): MapStat[] {
 
   // Most played first, then alphabetical for stable output.
   return out.sort((a, b) => b.matches - a.matches || a.map.localeCompare(b.map));
+}
+
+/** Games ensemble minimum pour qu'un joueur apparaisse au classement d'une map (B13.6). */
+export const MIN_MAP_MATCHES = 5;
+
+export interface MapLeaderboardPlayer {
+  id: string;
+  nickname: string;
+  discordId: string | null;
+  discordAvatar: string | null;
+}
+
+export interface MapLeaderboardRow {
+  playerId: string;
+  map: string;
+  result: number; // 1 win, 0 loss
+  kills: number;
+  deaths: number;
+}
+
+/**
+ * Classement du pôle par map (B13.6) — logique pure. Par map, chaque membre au-dessus
+ * du seuil de games est classé par winrate (puis volume, puis K-D). Maps triées par
+ * activité totale.
+ */
+export function computeMapLeaderboard(
+  players: MapLeaderboardPlayer[],
+  rows: MapLeaderboardRow[],
+  minMatches: number = MIN_MAP_MATCHES,
+): MapLeaderboard[] {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const byMap = new Map<string, Map<string, { m: number; w: number; k: number; d: number }>>();
+
+  for (const r of rows) {
+    if (!byId.has(r.playerId)) continue;
+    const pmap = byMap.get(r.map) ?? new Map();
+    byMap.set(r.map, pmap);
+    const e = pmap.get(r.playerId) ?? { m: 0, w: 0, k: 0, d: 0 };
+    e.m += 1;
+    e.w += r.result;
+    e.k += r.kills;
+    e.d += r.deaths;
+    pmap.set(r.playerId, e);
+  }
+
+  const out: MapLeaderboard[] = [];
+  for (const [map, pmap] of byMap) {
+    const entries: MapLeaderboardEntry[] = [];
+    for (const [pid, e] of pmap) {
+      if (e.m < minMatches) continue;
+      const p = byId.get(pid)!;
+      entries.push({
+        player: { id: p.id, nickname: p.nickname, discordId: p.discordId, discordAvatar: p.discordAvatar },
+        matches: e.m,
+        wins: e.w,
+        winRate: pct(e.w, e.m),
+        kd: ratio(e.k, e.d),
+      });
+    }
+    if (entries.length === 0) continue;
+    entries.sort(
+      (a, b) =>
+        b.winRate - a.winRate ||
+        b.matches - a.matches ||
+        b.kd - a.kd ||
+        a.player.nickname.localeCompare(b.player.nickname),
+    );
+    out.push({ map, players: entries });
+  }
+
+  const total = (l: MapLeaderboard) => l.players.reduce((s, e) => s + e.matches, 0);
+  return out.sort((a, b) => total(b) - total(a) || a.map.localeCompare(b.map));
 }

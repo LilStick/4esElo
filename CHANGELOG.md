@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : classement du pôle par map — `GET /leaderboard/maps` (par map, membres classés par winrate + K-D, min. 5 games, maps triées par activité). Débloque #109. (#300)
 - API : rafraîchir l'ELO à la demande — `POST /players/:id/refresh` resync un joueur depuis Faceit (snapshot-on-change), rate-limité 1/min/joueur ; sans worker 24/7, permet de forcer la maj de l'ELO du profil. Débloque #303. (#283)
 - API : rating HLTV 1.0 agrégé sur le profil — `/players/:id/stats` renvoie `rating` calculé sur la période sélectionnée (range-aware 7j/30j/3m/all), + formule HLTV centralisée dans `packages/types` (une seule source front+back). Débloque #286. (#298)
 - Worker : deep-ingest de l'historique — un membre non encore traité (nouvel inscrit ou roster à rattraper) voit tout son historique Faceit tiré une bonne fois (fenêtre large), au lieu de la fenêtre glissante de 90 j ; colonne `deep_ingested_at`, 1 joueur par run. Remplit la heatmap et l'historique en profondeur. (#282)

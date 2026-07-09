@@ -9,6 +9,7 @@ import type {
   AchievementsResponse,
   DuosResponse,
   LineupsResponse,
+  MapsLeaderboardResponse,
   PlayerDuosResponse,
   PlayerDetail,
   EloCurveResponse,
@@ -899,4 +900,45 @@ test("B15.11: GET /matches/recent valide limit (400 si invalide, défaut OK)", {
     assert.equal((await app.request(`/matches/recent?${q}`)).status, 400, q);
   }
   assert.equal((await app.request(`/matches/recent`)).status, 200); // défaut = 20
+});
+
+test("B13.6: /leaderboard/maps classe les membres par map (seuil de games)", { skip }, async () => {
+  const rows = await db
+    .insert(players)
+    .values([
+      { discordName: "imlA", faceitNickname: "imlA_nick", steamId64: "765_imlA" },
+      { discordName: "imlB", faceitNickname: "imlB_nick", steamId64: "765_imlB" },
+    ])
+    .returning({ id: players.id });
+  const [a, b] = [rows[0]!.id, rows[1]!.id];
+  const mk = (pid: string, result: number, i: number) => ({
+    matchId: `iml-${pid}-${i}`,
+    playerId: pid,
+    map: "de_itest",
+    playedAt: new Date(`2026-06-0${(i % 9) + 1}T20:00:00Z`),
+    result,
+    stats: makeStats({ kills: 20, deaths: 10 }),
+  });
+  try {
+    await db.insert(faceitMatchStats).values([
+      ...Array.from({ length: 5 }, (_, i) => mk(a, i < 4 ? 1 : 0, i)), // 80%
+      ...Array.from({ length: 5 }, (_, i) => mk(b, i < 1 ? 1 : 0, i)), // 20%
+    ]);
+    const res = await app.request(`/leaderboard/maps`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as MapsLeaderboardResponse;
+    const map = body.maps.find((m) => m.map === "de_itest");
+    assert.ok(map, "de_itest doit apparaître");
+    const first = map!.players.find((p) => p.player.id === a);
+    assert.ok(first, "le joueur a doit être classé");
+    assert.equal(first!.matches, 5);
+    assert.equal(first!.winRate, 80);
+    // a (80%) classé avant b (20%)
+    const ia = map!.players.findIndex((p) => p.player.id === a);
+    const ib = map!.players.findIndex((p) => p.player.id === b);
+    assert.ok(ia >= 0 && ib >= 0 && ia < ib);
+  } finally {
+    await db.delete(players).where(eq(players.id, a));
+    await db.delete(players).where(eq(players.id, b));
+  }
 });

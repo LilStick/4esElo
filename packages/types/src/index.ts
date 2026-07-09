@@ -243,6 +243,27 @@ export interface RecentMatchesResponse {
   items: RecentMatchEntry[];
 }
 
+/** Classement du pôle par map (B13.6). */
+export interface MapLeaderboardEntry {
+  player: { id: string; nickname: string; discordId: string | null; discordAvatar: string | null };
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+  kd: number;
+}
+
+export interface MapLeaderboard {
+  map: string;
+  /** Membres triés par winrate desc (min. de games appliqué). */
+  players: MapLeaderboardEntry[];
+}
+
+export interface MapsLeaderboardResponse {
+  minMatches: number;
+  /** Maps triées par activité (total de games) desc. */
+  maps: MapLeaderboard[];
+}
+
 export type StatsRange = "7d" | "30d" | "3m" | "all";
 
 /** Aggregated stats over a time window, computed from stored matches. */
