@@ -16,6 +16,7 @@ import type { EloAfterStore } from "./eloAfter";
 import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
 import type { AnnouncementStore, MonthActivityReader } from "./announceWrapped";
+import type { WeekActivityReader } from "./weeklyRecap";
 import { utcDay } from "./playtime";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
@@ -96,10 +97,10 @@ export const dbPlaytimeStore: PlaytimeStore = {
   },
 };
 
-/** Real AnnouncementStore + MonthActivityReader backed by Postgres via Drizzle. */
-export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader = {
+/** Real AnnouncementStore + activity readers backed by Postgres via Drizzle. */
+export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader & WeekActivityReader = {
   async insertUnique(a) {
-    // dedupeKey unique : la relance du même mois est un no-op, pas une erreur.
+    // dedupeKey unique : la relance de la même période est un no-op, pas une erreur.
     const rows = await db
       .insert(announcements)
       .values(a)
@@ -117,6 +118,45 @@ export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader = {
       .where(and(gte(faceitMatchStats.playedAt, start), lt(faceitMatchStats.playedAt, end)))
       .limit(1);
     return row !== undefined;
+  },
+
+  async weekActivity(start, end) {
+    // Un membre par ligne pour ceux qui ont joué sur [start, end) : nb de games +
+    // ±ELO (dernier snapshot faceit avant `end` moins celui avant `start`). Les
+    // sous-requêtes de bornes ELO renvoient null si on n'a pas de point avant la
+    // fenêtre (nouvel inscrit) → eloDelta null, exclu des classements gain/perte.
+    // Bornes en ISO (le driver postgres.js ne bind pas les objets Date en SQL brut).
+    const startIso = start.toISOString();
+    const endIso = end.toISOString();
+    const rows = await db.execute<{
+      nickname: string | null;
+      games: number;
+      elo_start: number | null;
+      elo_end: number | null;
+    }>(sql`
+      with played as (
+        select fms.player_id, count(*)::int as games
+        from faceit_match_stats fms
+        where fms.played_at >= ${startIso} and fms.played_at < ${endIso}
+        group by fms.player_id
+      )
+      select
+        coalesce(p.faceit_nickname, p.discord_name) as nickname,
+        pl.games,
+        (select s.elo from elo_snapshots s
+           where s.player_id = p.id and s.source = 'faceit' and s.captured_at < ${startIso}
+           order by s.captured_at desc limit 1) as elo_start,
+        (select s.elo from elo_snapshots s
+           where s.player_id = p.id and s.source = 'faceit' and s.captured_at < ${endIso}
+           order by s.captured_at desc limit 1) as elo_end
+      from played pl
+      join players p on p.id = pl.player_id
+    `);
+    return rows.map((r) => ({
+      nickname: r.nickname ?? "Inconnu",
+      games: Number(r.games),
+      eloDelta: r.elo_start !== null && r.elo_end !== null ? Number(r.elo_end) - Number(r.elo_start) : null,
+    }));
   },
 };
 

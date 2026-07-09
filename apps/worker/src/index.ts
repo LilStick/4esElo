@@ -11,6 +11,7 @@ import { attributeEloAfter } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
 import { announceWrapped } from "./announceWrapped";
+import { announceWeeklyRecap } from "./weeklyRecap";
 import { curlFetch } from "./curlFetch";
 import {
   dbStore,
@@ -50,6 +51,17 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
     }
   } catch (err) {
     console.error("[worker] wrapped announce failed:", err instanceof Error ? err.message : err);
+  }
+
+  try {
+    const recap = await announceWeeklyRecap(dbAnnouncementStore, dbAnnouncementStore);
+    if (recap.status === "posted") {
+      console.log(`[worker] recap hebdo ${recap.year}-W${recap.week} annoncé sur le site 📅`);
+    } else if (recap.status === "empty-week") {
+      console.log(`[worker] recap hebdo ${recap.year}-W${recap.week}: aucune game, pas d'annonce`);
+    }
+  } catch (err) {
+    console.error("[worker] recap hebdo failed:", err instanceof Error ? err.message : err);
   }
 
   if (STEAM_API_KEY) {

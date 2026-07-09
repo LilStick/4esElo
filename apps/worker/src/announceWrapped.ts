@@ -5,18 +5,9 @@
  * down le 1er, l'annonce part à la relance suivante, jamais en double.
  * Logique pure — la DB arrive en interface.
  */
+import type { AnnouncementStore } from "./announce";
 
-export interface AnnouncementToInsert {
-  type: "wrapped";
-  title: string;
-  linkUrl: string;
-  dedupeKey: string;
-}
-
-export interface AnnouncementStore {
-  /** Insert idempotent (unicité sur dedupeKey) : false = déjà annoncé. */
-  insertUnique(a: AnnouncementToInsert): Promise<boolean>;
-}
+export type { AnnouncementStore, AnnouncementToInsert } from "./announce";
 
 export interface MonthActivityReader {
   /** Le pôle a-t-il au moins un match stocké sur ce mois ? */
