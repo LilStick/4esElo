@@ -8,6 +8,7 @@ import { useMe } from "../lib/useMe";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
 import { MapBackdrop } from "../components/MapBackdrop";
@@ -127,8 +128,11 @@ export function Leaderboard() {
         <EloDelta delta={eloMove.get(e.id)} />
         <Avatar name={nameOf(e)} size={34} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
         <LevelBadge level={e.level} size={24} />
-        <span className={cn("flex-1 truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
-          {nameOf(e)}
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <span className={cn("truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
+            {nameOf(e)}
+          </span>
+          <Badges ids={e.badges} max={3} />
         </span>
         {isAlumni(e.promoEnd) && (
           <span title="Alumni" aria-label="Alumni" className="shrink-0 text-[13px] leading-none">

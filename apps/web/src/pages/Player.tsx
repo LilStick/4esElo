@@ -17,6 +17,7 @@ import type { StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Button, Card, RangeTabs, Skeleton } from "../ui";
+import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { StatsBento } from "../components/StatsBento";
 import { RadarPerf } from "../components/RadarPerf";
@@ -142,6 +143,8 @@ export function Player() {
                     )}
                   </div>
                 </div>
+
+                <Badges ids={data.badges} className="flex-wrap justify-center" />
 
                 {(isAlumni(data.promoEnd) ||
                   promoLabel(data.promoStart, data.promoEnd) ||
