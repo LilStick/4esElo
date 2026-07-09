@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : encart « Roast » sur le profil — la mascotte 4esBot (poulet CS) analyse les dernières games au clic et déroule 2-3 punchlines déterministes (négatif + positif) avec un effet de frappe, + prévision d'ELO, depuis `GET /players/:id/roast`. Rail droit du profil, état neutre si pas assez de games. (#264)
 - Fix : ±ELO du dernier match posé sans attendre de rejouer (worker) — l'`elo_after` du match le plus récent est désormais rempli dès qu'un sync enregistre un changement d'ELO (l'ELO ne bouge que sur un match), au lieu d'exiger que le match ait été ingéré au même tick ; couvre le décalage Faceit et les enchaînements de games. Complète #316 (le ±ELO dérivé apparaît dès le premier sync). (#318)
 - Fix : ±ELO du dernier match affiché en retard (« — ») sur le feed « Matchs récents » et les historiques — le ±ELO est désormais dérivé des `elo_after` consécutifs (`eloDelta ?? eloAfter − eloAfter précédent`) côté lecture (`/matches/recent`, `/players/:id/matches`) au lieu d'attendre le backfill (souvent 403) ; soigne aussi tout l'historique. La vraie valeur du backfill reste prioritaire. (#316)
 - Web : bouton « rafraîchir l'ELO » (icône) sur la carte ELO du profil — resync Faceit à la demande, spinner pendant, l'ELO affiché se met à jour sans recharger ; message propre si déjà à jour ou rate-limité (429). (#303)
