@@ -14,7 +14,7 @@ import {
   TbTrophy,
 } from "react-icons/tb";
 import type { MatchSummary } from "@4eselo/types";
-import { Modal, MapIcon } from "../ui";
+import { Modal, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
 import { matchRating, ratingColor } from "../lib/rating";
@@ -67,14 +67,36 @@ function Row({
   );
 }
 
-/** Modale de détail d'un match : bandeau + rating en vedette + tableau de stats. */
-export function MatchDetailModal({ match, onClose }: { match: MatchSummary | null; onClose: () => void }) {
+/** Modale de détail d'un match : bandeau + rating en vedette + tableau de stats.
+ *  `open`/`loading` permettent de l'ouvrir avant que le match soit chargé (feed home #285). */
+export function MatchDetailModal({
+  match,
+  onClose,
+  open,
+  loading = false,
+}: {
+  match: MatchSummary | null;
+  onClose: () => void;
+  open?: boolean;
+  loading?: boolean;
+}) {
+  const isOpen = open ?? !!match;
   const s = match?.stats;
   const win = match?.result === 1;
   const r = s ? matchRating(s) : null;
 
   return (
-    <Modal open={!!match} onClose={onClose} title="Détail du match" size="lg">
+    <Modal open={isOpen} onClose={onClose} title="Détail du match" size="lg">
+      {loading && !match && (
+        <div className="flex flex-col gap-4 p-2">
+          <Skeleton className="h-[76px] rounded-xl" />
+          <Skeleton className="h-[92px] rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
+      )}
+      {!loading && isOpen && !match && (
+        <div className="p-8 text-center text-sm text-ink-dim">Détail du match indisponible.</div>
+      )}
       {match && s && (
         <div className="flex flex-col gap-4 p-2">
           {/* Bannière : vrai fond photo de la map (assombri) + teinte V/D */}
