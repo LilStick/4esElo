@@ -507,7 +507,13 @@ export type AwardKey =
   | "ministre-du-clutch"
   | "nolife"
   | "abonne-absent"
-  | "fantome";
+  | "fantome"
+  // Prix roast (B7.10)
+  | "tibia-dor"
+  | "chirurgien"
+  | "baby-sitter"
+  | "hamster"
+  | "chatouilleur";
 
 /** Un award décerné. Plusieurs gagnants possibles pour un même award (ex æquo). */
 export interface AwardWinner {
