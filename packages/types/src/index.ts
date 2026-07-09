@@ -392,6 +392,28 @@ export interface PostIdeaResponse {
   idea: IdeaItem;
 }
 
+/** Succès permanent (B7.8) : un palier atteint sur une métrique, date de déblocage figée. */
+export interface AchievementDef {
+  id: string;
+  emoji: string;
+  label: string;
+  description: string;
+  /** Palier à atteindre sur la métrique du succès. */
+  target: number;
+}
+
+export interface AchievementState extends AchievementDef {
+  /** Valeur courante du joueur sur la métrique (pour la progression). */
+  current: number;
+  unlocked: boolean;
+  /** Date de déblocage (ISO), null si encore verrouillé. */
+  unlockedAt: string | null;
+}
+
+export interface AchievementsResponse {
+  achievements: AchievementState[];
+}
+
 /** Composition + score d'une équipe, stocké dans `matches.teams` (B4.3, vue match-level). */
 export interface MatchTeam {
   /** faction id Faceit. */

@@ -6,6 +6,7 @@ import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "
 import type {
   ActivityResponse,
   AnnouncementsResponse,
+  AchievementsResponse,
   DuosResponse,
   LineupsResponse,
   PlayerDuosResponse,
@@ -649,6 +650,60 @@ test("B4.1: /social/duos and /players/:id/duos expose seeded teammates", { skip 
     await db.delete(players).where(eq(players.id, b));
   }
 });
+
+test(
+  "B7.8: GET /players/:id/achievements débloque, persiste (date figée) et expose la progression",
+  { skip },
+  async () => {
+    const [p] = await db
+      .insert(players)
+      .values({ discordName: "iach", faceitNickname: "iach_nick", steamId64: "765_iach" })
+      .returning({ id: players.id });
+    const pid = p!.id;
+    try {
+      await db.insert(faceitMatchStats).values([
+        {
+          matchId: "iach-1",
+          playerId: pid,
+          map: "de_mirage",
+          playedAt: new Date("2026-06-01T20:00:00Z"),
+          result: 1,
+          stats: makeStats({ pentaKills: 1, kills: 30 }),
+        },
+        {
+          matchId: "iach-2",
+          playerId: pid,
+          map: "de_dust2",
+          playedAt: new Date("2026-06-02T20:00:00Z"),
+          result: 0,
+          stats: makeStats({ kills: 10 }),
+        },
+      ]);
+
+      const res = await app.request(`/players/${pid}/achievements`);
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as AchievementsResponse;
+      assert.ok(body.achievements.length >= 10);
+
+      const ace = body.achievements.find((a) => a.id === "ace_1")!;
+      assert.equal(ace.unlocked, true);
+      assert.ok(ace.unlockedAt, "date de déblocage persistée");
+
+      const games = body.achievements.find((a) => a.id === "games_100")!;
+      assert.equal(games.unlocked, false);
+      assert.equal(games.current, 2); // progression exposée
+      assert.equal(games.unlockedAt, null);
+
+      // Idempotent : 2e appel → même date de déblocage (figée, pas de doublon).
+      const again = (await (
+        await app.request(`/players/${pid}/achievements`)
+      ).json()) as AchievementsResponse;
+      assert.equal(again.achievements.find((a) => a.id === "ace_1")!.unlockedAt, ace.unlockedAt);
+    } finally {
+      await db.delete(players).where(eq(players.id, pid)); // cascade → matchs + succès
+    }
+  },
+);
 
 test("B4.4: /social/lineups expose un trio seedé (≥ 3 games ensemble)", { skip }, async () => {
   const rows = await db

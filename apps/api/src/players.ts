@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
-import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
+import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots, achievements } from "@4eselo/db";
 import type {
   EloSource,
   EloCurveResponse,
@@ -9,9 +9,12 @@ import type {
   MatchesResponse,
   PlayerDetail,
   PlayerStatsResponse,
+  AchievementState,
+  AchievementsResponse,
 } from "@4eselo/types";
 import { computeStreak } from "./streaks";
 import { computeBadges, type BadgeMatch } from "./badges";
+import { evaluateAchievements, bestEloGainWithin } from "./achievements";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { readSource, readPlayerId, badRequest } from "./http";
 
@@ -174,4 +177,68 @@ playersRoutes.get("/players/:id/stats", async (c) => {
     overall: computeAggregate(range, rows),
     maps: computeMapStats(rows),
   });
+});
+
+playersRoutes.get("/players/:id/achievements", async (c) => {
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  // Métriques cumulées depuis les matchs stockés (champs scalaires du JSONB).
+  const [agg] = await db
+    .select({
+      matches: sql<number>`count(*)::int`,
+      wins: sql<number>`coalesce(sum(${faceitMatchStats.result}), 0)::int`,
+      kills: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'kills')::int), 0)::int`,
+      aces: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'pentaKills')::int), 0)::int`,
+      clutchWins: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'clutch1v1Wins')::int + (${faceitMatchStats.stats}->>'clutch1v2Wins')::int), 0)::int`,
+      entryWins: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'entryWins')::int), 0)::int`,
+      mvps: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'mvps')::int), 0)::int`,
+      sniperKills: sql<number>`coalesce(sum((${faceitMatchStats.stats}->>'sniperKills')::int), 0)::int`,
+    })
+    .from(faceitMatchStats)
+    .where(eq(faceitMatchStats.playerId, id));
+
+  const snaps = await db
+    .select({ elo: eloSnapshots.elo, capturedAt: eloSnapshots.capturedAt })
+    .from(eloSnapshots)
+    .where(and(eq(eloSnapshots.playerId, id), eq(eloSnapshots.source, "faceit")))
+    .orderBy(asc(eloSnapshots.capturedAt));
+  const maxElo = snaps.reduce((m, s) => Math.max(m, s.elo), 0);
+
+  const evaluated = evaluateAchievements({
+    matches: agg?.matches ?? 0,
+    wins: agg?.wins ?? 0,
+    kills: agg?.kills ?? 0,
+    aces: agg?.aces ?? 0,
+    clutchWins: agg?.clutchWins ?? 0,
+    entryWins: agg?.entryWins ?? 0,
+    mvps: agg?.mvps ?? 0,
+    sniperKills: agg?.sniperKills ?? 0,
+    maxElo,
+    bestEloGain30d: bestEloGainWithin(snaps, 30 * 24 * 60 * 60 * 1000),
+  });
+
+  // Persiste les nouveaux déblocages (date figée à la 1re détection), idempotent.
+  const unlocked = evaluated.filter((e) => e.unlocked);
+  if (unlocked.length > 0) {
+    await db
+      .insert(achievements)
+      .values(unlocked.map((e) => ({ playerId: id, achievementId: e.def.id })))
+      .onConflictDoNothing();
+  }
+  const persisted = await db
+    .select({ achievementId: achievements.achievementId, unlockedAt: achievements.unlockedAt })
+    .from(achievements)
+    .where(eq(achievements.playerId, id));
+  const dateById = new Map(persisted.map((p) => [p.achievementId, p.unlockedAt.toISOString()]));
+
+  const states: AchievementState[] = evaluated.map((e) => ({
+    ...e.def,
+    current: e.current,
+    unlocked: e.unlocked,
+    unlockedAt: e.unlocked ? (dateById.get(e.def.id) ?? null) : null,
+  }));
+  return c.json<AchievementsResponse>({ achievements: states });
 });
