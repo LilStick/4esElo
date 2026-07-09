@@ -17,6 +17,7 @@ import type {
   PlayerStatsResponse,
   PlayerWrappedResponse,
   PresenceResponse,
+  RecentMatchesResponse,
   RegisterLookupResponse,
   RegisterRequest,
   RegisterResponse,
@@ -107,6 +108,11 @@ export function getPlayerStats(id: string, range: StatsRange = "all") {
 
 export function getPlayerMatches(id: string, limit = 10) {
   return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
+}
+
+/** Flux de matchs récents du pôle, tous joueurs confondus (B15.12). */
+export function getRecentMatches(limit = 20) {
+  return get<RecentMatchesResponse>(`/matches/recent?limit=${limit}`);
 }
 
 export function getActivity(days = 364) {
