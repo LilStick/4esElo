@@ -214,6 +214,14 @@ export interface MatchesResponse {
   total: number;
 }
 
+/** Refresh ELO à la demande (B16.6) : resync d'un joueur depuis Faceit. */
+export interface RefreshEloResponse {
+  /** ELO courant Faceit, null si le joueur n'a pas de profil CS2. */
+  elo: number | null;
+  /** true si l'ELO a changé (un snapshot a été inséré). */
+  changed: boolean;
+}
+
 /** Flux de matchs récents du pôle (B15.11), tous joueurs confondus.
  *  Un même match apparaît une fois par membre y ayant joué (chacun son eloDelta). */
 export interface RecentMatchEntry {

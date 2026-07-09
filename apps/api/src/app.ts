@@ -15,6 +15,7 @@ import { duosRoutes } from "./duos";
 import { announcementsRoutes } from "./announcements";
 import { wrappedRoutes } from "./wrappedRoutes";
 import { ideasRoutes } from "./ideas";
+import { refreshRoutes } from "./refresh";
 
 export const app = new Hono();
 app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
@@ -48,3 +49,4 @@ app.route("/", duosRoutes);
 app.route("/", announcementsRoutes);
 app.route("/", wrappedRoutes);
 app.route("/", ideasRoutes);
+app.route("/", refreshRoutes);
