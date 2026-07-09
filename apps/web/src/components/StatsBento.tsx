@@ -3,6 +3,7 @@ import { TbChartBar } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
 import { Card, Skeleton } from "../ui";
+import { ratingColor } from "../lib/rating";
 import { EmptyState } from "./EmptyState";
 
 const pct = (n: number) => `${Math.round(n)}%`;
@@ -12,19 +13,22 @@ function StatCard({
   value,
   sub,
   good,
+  accent,
   wide,
 }: {
   label: string;
   value: string;
   sub?: string;
   good?: boolean;
+  /** Couleur custom de la valeur (prioritaire sur `good`), ex. rating via ratingColor(). */
+  accent?: string;
   wide?: boolean;
 }) {
   return (
     <Card className={wide ? "col-span-2 p-[18px]" : "p-[18px]"}>
       <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{label}</div>
       <div
-        className={`mt-2 font-mono text-[28px] font-extrabold tracking-tight tabular-nums ${good ? "text-win" : ""}`}
+        className={`mt-2 font-mono text-[28px] font-extrabold tracking-tight tabular-nums ${accent ?? (good ? "text-win" : "")}`}
       >
         {value}
       </div>
@@ -82,6 +86,11 @@ export function StatsBento({ id, range = "all" }: { id: string; range?: StatsRan
       <StatCard label="Clutch" value={pct(o.clutchWinRate)} />
       <StatCard label="Entry" value={pct(o.entrySuccessRate)} />
       <StatCard label="Utility /match" value={String(Math.round(o.utilityDamagePerMatch))} />
+      <StatCard
+        label="Rating"
+        value={o.rating != null ? o.rating.toFixed(2) : "—"}
+        accent={o.rating != null ? ratingColor(o.rating) : undefined}
+      />
     </div>
   );
 }
