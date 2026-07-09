@@ -197,6 +197,61 @@ export function hltvRating(i: HltvRatingInput): number | null {
   return (killRating + 0.7 * survival + rmk) / 2.7;
 }
 
+/** Une punchline roast (B7.6) — emoji + libellé court + texte chambré. */
+export interface RoastLine {
+  emoji: string;
+  label: string;
+  text: string;
+}
+
+const r0 = (n: number) => Math.round(n);
+
+/**
+ * Roast d'UN match (hype ou vanne) depuis ses stats — source unique partagée
+ * front (récap de match #302) / back. Renvoie la punchline la plus saillante
+ * (priorité décroissante), ou null si la game est banale.
+ */
+export function matchRoast(s: FaceitMatchStats, result: number): RoastLine | null {
+  const clutchWins = s.clutch1v1Wins + s.clutch1v2Wins;
+  if (s.pentaKills >= 1) return { emoji: "🎽", label: "Ace", text: "ACE — 5 dans une manche, gg." };
+  if (result === 1 && s.kills >= 25)
+    return { emoji: "🔥", label: "Patron du lobby", text: `${s.kills}-${s.deaths}, t'as fait le ménage.` };
+  if (result === 0 && s.kills >= 20)
+    return {
+      emoji: "🚑",
+      label: "Mal entouré",
+      text: `${s.kills} kills pour une défaite — tes mates étaient en visite.`,
+    };
+  if (clutchWins >= 2)
+    return { emoji: "🧊", label: "Sang-froid", text: `${clutchWins} clutchs gagnés — calme olympien.` };
+  if (s.hsPercent >= 60)
+    return { emoji: "🎯", label: "Chirurgien", text: `${r0(s.hsPercent)}% de HS — les casques pleurent.` };
+  if (s.adr > 0 && s.adr < 50)
+    return { emoji: "🪶", label: "Chatouilleur", text: `${r0(s.adr)} d'ADR — t'as distribué des caresses.` };
+  if (s.deaths >= 22 && s.kills < s.deaths)
+    return {
+      emoji: "💀",
+      label: "Charnier",
+      text: `${s.kills}-${s.deaths} — cette game restera entre nous.`,
+    };
+  if (result === 1) return { emoji: "✅", label: "GG", text: `${s.kills}-${s.deaths}, propre.` };
+  return null;
+}
+
+/** Prévision d'ELO (B7.6) : tendance linéaire sur 30 j. */
+export interface RoastForecast {
+  /** Pente en ELO/jour (arrondie). */
+  perDay: number;
+  text: string;
+}
+
+export interface RoastResponse {
+  /** Punchlines profil, les plus croustillantes d'abord (2-3). */
+  lines: RoastLine[];
+  /** Prévision d'ELO, null si pas assez de snapshots. */
+  forecast: RoastForecast | null;
+}
+
 /** One stored match for a player (API shape). */
 export interface MatchSummary {
   matchId: string;
