@@ -24,6 +24,7 @@ import { RadarPerf } from "../components/RadarPerf";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
+import { AchievementsSummary } from "../components/AchievementsSummary";
 import { ProfileRoast } from "../components/ProfileRoast";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { PlayerDuos } from "../components/PlayerDuos";
@@ -195,13 +196,13 @@ export function Player() {
               <ActivityHeatmap id={id} />
             </div>
 
-            {/* 9 — avec qui il win le + */}
-            <div className="order-9">
+            {/* 10 — avec qui il win le + */}
+            <div className="order-10">
               <PlayerDuos id={id} />
             </div>
 
-            {/* 10 — roast 4esBot (déterministe, négatif + positif) */}
-            <div className="order-10">
+            {/* 11 — roast 4esBot (déterministe, négatif + positif) */}
+            <div className="order-11">
               <div className="mb-3">
                 <SectionTitle icon={TbFlame}>Roast</SectionTitle>
               </div>
@@ -253,6 +254,11 @@ export function Player() {
                 <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
               </div>
               <MatchesList id={id} />
+            </div>
+
+            {/* 9 — succès (résumé cliquable → page dédiée) */}
+            <div className="order-9">
+              <AchievementsSummary id={id} />
             </div>
           </div>
 

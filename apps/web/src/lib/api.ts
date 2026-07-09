@@ -1,4 +1,5 @@
 import type {
+  AchievementsResponse,
   ActivityResponse,
   AdminPlayerPatch,
   Announcement,
@@ -112,6 +113,11 @@ export function refreshPlayerElo(id: string) {
 /** Roast du joueur (B7.7) — punchlines profil (négatif + positif) + forecast ELO. */
 export function getPlayerRoast(id: string) {
   return get<RoastResponse>(`/players/${id}/roast`);
+}
+
+/** Succès permanents du joueur (B7.9) — 14 paliers, débloqués + progression des verrouillés. */
+export function getPlayerAchievements(id: string) {
+  return get<AchievementsResponse>(`/players/${id}/achievements`);
 }
 
 export function getPlayerStats(id: string, range: StatsRange = "all") {
