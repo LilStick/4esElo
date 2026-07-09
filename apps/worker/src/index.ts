@@ -5,12 +5,20 @@ import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
 import { SteamClient } from "@4eselo/steam";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
+import { ingestMatches } from "./ingestMatches";
 import { attributeEloAfter } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
 import { announceWrapped } from "./announceWrapped";
 import { curlFetch } from "./curlFetch";
-import { dbStore, dbMatchStatsStore, dbPlaytimeStore, dbBackfillStore, dbAnnouncementStore } from "./store";
+import {
+  dbStore,
+  dbMatchStatsStore,
+  dbMatchStore,
+  dbPlaytimeStore,
+  dbBackfillStore,
+  dbAnnouncementStore,
+} from "./store";
 
 // curl transport: Node's TLS fingerprint never passes the Cloudflare wall,
 // plain curl sometimes does — that's the whole opportunistic bet.
@@ -110,6 +118,17 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
       console.error(`[worker] ${p.faceitId} backfill failed:`, err instanceof Error ? err.message : err);
     }
     await sleep(DELAY_BETWEEN_PLAYERS_MS);
+  }
+
+  // Vue match-level (B4.3) : remplit `matches` (nouveaux + backfill des anciens)
+  // après la passe joueurs, une fois par run.
+  try {
+    const mi = await ingestMatches(faceit, dbMatchStore);
+    if (mi.inserted > 0 || mi.failed > 0) {
+      console.log(`[worker] matches +${mi.inserted} (scanné ${mi.scanned}, échec ${mi.failed})`);
+    }
+  } catch (err) {
+    console.error("[worker] match-level ingest failed:", err instanceof Error ? err.message : err);
   }
 }
 

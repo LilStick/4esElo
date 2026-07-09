@@ -95,6 +95,8 @@ export const rawMatchStatsSchema = z.object({
       round_stats: z.record(z.string(), z.string()),
       teams: z.array(
         z.object({
+          team_id: z.string().optional(),
+          team_stats: z.record(z.string(), z.string()).optional(),
           players: z.array(
             z.object({
               player_id: z.string(),
@@ -115,10 +117,24 @@ export interface FaceitMatchPlayer {
   stats: FaceitMatchStats;
 }
 
+/** Une équipe d'un match (faction) — pour la vue match-level (B4.3, lineups). */
+export interface FaceitMatchTeam {
+  /** faction id Faceit (faction1/faction2), sinon fallback stable. */
+  teamId: string;
+  /** Score final de l'équipe (manches gagnées), 0 si indisponible. */
+  score: number;
+  /** Faceit player_id des joueurs de cette équipe. */
+  playerIds: string[];
+}
+
 export interface FaceitMatchDetail {
   matchId: string;
   map: string;
   players: FaceitMatchPlayer[];
+  /** Composition + score par équipe (B4.3). */
+  teams: FaceitMatchTeam[];
+  /** team_id gagnant (round_stats "Winner"), null si indéterminé. */
+  winnerTeamId: string | null;
 }
 
 const num = (r: Record<string, string>, key: string): number => {
@@ -166,7 +182,8 @@ export function normalizeMatchStats(
   const round = raw.rounds[0];
   if (!round) return null;
   const players: FaceitMatchPlayer[] = [];
-  for (const team of round.teams) {
+  const teams: FaceitMatchTeam[] = [];
+  round.teams.forEach((team, i) => {
     for (const p of team.players) {
       players.push({
         playerId: p.player_id,
@@ -175,6 +192,17 @@ export function normalizeMatchStats(
         stats: toStats(p.player_stats),
       });
     }
-  }
-  return { matchId, map: round.round_stats["Map"] ?? "unknown", players };
+    teams.push({
+      teamId: team.team_id ?? `team${i + 1}`,
+      score: team.team_stats ? num(team.team_stats, "Final Score") : 0,
+      playerIds: team.players.map((p) => p.player_id),
+    });
+  });
+  return {
+    matchId,
+    map: round.round_stats["Map"] ?? "unknown",
+    players,
+    teams,
+    winnerTeamId: round.round_stats["Winner"] ?? null,
+  };
 }

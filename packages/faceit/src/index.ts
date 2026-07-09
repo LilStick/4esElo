@@ -10,4 +10,5 @@ export type {
   FaceitMatchRef,
   FaceitMatchDetail,
   FaceitMatchPlayer,
+  FaceitMatchTeam,
 } from "./schemas";

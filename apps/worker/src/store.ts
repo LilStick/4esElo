@@ -1,7 +1,16 @@
-import { announcements, db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
+import {
+  announcements,
+  db,
+  eloSnapshots,
+  faceitMatchStats,
+  matches,
+  players,
+  playtimeSnapshots,
+} from "@4eselo/db";
 import { and, asc, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
+import type { MatchLevelStore } from "./ingestMatches";
 import type { EloAfterStore } from "./eloAfter";
 import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
@@ -138,5 +147,26 @@ export const dbMatchStatsStore: MatchStatsStore & EloAfterStore = {
     // The (matchId, playerId) PK already dedups; onConflictDoNothing makes a
     // concurrent or re-run insert a no-op instead of an error.
     await db.insert(faceitMatchStats).values(row).onConflictDoNothing();
+  },
+};
+
+/** Real MatchLevelStore (B4.3) backed by Postgres via Drizzle. */
+export const dbMatchStore: MatchLevelStore = {
+  async getMatchesToBackfill(limit) {
+    // Matchs connus (faceit_match_stats) pas encore dans `matches`, une ligne
+    // par matchId (played_at identique entre membres d'un même match).
+    const rows = await db.execute<{ match_id: string; played_at: string }>(sql`
+      select distinct on (fms.match_id) fms.match_id, fms.played_at
+      from faceit_match_stats fms
+      left join matches m on m.match_id = fms.match_id
+      where m.match_id is null
+      order by fms.match_id, fms.played_at
+      limit ${limit}
+    `);
+    return rows.map((r) => ({ matchId: r.match_id, playedAt: new Date(r.played_at) }));
+  },
+
+  async insertMatch(row) {
+    await db.insert(matches).values(row).onConflictDoNothing();
   },
 };
