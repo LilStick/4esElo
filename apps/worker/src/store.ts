@@ -7,10 +7,11 @@ import {
   players,
   playtimeSnapshots,
 } from "@4eselo/db";
-import { and, asc, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
 import type { MatchStatsStore } from "./ingest";
 import type { MatchLevelStore } from "./ingestMatches";
+import type { DeepIngestStore } from "./deepIngest";
 import type { EloAfterStore } from "./eloAfter";
 import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
@@ -168,5 +169,21 @@ export const dbMatchStore: MatchLevelStore = {
 
   async insertMatch(row) {
     await db.insert(matches).values(row).onConflictDoNothing();
+  },
+};
+
+/** Real DeepIngestStore (B17.11) backed by Postgres via Drizzle. */
+export const dbDeepIngestStore: DeepIngestStore = {
+  async getPlayersNeedingDeepIngest(limit) {
+    const rows = await db
+      .select({ id: players.id, faceitId: players.faceitId })
+      .from(players)
+      .where(and(isNull(players.deepIngestedAt), isNotNull(players.faceitId)))
+      .limit(limit);
+    return rows.map((r) => ({ id: r.id, faceitId: r.faceitId as string }));
+  },
+
+  async markDeepIngested(playerId, at) {
+    await db.update(players).set({ deepIngestedAt: at }).where(eq(players.id, playerId));
   },
 };

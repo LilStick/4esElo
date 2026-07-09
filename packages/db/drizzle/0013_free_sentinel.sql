@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD COLUMN "deep_ingested_at" timestamp with time zone;
