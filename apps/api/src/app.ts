@@ -16,6 +16,7 @@ import { announcementsRoutes } from "./announcements";
 import { wrappedRoutes } from "./wrappedRoutes";
 import { ideasRoutes } from "./ideas";
 import { refreshRoutes } from "./refresh";
+import { ogRoutes } from "./og";
 
 export const app = new Hono();
 app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
@@ -50,3 +51,4 @@ app.route("/", announcementsRoutes);
 app.route("/", wrappedRoutes);
 app.route("/", ideasRoutes);
 app.route("/", refreshRoutes);
+app.route("/", ogRoutes);

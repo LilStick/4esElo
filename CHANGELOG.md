@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : carte de partage OG par joueur — `GET /players/:id/og.png` génère une carte perso (avatar, pseudo, niveau, ELO, winrate/K-D/rating) en PNG via SVG→resvg (sans navigateur headless, police Inter embarquée) ; `GET /player/:id` sert aux crawlers (Discord/Twitter/WhatsApp) un HTML avec les balises OG du bon joueur, les navigateurs étant redirigés vers la SPA. Joueur sans stats → carte dégradée. Coller un lien de profil affiche désormais la carte du joueur au lieu de l'aperçu générique. (#253)
 - Worker : recap hebdo automatique — chaque lundi, une annonce « La semaine du pôle 📅 » résume la semaine écoulée (games jouées, plus gros grinder, plus belle progression et plus dure semaine côté ELO), publiée via la même mécanique que le Wrapped (dédup par semaine ISO, relançable sans doublon) et affichée par la bannière home. (#257)
 - API : moteur roast + forecast ELO — `GET /players/:id/roast` (2-3 punchlines conditionnées aux stats, sans IA, ton fun) + prévision d'ELO (tendance linéaire 30 j) ; roast par-match partagé (`matchRoast` dans `packages/types`) réutilisable par le front. Débloque #264 et #302. (#263)
 - API : 5 nouveaux prix « roast » au Wrapped mensuel — 🦵 Tibia d'or (pire HS%), 🎯 Chirurgien (meilleur HS%), 🚑 Baby-sitter (carry en défaite), 🐹 Hamster (games pour un ΔELO ≤ 0), 🪶 Chatouilleur (pire ADR). (#301)
