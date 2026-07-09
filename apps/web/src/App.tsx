@@ -7,6 +7,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Asso } from "./pages/Asso";
 import { Player } from "./pages/Player";
+import { Achievements } from "./pages/Achievements";
 import { Wrapped } from "./pages/Wrapped";
 import { WrappedPlayer } from "./pages/WrappedPlayer";
 import { Compare } from "./pages/Compare";
@@ -45,6 +46,7 @@ function AnimatedRoutes() {
           <Route path="/classement" element={<Leaderboard />} />
           <Route path="/asso" element={<Asso />} />
           <Route path="/player/:id" element={<Player />} />
+          <Route path="/player/:id/succes" element={<Achievements />} />
           <Route path="/wrapped/:period" element={<Wrapped />} />
           <Route path="/wrapped/:period/:player" element={<WrappedPlayer />} />
           <Route path="/compare" element={<Compare />} />

@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-10
+
+- Web : page dédiée « Succès » par joueur (`/player/:id/succes`) — en-tête + progression globale + grille de trophées (débloqués datés, verrouillés grisés avec condition et barre de progression) ; carte résumé cliquable sur le profil. Données de l'API B7.8. (#266)
+
 ## 2026-07-09
 
 - Web : badges emoji de perf récente à côté du pseudo — sur le classement (max 3, « +N » au-delà) et sur le profil (tous), avec un tooltip au survol (emoji + libellé + comment on le gagne) ; rien affiché si aucun badge. Données de l'API B5.8. (#259)
