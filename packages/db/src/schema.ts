@@ -158,6 +158,20 @@ export const matches = pgTable(
   (t) => [index("matches_played_idx").on(t.playedAt)],
 );
 
+/** Succès permanents débloqués (B7.8) : une ligne par (joueur, succès). La date
+ *  de déblocage est figée à la première détection (insert onConflictDoNothing). */
+export const achievements = pgTable(
+  "achievements",
+  {
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.playerId, t.achievementId] })],
+);
+
 export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
@@ -172,3 +186,5 @@ export type BannedDiscordId = typeof bannedDiscordIds.$inferSelect;
 export type NewBannedDiscordId = typeof bannedDiscordIds.$inferInsert;
 export type Match = typeof matches.$inferSelect;
 export type NewMatch = typeof matches.$inferInsert;
+export type Achievement = typeof achievements.$inferSelect;
+export type NewAchievement = typeof achievements.$inferInsert;

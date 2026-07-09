@@ -10,6 +10,7 @@ export {
   ideas,
   bannedDiscordIds,
   matches,
+  achievements,
   eloSource,
   type Player,
   type NewPlayer,
@@ -25,4 +26,6 @@ export {
   type NewBannedDiscordId,
   type Match,
   type NewMatch,
+  type Achievement,
+  type NewAchievement,
 } from "./schema";

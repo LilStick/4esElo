@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : succès permanents — `GET /players/:id/achievements` (14 succès à paliers : matchs, kills, aces, clutchs, MVP, ELO…), déblocages persistés avec date figée + progression des verrouillés ; débloque le front #266. (#265)
 - API : lineups — `GET /social/lineups` (groupes de 3 à 5 membres qui jouent ensemble, games + winrate, min. 3 games), prolongement des duos ; débloque le front #262. (#261)
 - Data : vue match-level — le client Faceit expose désormais la composition des équipes + le score, stockés dans une nouvelle table `matches` (une ligne par match) alimentée par le worker (nouveaux matchs + backfill des anciens). Socle des lineups (#261). (#260)
 - API : ban d'un compte Discord (admin) — table `banned_discord_ids`, check en cache court dans `readSession` (coupe une session déjà ouverte en < 30 s) + refus au login OAuth (`?auth=banned`), endpoints `GET/PUT/DELETE /admin/bans` ; filet anti-lockout (impossible de bannir un admin). (#269)
