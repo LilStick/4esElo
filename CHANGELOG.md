@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-10
 
+- Web : micro-animations premium — count-up des chiffres clés (ELO du profil, bento de stats, records du pôle), entrée en cascade + léger lift au survol du bento, pastille active qui glisse sur le sélecteur de période, barre de survol glissante sur « avec qui il win le + », et tooltip au survol du radar de perf ; tout coupé si `prefers-reduced-motion`. (#205)
 - Web : section « Modération — bans » dans le panel admin — bannir un membre (dropdown avec avatars + raison, confirmation) et débannir (confirmation), liste des comptes bannis (raison + date) ; réservé aux admins. Données de l'API B17.9. (#270)
 - Web : page « Boîte à idées » (`/ideas`, entrée nav) — formulaire connecté (compteur 500 car.) qui relaie l'idée dans le salon Discord dédié, + fil des idées récentes (auteur, « toi », date) ; états non connecté (CTA login), rate-limit (3/jour) et succès gérés. Données de l'API B17.7. (#268)
 - Web : classement par map (`/classement/maps`) — sélecteur de cartes (triées par activité) + classement des membres sur la map choisie (winrate, K/D, games), lignes cliquables vers les profils ; accès via un bouton « Par map » sur le classement. Données de l'API B13.6. (#109)

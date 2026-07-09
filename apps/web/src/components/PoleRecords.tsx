@@ -5,7 +5,7 @@ import type { IconType } from "react-icons";
 import type { LeaderboardEntry, PlayerStatsResponse } from "@4eselo/types";
 import { getLeaderboard, getPlayerStats } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Card, Skeleton } from "../ui";
+import { Avatar, Card, CountUp, Skeleton } from "../ui";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
 const MIN_MATCHES = 5; // seuil pour les records de taux (winrate, K/D)
@@ -21,11 +21,13 @@ function RecordCard({
   label,
   player,
   value,
+  format,
 }: {
   icon: IconType;
   label: string;
   player: LeaderboardEntry | undefined;
-  value: string;
+  value: number | null;
+  format?: (n: number) => string;
 }) {
   if (!player) return null;
   return (
@@ -46,7 +48,9 @@ function RecordCard({
           </div>
         </div>
       </Link>
-      <span className="font-mono text-lg font-extrabold text-brand tabular-nums">{value}</span>
+      <span className="font-mono text-lg font-extrabold text-brand tabular-nums">
+        {value == null ? "—" : <CountUp value={value} format={format} />}
+      </span>
     </Card>
   );
 }
@@ -95,29 +99,26 @@ export function PoleRecords() {
         </div>
       ) : (
         <div className="grid gap-3">
-          <RecordCard
-            icon={TbCrown}
-            label="Plus haut ELO"
-            player={topElo}
-            value={topElo?.elo != null ? String(topElo.elo) : "—"}
-          />
+          <RecordCard icon={TbCrown} label="Plus haut ELO" player={topElo} value={topElo?.elo ?? null} />
           <RecordCard
             icon={TbSwords}
             label="Meilleur K/D"
             player={bestKd?.p}
-            value={bestKd ? bestKd.s.kd.toFixed(2) : "—"}
+            value={bestKd ? bestKd.s.kd : null}
+            format={(n) => n.toFixed(2)}
           />
           <RecordCard
             icon={TbPercentage}
             label="Meilleur winrate"
             player={bestWr?.p}
-            value={bestWr ? `${Math.round(bestWr.s.winRate)}%` : "—"}
+            value={bestWr ? bestWr.s.winRate : null}
+            format={(n) => `${Math.round(n)}%`}
           />
           <RecordCard
             icon={TbFlame}
             label="Plus de matchs"
             player={mostMatches?.p}
-            value={mostMatches ? String(mostMatches.s.matches) : "—"}
+            value={mostMatches ? mostMatches.s.matches : null}
           />
         </div>
       )}

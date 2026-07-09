@@ -4,7 +4,7 @@ import { TbRefresh } from "react-icons/tb";
 import { ApiError, getPlayerMatches, refreshPlayerElo } from "../lib/api";
 import { mapScreen } from "../lib/mapScreens";
 import { cn } from "../lib/cn";
-import { Card, LevelBadge } from "../ui";
+import { Card, CountUp, LevelBadge } from "../ui";
 
 /** Couleur du palier façon Faceit : gris → vert → jaune → orange → rouge. */
 function levelColor(level: number | null): string {
@@ -119,7 +119,7 @@ export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | n
             className="font-mono text-[44px] leading-none font-extrabold tracking-[-0.02em] tabular-nums"
             style={{ color, textShadow: `0 0 24px ${color}55` }}
           >
-            {elo ?? "—"}
+            {elo != null ? <CountUp value={elo} /> : "—"}
           </div>
           <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">Elo Faceit</div>
         </div>

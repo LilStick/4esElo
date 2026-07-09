@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import { TbChartRadar, TbGitCompare } from "react-icons/tb";
 import type { StatsAggregate, StatsRange } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
@@ -8,6 +16,24 @@ import { Card, Skeleton } from "../ui";
 import { EmptyState } from "./EmptyState";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
+
+/** Tooltip du radar : montre la vraie valeur de l'axe survolé (pas la valeur normalisée). */
+function RadarTip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: { axis: string; value: string } }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0]!.payload;
+  return (
+    <div className="rounded-lg border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-xs shadow-xl">
+      <span className="font-semibold text-ink-dim">{p.axis}</span>{" "}
+      <span className="font-mono font-bold text-brand-hi">{p.value}</span>
+    </div>
+  );
+}
 
 /**
  * Chaque axe est ramené sur 0–100 pour le radar (`v`) ; `value` reste la vraie stat lisible.
@@ -74,6 +100,7 @@ export function RadarPerf({ id, range = "all" }: { id: string; range?: StatsRang
             <PolarGrid stroke="rgba(255,255,255,0.08)" />
             <PolarAngleAxis dataKey="axis" tick={{ fill: "#8b90a0", fontSize: 12 }} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+            <Tooltip content={<RadarTip />} cursor={false} />
             <Radar
               dataKey="v"
               stroke="#5E8BFF"
