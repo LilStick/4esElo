@@ -19,6 +19,7 @@ import { evaluateAchievements, bestEloGainWithin } from "./achievements";
 import { profileRoast, forecastElo, type RoastProfileInput } from "./roast";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { readSource, readPlayerId, badRequest } from "./http";
+import { effectiveEloDelta } from "./eloDelta";
 
 export const playersRoutes = new Hono();
 
@@ -128,7 +129,21 @@ playersRoutes.get("/players/:id/matches", async (c) => {
     .where(eq(faceitMatchStats.playerId, id));
 
   const rows = await db
-    .select()
+    .select({
+      matchId: faceitMatchStats.matchId,
+      map: faceitMatchStats.map,
+      playedAt: faceitMatchStats.playedAt,
+      result: faceitMatchStats.result,
+      eloAfter: faceitMatchStats.eloAfter,
+      eloDelta: faceitMatchStats.eloDelta,
+      stats: faceitMatchStats.stats,
+      // ELO du match précédent (chronologique) → dérive le ±ELO quand la colonne
+      // elo_delta n'est pas encore remplie (B2.12). Fenêtre sur tout l'historique
+      // du joueur (WHERE filtre avant), donc correcte malgré limit/offset.
+      prevEloAfter: sql<
+        number | null
+      >`lag(${faceitMatchStats.eloAfter}) over (partition by ${faceitMatchStats.playerId} order by ${faceitMatchStats.playedAt} asc, ${faceitMatchStats.matchId} asc)`,
+    })
     .from(faceitMatchStats)
     .where(eq(faceitMatchStats.playerId, id))
     .orderBy(desc(faceitMatchStats.playedAt))
@@ -141,7 +156,7 @@ playersRoutes.get("/players/:id/matches", async (c) => {
     playedAt: r.playedAt.toISOString(),
     result: r.result,
     eloAfter: r.eloAfter,
-    eloDelta: r.eloDelta,
+    eloDelta: effectiveEloDelta(r.eloDelta, r.eloAfter, r.prevEloAfter),
     stats: r.stats,
   }));
 

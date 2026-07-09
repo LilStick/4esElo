@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Fix : ±ELO du dernier match affiché en retard (« — ») sur le feed « Matchs récents » et les historiques — le ±ELO est désormais dérivé des `elo_after` consécutifs (`eloDelta ?? eloAfter − eloAfter précédent`) côté lecture (`/matches/recent`, `/players/:id/matches`) au lieu d'attendre le backfill (souvent 403) ; soigne aussi tout l'historique. La vraie valeur du backfill reste prioritaire. (#316)
 - Web : bouton « rafraîchir l'ELO » (icône) sur la carte ELO du profil — resync Faceit à la demande, spinner pendant, l'ELO affiché se met à jour sans recharger ; message propre si déjà à jour ou rate-limité (429). (#303)
 - Web : rating moyen (façon HLTV) sur le profil, dans le bento de stats et suivant le sélecteur de période, couleur selon la valeur ; bouton « Comparer » (icône) sur la carte de profil de performance qui pré-remplit le joueur sur la page de comparaison. La formule de rating par match pointe désormais vers la source unique partagée (`packages/types`). (#286)
 - Web : flux « Matchs récents » du pôle dans un rail à droite de la home (tous joueurs confondus, avatar, map, V/D, ±ELO coloré), en remplacement du widget « Mouvements récents » ; un clic sur une ligne ouvre la modale de détail du match. (#285)

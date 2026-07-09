@@ -1,9 +1,17 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { db, players, faceitMatchStats } from "@4eselo/db";
 import type { RecentMatchEntry, RecentMatchesResponse } from "@4eselo/types";
 import { badRequest } from "./http";
+import { effectiveEloDelta } from "./eloDelta";
+
+/** ELO du match précédent (même joueur, chronologique) — pour dériver le ±ELO
+ *  quand la colonne elo_delta n'est pas encore remplie (B2.12). Calculé sur tout
+ *  l'historique du joueur (avant le LIMIT). */
+const prevEloAfterExpr = sql<
+  number | null
+>`lag(${faceitMatchStats.eloAfter}) over (partition by ${faceitMatchStats.playerId} order by ${faceitMatchStats.playedAt} asc, ${faceitMatchStats.matchId} asc)`;
 
 export const matchesRoutes = new Hono();
 
@@ -23,6 +31,8 @@ matchesRoutes.get("/matches/recent", async (c) => {
       playedAt: faceitMatchStats.playedAt,
       result: faceitMatchStats.result,
       eloDelta: faceitMatchStats.eloDelta,
+      eloAfter: faceitMatchStats.eloAfter,
+      prevEloAfter: prevEloAfterExpr,
       pid: players.id,
       faceitNickname: players.faceitNickname,
       discordName: players.discordName,
@@ -46,7 +56,7 @@ matchesRoutes.get("/matches/recent", async (c) => {
     map: r.map,
     playedAt: r.playedAt.toISOString(),
     result: r.result,
-    eloDelta: r.eloDelta,
+    eloDelta: effectiveEloDelta(r.eloDelta, r.eloAfter, r.prevEloAfter),
   }));
 
   return c.json<RecentMatchesResponse>({ items });
