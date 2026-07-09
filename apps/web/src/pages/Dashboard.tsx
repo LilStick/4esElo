@@ -18,9 +18,9 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <AnnouncementBanner />
 
-      <div className="grid gap-4 2xl:grid-cols-[280px_minmax(0,1fr)_320px] 2xl:items-start">
+      <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px] xl:items-start">
         {/* Rail gauche : joueur du jour, grimpeur, présence, dépassements, records — en entier, sans clic */}
-        <aside className="flex flex-col gap-4 2xl:w-[280px]">
+        <aside className="flex flex-col gap-4 xl:w-[280px]">
           <PlayerOfTheDay />
           <TopClimber />
           <LivePresence />
@@ -39,7 +39,7 @@ export function Dashboard() {
         </div>
 
         {/* Rail droit : flux de matchs récents de tout le pôle (±ELO, clic → détail) */}
-        <aside className="flex flex-col gap-4 2xl:w-[320px]">
+        <aside className="flex flex-col gap-4 xl:w-[320px]">
           <RecentMatches />
         </aside>
       </div>

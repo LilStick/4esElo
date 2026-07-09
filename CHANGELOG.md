@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : fix responsive de la home — le layout multi-colonnes (rails 280/320 px) s'active dès 1280 px (`xl`) au lieu de 1536 px (`2xl`), pour que les widgets restent compacts sur les écrans laptop ~1280–1440 px au lieu de s'empiler pleine largeur. (#297)
 - Web : encart « Roast » sur le profil — la mascotte 4esBot (poulet CS) analyse les dernières games au clic et déroule 2-3 punchlines déterministes (négatif + positif) avec un effet de frappe, + prévision d'ELO, depuis `GET /players/:id/roast`. Rail droit du profil, état neutre si pas assez de games. (#264)
 - API : BIG Wrapped longue période — `GET /wrapped/big/:period` (`2026`, `2026-H1`, `2026-H2`) et `/wrapped/big/:period/:playerId` réutilisent le moteur d'awards + percentiles vs l'asso sur une fenêtre semestre/année (façon Spotify Wrapped) ; annonce annuelle auto (« Le BIG Wrapped <année> est là », dédupliquée). Débloque le front #321. (#320)
 - Fix : ±ELO du dernier match posé sans attendre de rejouer (worker) — l'`elo_after` du match le plus récent est désormais rempli dès qu'un sync enregistre un changement d'ELO (l'ELO ne bouge que sur un match), au lieu d'exiger que le match ait été ingéré au même tick ; couvre le décalage Faceit et les enchaînements de games. Complète #316 (le ±ELO dérivé apparaît dès le premier sync). (#318)
