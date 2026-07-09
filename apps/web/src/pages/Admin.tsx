@@ -1,21 +1,34 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { TbAlertTriangle, TbConfetti, TbLock, TbSpeakerphone, TbTrash, TbUsers } from "react-icons/tb";
+import {
+  TbAlertTriangle,
+  TbBan,
+  TbChevronDown,
+  TbConfetti,
+  TbLock,
+  TbSpeakerphone,
+  TbTrash,
+  TbUsers,
+} from "react-icons/tb";
 import type { Announcement, LeaderboardEntry } from "@4eselo/types";
 import {
+  adminBan,
   adminDeleteAnnouncement,
   adminDeletePlayer,
   adminPutAnnouncement,
   adminRegenerateWrapped,
+  adminUnban,
   adminUpdatePlayer,
   getAnnouncements,
+  getBans,
   getLeaderboard,
 } from "../lib/api";
 import { useMe } from "../lib/useMe";
 import { discordAvatarUrl } from "../lib/discord";
 import { currentPeriod, parsePeriod } from "../lib/period";
 import { promoLabel } from "../lib/promo";
+import { fullDate } from "../lib/relativeTime";
 import { Avatar, Button, Card, Modal, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { useTitle } from "../lib/useTitle";
@@ -293,6 +306,221 @@ function WrappedRegen() {
   );
 }
 
+/** Dropdown custom de sélection d'un membre (avatars + hover), au lieu du `<select>` natif. */
+function PlayerPicker({
+  players,
+  value,
+  onChange,
+}: {
+  players: LeaderboardEntry[];
+  value: string;
+  onChange: (discordId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = players.find((p) => p.discordId === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`${fieldClass} flex cursor-pointer items-center justify-between gap-2`}
+      >
+        {selected ? (
+          <span className="flex min-w-0 items-center gap-2">
+            <Avatar
+              name={nameOf(selected)}
+              size={22}
+              src={discordAvatarUrl(selected.discordId, selected.discordAvatar)}
+            />
+            <span className="truncate">{nameOf(selected)}</span>
+          </span>
+        ) : (
+          <span className="text-ink-faint">— choisir un membre —</span>
+        )}
+        <TbChevronDown size={16} className="shrink-0 text-ink-faint" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1.5 max-h-64 w-full overflow-y-auto rounded-xl border border-white/[0.1] bg-surface-2 p-1 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)]">
+          {players.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-ink-faint">Aucun membre à bannir.</div>
+          ) : (
+            players.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  onChange(p.discordId!);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-white/[0.05]"
+              >
+                <Avatar name={nameOf(p)} size={26} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
+                <span className="truncate font-medium">{nameOf(p)}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Modération : bannir un membre (raison + confirmation) et débannir. */
+function BansSection({ players }: { players: LeaderboardEntry[] }) {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ["bans"], queryFn: getBans });
+  const bans = data?.bans ?? [];
+  const [targetId, setTargetId] = useState("");
+  const [reason, setReason] = useState("");
+  const [confirmBan, setConfirmBan] = useState(false);
+  const [unbanId, setUnbanId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const bannedSet = new Set(bans.map((b) => b.discordId));
+  const banneable = players.filter((p) => p.discordId && !bannedSet.has(p.discordId));
+  const nameByDiscord = (did: string) => {
+    const p = players.find((x) => x.discordId === did);
+    return p ? nameOf(p) : did;
+  };
+
+  const ban = useMutation({
+    mutationFn: () => adminBan(targetId, reason.trim() || null),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["bans"] });
+      setConfirmBan(false);
+      setTargetId("");
+      setReason("");
+      setError(null);
+    },
+    onError: (e) => setError(e instanceof Error ? e.message : "Échec du ban"),
+  });
+  const unban = useMutation({
+    mutationFn: (did: string) => adminUnban(did),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["bans"] });
+      setUnbanId(null);
+    },
+  });
+
+  return (
+    <Card className="flex flex-col gap-5 p-5">
+      {/* Bloc : bannir un membre */}
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+        <span className={labelClass}>Bannir un membre</span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="flex flex-1 flex-col gap-1.5">
+            <span className="text-xs text-ink-faint">Membre</span>
+            <PlayerPicker players={banneable} value={targetId} onChange={setTargetId} />
+          </label>
+          <label className="flex flex-1 flex-col gap-1.5">
+            <span className="text-xs text-ink-faint">Raison (optionnel)</span>
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Ex. comportement toxique"
+              className={fieldClass}
+            />
+          </label>
+          <Button
+            icon={TbBan}
+            onClick={() => setConfirmBan(true)}
+            disabled={!targetId}
+            className="bg-loss text-white hover:bg-loss disabled:opacity-50"
+          >
+            Bannir
+          </Button>
+        </div>
+      </div>
+
+      {/* Bloc : comptes bannis */}
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Comptes bannis ({bans.length})</span>
+        {bans.length === 0 ? (
+          <p className="text-sm text-ink-dim">Aucun compte banni pour l'instant.</p>
+        ) : (
+          <div className="flex flex-col divide-y divide-white/[0.05]">
+            {bans.map((b) => (
+              <div key={b.discordId} className="flex items-center gap-3 py-2.5">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-loss/12 text-loss">
+                  <TbBan size={17} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{nameByDiscord(b.discordId)}</div>
+                  <div className="truncate text-xs text-ink-faint">
+                    {b.reason ?? "Sans raison"} · {fullDate(b.createdAt)}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => setUnbanId(b.discordId)}
+                  className="px-3 py-1.5 text-xs"
+                >
+                  Débannir
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Modal open={confirmBan} onClose={() => setConfirmBan(false)} title="Bannir ce compte">
+        <div className="flex flex-col gap-4 p-3">
+          <p className="text-sm text-ink-dim">
+            Bannir <span className="font-bold text-ink">{nameByDiscord(targetId)}</span> le déconnecte et
+            l'empêche de se reconnecter
+            {reason.trim() ? ` — raison : « ${reason.trim()} »` : ""}.
+          </p>
+          {error && (
+            <p className="flex items-center gap-2 text-sm text-loss">
+              <TbAlertTriangle size={16} /> {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirmBan(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={() => ban.mutate()}
+              disabled={ban.isPending}
+              className="bg-loss text-white hover:bg-loss"
+            >
+              {ban.isPending ? "…" : "Bannir"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={unbanId !== null} onClose={() => setUnbanId(null)} title="Débannir ce compte">
+        <div className="flex flex-col gap-4 p-3">
+          <p className="text-sm text-ink-dim">
+            Débannir <span className="font-bold text-ink">{unbanId ? nameByDiscord(unbanId) : ""}</span> ? Il
+            pourra se reconnecter.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setUnbanId(null)}>
+              Annuler
+            </Button>
+            <Button onClick={() => unbanId && unban.mutate(unbanId)} disabled={unban.isPending}>
+              {unban.isPending ? "…" : "Débannir"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </Card>
+  );
+}
+
 export function Admin() {
   useTitle("Admin");
   const navigate = useNavigate();
@@ -373,6 +601,10 @@ export function Admin() {
 
       <Section icon={TbSpeakerphone} title="Annonce staff (home)">
         <AnnouncementEditor current={staff} />
+      </Section>
+
+      <Section icon={TbBan} title="Modération — bans">
+        <BansSection players={players} />
       </Section>
 
       <Section icon={TbConfetti} title="Régénérer un Wrapped">

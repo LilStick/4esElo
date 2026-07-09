@@ -4,6 +4,7 @@ import type {
   AdminPlayerPatch,
   Announcement,
   AnnouncementsResponse,
+  BansResponse,
   DuosResponse,
   EloSource,
   IdeasResponse,
@@ -218,4 +219,17 @@ export function adminDeleteAnnouncement() {
 
 export function adminRegenerateWrapped(year: number, month: number) {
   return post<WrappedResponse>(`/admin/wrapped/${year}/${month}/regenerate`);
+}
+
+/** Bans (B17.10, admin) — liste, bannir un compte Discord (raison), débannir. */
+export function getBans() {
+  return get<BansResponse>(`/admin/bans`);
+}
+
+export function adminBan(discordId: string, reason: string | null) {
+  return send<{ ok: true }>("PUT", `/admin/bans/${discordId}`, { reason });
+}
+
+export function adminUnban(discordId: string) {
+  return send<{ ok: true }>("DELETE", `/admin/bans/${discordId}`);
 }
