@@ -1,8 +1,14 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { db, players, faceitMatchStats } from "@4eselo/db";
-import type { DuoPlayer, DuosResponse, PlayerDuosResponse } from "@4eselo/types";
-import { computeDuos, computePlayerDuos, MIN_DUO_MATCHES } from "./social";
+import type { DuoPlayer, DuosResponse, LineupsResponse, PlayerDuosResponse } from "@4eselo/types";
+import {
+  computeDuos,
+  computeLineups,
+  computePlayerDuos,
+  MIN_DUO_MATCHES,
+  MIN_LINEUP_MATCHES,
+} from "./social";
 import { readPlayerId, badRequest } from "./http";
 
 export const duosRoutes = new Hono();
@@ -39,6 +45,14 @@ duosRoutes.get("/social/duos", async (c) => {
   return c.json<DuosResponse>({
     minMatches: MIN_DUO_MATCHES,
     duos: computeDuos(members, matchRows),
+  });
+});
+
+duosRoutes.get("/social/lineups", async (c) => {
+  const { members, matchRows } = await loadSocialInputs();
+  return c.json<LineupsResponse>({
+    minMatches: MIN_LINEUP_MATCHES,
+    lineups: computeLineups(members, matchRows),
   });
 });
 

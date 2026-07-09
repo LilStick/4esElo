@@ -7,6 +7,7 @@ import type {
   ActivityResponse,
   AnnouncementsResponse,
   DuosResponse,
+  LineupsResponse,
   PlayerDuosResponse,
   PlayerDetail,
   EloCurveResponse,
@@ -646,6 +647,46 @@ test("B4.1: /social/duos and /players/:id/duos expose seeded teammates", { skip 
   } finally {
     await db.delete(players).where(eq(players.id, a)); // cascade sur ses matchs
     await db.delete(players).where(eq(players.id, b));
+  }
+});
+
+test("B4.4: /social/lineups expose un trio seedé (≥ 3 games ensemble)", { skip }, async () => {
+  const rows = await db
+    .insert(players)
+    .values([
+      { discordName: "ilnA", faceitNickname: "ilnA_nick", steamId64: "765_ilnA" },
+      { discordName: "ilnB", faceitNickname: "ilnB_nick", steamId64: "765_ilnB" },
+      { discordName: "ilnC", faceitNickname: "ilnC_nick", steamId64: "765_ilnC" },
+    ])
+    .returning({ id: players.id });
+  const ids = rows.map((r) => r.id);
+  try {
+    const results = [1, 1, 0]; // 3 games ensemble, 2 wins
+    await db.insert(faceitMatchStats).values(
+      results.flatMap((result, i) =>
+        ids.map((playerId) => ({
+          matchId: `it-lineup-${i}`,
+          playerId,
+          map: "de_mirage",
+          playedAt: new Date(`2026-06-2${i}T20:00:00Z`),
+          result,
+          stats: makeStats(),
+        })),
+      ),
+    );
+
+    const res = await app.request(`/social/lineups`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as LineupsResponse;
+    assert.equal(body.minMatches, 3);
+    const ours = body.lineups.find(
+      (l) => l.size === 3 && ids.every((id) => l.players.some((p) => p.id === id)),
+    );
+    assert.ok(ours, "le trio seedé doit apparaître");
+    assert.equal(ours.matches, 3);
+    assert.equal(ours.winRate, 66.7);
+  } finally {
+    for (const id of ids) await db.delete(players).where(eq(players.id, id));
   }
 });
 
