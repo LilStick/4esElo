@@ -1,4 +1,10 @@
-import type { FaceitMatchStats, MapStat, StatsAggregate, StatsRange } from "@4eselo/types";
+import {
+  hltvRating,
+  type FaceitMatchStats,
+  type MapStat,
+  type StatsAggregate,
+  type StatsRange,
+} from "@4eselo/types";
 
 /**
  * Aggregation over stored matches (B2.7) — pure functions, no I/O.
@@ -42,6 +48,12 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
   let entryWins = 0;
   let entryCount = 0;
   let utilityDamage = 0;
+  // Composants du rating HLTV 1.0 agrégé (B16.8) — rounds dérivés de kr par match.
+  let rounds = 0;
+  let dbl = 0;
+  let tpl = 0;
+  let quad = 0;
+  let penta = 0;
 
   for (const m of matches) {
     wins += m.result;
@@ -54,7 +66,22 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
     entryWins += m.stats.entryWins;
     entryCount += m.stats.entryCount;
     utilityDamage += m.stats.utilityDamage;
+    rounds += m.stats.kr > 0 ? m.stats.kills / m.stats.kr : 0;
+    dbl += m.stats.doubleKills;
+    tpl += m.stats.tripleKills;
+    quad += m.stats.quadroKills;
+    penta += m.stats.pentaKills;
   }
+
+  const rawRating = hltvRating({
+    kills,
+    deaths,
+    rounds,
+    doubleKills: dbl,
+    tripleKills: tpl,
+    quadroKills: quad,
+    pentaKills: penta,
+  });
 
   return {
     range,
@@ -67,6 +94,7 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
     clutchWinRate: pct(clutchWins, clutchCount),
     entrySuccessRate: pct(entryWins, entryCount),
     utilityDamagePerMatch: n > 0 ? round1(utilityDamage / n) : 0,
+    rating: rawRating === null ? null : Math.round(rawRating * 100) / 100,
   };
 }
 

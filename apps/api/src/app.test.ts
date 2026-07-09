@@ -287,6 +287,7 @@ test("GET /players/:id/stats aggregates stored matches (default range=all)", { s
   assert.equal(body.overall.wins, 2);
   assert.equal(body.overall.winRate, 66.7);
   assert.equal(body.overall.kd, 1.3); // 60 kills / 45 deaths
+  assert.equal(body.overall.rating, null); // kr=0 sur les matchs seedés → pas de rounds → rating null (B16.8)
   const mirage = body.maps.find((m) => m.map === "de_mirage");
   assert.ok(mirage);
   assert.equal(mirage.matches, 2);

@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : rating HLTV 1.0 agrégé sur le profil — `/players/:id/stats` renvoie `rating` calculé sur la période sélectionnée (range-aware 7j/30j/3m/all), + formule HLTV centralisée dans `packages/types` (une seule source front+back). Débloque #286. (#298)
 - Worker : deep-ingest de l'historique — un membre non encore traité (nouvel inscrit ou roster à rattraper) voit tout son historique Faceit tiré une bonne fois (fenêtre large), au lieu de la fenêtre glissante de 90 j ; colonne `deep_ingested_at`, 1 joueur par run. Remplit la heatmap et l'historique en profondeur. (#282)
 - API : succès permanents — `GET /players/:id/achievements` (14 succès à paliers : matchs, kills, aces, clutchs, MVP, ELO…), déblocages persistés avec date figée + progression des verrouillés ; débloque le front #266. (#265)
 - API : lineups — `GET /social/lineups` (groupes de 3 à 5 membres qui jouent ensemble, games + winrate, min. 3 games), prolongement des duos ; débloque le front #262. (#261)
