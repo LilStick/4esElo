@@ -6,6 +6,7 @@ import { SteamClient } from "@4eselo/steam";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
 import { ingestMatches } from "./ingestMatches";
+import { deepIngestPlayers } from "./deepIngest";
 import { attributeEloAfter } from "./eloAfter";
 import { samplePlaytime } from "./playtime";
 import { backfillPlayerElo } from "./backfillElo";
@@ -15,6 +16,7 @@ import {
   dbStore,
   dbMatchStatsStore,
   dbMatchStore,
+  dbDeepIngestStore,
   dbPlaytimeStore,
   dbBackfillStore,
   dbAnnouncementStore,
@@ -118,6 +120,17 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
       console.error(`[worker] ${p.faceitId} backfill failed:`, err instanceof Error ? err.message : err);
     }
     await sleep(DELAY_BETWEEN_PLAYERS_MS);
+  }
+
+  // Deep-ingest (B17.11) : un membre non encore deep-ingéré (nouvel inscrit ou
+  // roster à rattraper) → pull profond de son historique, une fois. 1/run (lourd).
+  try {
+    const deep = await deepIngestPlayers(faceit, dbMatchStatsStore, dbDeepIngestStore);
+    if (deep.players > 0) {
+      console.log(`[worker] deep-ingest: ${deep.players} joueur(s), +${deep.inserted} matchs rétro`);
+    }
+  } catch (err) {
+    console.error("[worker] deep-ingest failed:", err instanceof Error ? err.message : err);
   }
 
   // Vue match-level (B4.3) : remplit `matches` (nouveaux + backfill des anciens)

@@ -31,6 +31,8 @@ export const players = pgTable("players", {
   /** Backfill ELO opportuniste (#141) : dernière tentative (1/jour max) et succès. */
   eloBackfillAttemptedAt: timestamp("elo_backfill_attempted_at", { withTimezone: true }),
   eloBackfillDoneAt: timestamp("elo_backfill_done_at", { withTimezone: true }),
+  /** Pull profond de l'historique fait (B17.11) ; null = à deep-ingérer (nouvel inscrit ou roster à rattraper). */
+  deepIngestedAt: timestamp("deep_ingested_at", { withTimezone: true }),
 });
 
 /** Time series of ELO values, one row per capture. Feeds the ELO curves. */
