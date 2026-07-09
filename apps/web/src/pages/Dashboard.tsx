@@ -18,9 +18,12 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <AnnouncementBanner />
 
-      <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px] xl:items-start">
-        {/* Rail gauche : joueur du jour, grimpeur, présence, dépassements, records — en entier, sans clic */}
-        <aside className="flex flex-col gap-4 xl:w-[280px]">
+      {/* 2 colonnes dès xl (rail gauche + centre large), 3 colonnes à 2xl (ajoute le rail matchs)
+          → le centre ne s'écrase pas sur les laptops ~1280–1536. */}
+      <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] xl:items-start 2xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        {/* Rail gauche : joueur du jour, grimpeur, présence, dépassements, records — en entier, sans clic.
+            En 1 colonne il passe en dernier (ordre : centre → matchs → rail gauche). */}
+        <aside className="order-3 flex flex-col gap-4 xl:order-1">
           <PlayerOfTheDay />
           <TopClimber />
           <LivePresence />
@@ -28,7 +31,7 @@ export function Dashboard() {
           <PoleRecords />
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="order-1 flex min-w-0 flex-col gap-6 xl:order-2">
           <HomeHero />
 
           <ActivityHeatmap title="Activité du pôle" />
@@ -38,8 +41,9 @@ export function Dashboard() {
           <HomeAccountBanner />
         </div>
 
-        {/* Rail droit : flux de matchs récents de tout le pôle (±ELO, clic → détail) */}
-        <aside className="flex flex-col gap-4 xl:w-[320px]">
+        {/* Rail droit : flux de matchs récents. À xl (2 col) il passe pleine largeur sous le
+            contenu ; à 2xl il devient la 3ᵉ colonne. */}
+        <aside className="order-2 flex flex-col gap-4 xl:order-3 xl:col-span-2 2xl:col-span-1">
           <RecentMatches />
         </aside>
       </div>
