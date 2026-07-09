@@ -8,6 +8,7 @@ import type {
   EloSource,
   StaffAnnouncementRequest,
   LeaderboardResponse,
+  LineupsResponse,
   MatchesResponse,
   MeResponse,
   MoversResponse,
@@ -143,6 +144,11 @@ export function getPlayerActivity(id: string, days = 364) {
 
 export function getDuos() {
   return get<DuosResponse>(`/social/duos`);
+}
+
+/** Lineups (B4.5) — groupes de 3 à 5 membres qui jouent ensemble (games + winrate). */
+export function getLineups() {
+  return get<LineupsResponse>(`/social/lineups`);
 }
 
 export function getPlayerDuos(id: string) {
