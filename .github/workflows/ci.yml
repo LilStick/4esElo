@@ -59,6 +59,44 @@ jobs:
       - name: Tests (unit + intégration)
         run: pnpm test
 
+  e2e:
+    # Socle e2e (B11.17) : boote la vraie stack (API + web + Postgres) et tape
+    # l'API en HTTP réel + smoke SPA. Job séparé du `ci` (Playwright lent/flaky).
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: 4eselo
+          POSTGRES_PASSWORD: 4eselo
+          POSTGRES_DB: 4eselo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U 4eselo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://4eselo:4eselo@localhost:5432/4eselo
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply DB schema
+        run: pnpm db:push
+      - name: Install Playwright (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
+      - name: e2e
+        run: pnpm e2e
+
   changelog:
     # Une PR liée à un ticket doit mettre à jour CHANGELOG.md.
     # Exceptions : "[NO-CHANGELOG]" dans le titre de la PR ou d'un commit, et les PRs Dependabot.
