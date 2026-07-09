@@ -9,6 +9,7 @@ import type {
   StaffAnnouncementRequest,
   LeaderboardResponse,
   LineupsResponse,
+  MapsLeaderboardResponse,
   MatchesResponse,
   MeResponse,
   MoversResponse,
@@ -76,6 +77,11 @@ const post = <T>(path: string, body?: unknown) => send<T>("POST", path, body);
 export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
   const spark = sparkline ? `&sparkline=${sparkline}` : "";
   return get<LeaderboardResponse>(`/leaderboard?source=${source}${spark}`);
+}
+
+/** Classement du pôle par map (B13.5) — toutes les maps + leur top membres. */
+export function getMapsLeaderboard() {
+  return get<MapsLeaderboardResponse>(`/leaderboard/maps`);
 }
 
 export function getMovers(window: MoversWindow = "24h", source: EloSource = "faceit") {

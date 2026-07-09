@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-10
 
+- Web : classement par map (`/classement/maps`) — sélecteur de cartes (triées par activité) + classement des membres sur la map choisie (winrate, K/D, games), lignes cliquables vers les profils ; accès via un bouton « Par map » sur le classement. Données de l'API B13.6. (#109)
 - Web : section « Les fives du pôle » sur la page Social — les groupes de 3 à 5 membres qui jouent ensemble (avatars, taille, winrate, games), triés par taille puis winrate, pseudos cliquables ; état vide propre. Données de l'API B4.4. (#262)
 - Web : page dédiée « Succès » par joueur (`/player/:id/succes`) — en-tête + progression globale + grille de trophées (débloqués datés, verrouillés grisés avec condition et barre de progression) ; carte résumé cliquable sur le profil. Données de l'API B7.8. (#266)
 

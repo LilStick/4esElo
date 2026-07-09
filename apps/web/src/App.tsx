@@ -5,6 +5,7 @@ import { AppShell } from "./components/AppShell";
 import { Tour } from "./components/Tour";
 import { Dashboard } from "./pages/Dashboard";
 import { Leaderboard } from "./pages/Leaderboard";
+import { Maps } from "./pages/Maps";
 import { Asso } from "./pages/Asso";
 import { Player } from "./pages/Player";
 import { Achievements } from "./pages/Achievements";
@@ -44,6 +45,7 @@ function AnimatedRoutes() {
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/classement" element={<Leaderboard />} />
+          <Route path="/classement/maps" element={<Maps />} />
           <Route path="/asso" element={<Asso />} />
           <Route path="/player/:id" element={<Player />} />
           <Route path="/player/:id/succes" element={<Achievements />} />

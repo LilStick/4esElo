@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { TbArrowRight, TbCrown, TbSearch, TbUsersGroup } from "react-icons/tb";
+import { Link, useNavigate } from "react-router-dom";
+import { TbArrowRight, TbCrown, TbMap2, TbSearch, TbUsersGroup } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
@@ -159,11 +159,19 @@ export function Leaderboard() {
     <div>
       <Card outerClassName="mb-6" className="relative overflow-hidden p-6">
         <MapBackdrop src={backdrop} />
-        <div className="relative">
-          <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
-          <p className="mt-1 text-sm text-ink-dim">
-            Membres du pôle CS2, par ELO Faceit et palier de niveau.
-          </p>
+        <div className="relative flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
+            <p className="mt-1 text-sm text-ink-dim">
+              Membres du pôle CS2, par ELO Faceit et palier de niveau.
+            </p>
+          </div>
+          <Link
+            to="/classement/maps"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-sm font-semibold text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
+          >
+            <TbMap2 size={16} /> Par map
+          </Link>
         </div>
       </Card>
 
