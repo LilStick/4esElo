@@ -453,12 +453,12 @@ export interface LineupsResponse {
   lineups: LineupStat[];
 }
 
-/** Annonce du site (B7.4) : Wrapped mensuel auto, plus tard l'annonce staff (B17.4). */
+/** Annonce du site (B7.4) : Wrapped mensuel auto, recap hebdo (B5.7), annonce staff (B17.4). */
 export interface Announcement {
   id: string;
-  type: "wrapped" | "staff";
+  type: "wrapped" | "staff" | "weekly-recap";
   title: string;
-  /** Texte libre (annonce staff), null pour le Wrapped. */
+  /** Texte libre (recap hebdo, annonce staff), null pour le Wrapped. */
   body: string | null;
   /** Chemin interne (ex. /wrapped/juin-2026), null = annonce sans lien. */
   linkUrl: string | null;
