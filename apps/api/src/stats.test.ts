@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { FaceitMatchStats } from "@4eselo/types";
+import { hltvRating, type FaceitMatchStats } from "@4eselo/types";
 import { computeAggregate, computeMapStats, rangeCutoff, type MatchForStats } from "./stats";
 
 function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
@@ -94,6 +94,7 @@ test("aggregate: zero matches → all zeros, no NaN", () => {
     clutchWinRate: 0,
     entrySuccessRate: 0,
     utilityDamagePerMatch: 0,
+    rating: null,
   });
 });
 
@@ -127,4 +128,54 @@ test("rangeCutoff: bounded ranges compute from now, all is null", () => {
   assert.equal(rangeCutoff("7d", now)!.toISOString(), "2026-06-26T12:00:00.000Z");
   assert.equal(rangeCutoff("3m", now)!.toISOString(), "2026-04-04T12:00:00.000Z");
   assert.equal(rangeCutoff("all", now), null);
+});
+
+test("hltvRating: bonne game > 1, sans rounds → null (B16.8)", () => {
+  const r = hltvRating({
+    kills: 20,
+    deaths: 10,
+    rounds: 24,
+    doubleKills: 2,
+    tripleKills: 1,
+    quadroKills: 0,
+    pentaKills: 0,
+  });
+  assert.ok(r !== null && Math.abs(r - 1.29) < 0.03, `attendu ~1.29, obtenu ${r}`);
+  // partie médiocre → sous 1
+  const bad = hltvRating({
+    kills: 8,
+    deaths: 20,
+    rounds: 24,
+    doubleKills: 0,
+    tripleKills: 0,
+    quadroKills: 0,
+    pentaKills: 0,
+  });
+  assert.ok(bad !== null && bad < 1, `attendu < 1, obtenu ${bad}`);
+  assert.equal(
+    hltvRating({
+      kills: 20,
+      deaths: 10,
+      rounds: 0,
+      doubleKills: 0,
+      tripleKills: 0,
+      quadroKills: 0,
+      pentaKills: 0,
+    }),
+    null,
+  );
+});
+
+test("aggregate: rating HLTV agrégé sur les totaux (rounds via kr), null si aucun round", () => {
+  // 2 matchs, kr fixé → rounds dérivés (24 + 20 = 44 rounds).
+  const agg = computeAggregate("all", [
+    match("de_mirage", 1, { kills: 24, deaths: 15, kr: 1.0, doubleKills: 3 }),
+    match("de_dust2", 0, { kills: 14, deaths: 20, kr: 0.7, doubleKills: 1 }),
+  ]);
+  assert.equal(typeof agg.rating, "number");
+  assert.ok(agg.rating! > 0);
+
+  // aucun match / kr=0 partout → pas de rounds → rating null
+  assert.equal(computeAggregate("all", []).rating, null);
+  assert.equal(computeAggregate("all", [match("de_x", 1, { kills: 10, kr: 0 })]).rating, null);
 });

@@ -168,6 +168,35 @@ export interface FaceitMatchStats {
   sniperKills: number;
 }
 
+/** Composants nécessaires au calcul du rating HLTV 1.0 (par match ou agrégés). */
+export interface HltvRatingInput {
+  kills: number;
+  deaths: number;
+  rounds: number;
+  doubleKills: number;
+  tripleKills: number;
+  quadroKills: number;
+  pentaKills: number;
+}
+
+/**
+ * Rating façon HLTV 1.0 — source unique partagée front (par match) / back (agrégé).
+ * Le nb de rounds est fourni par l'appelant (par match : `kills / kr` ; agrégé :
+ * somme des rounds de chaque match). Null si non calculable. Constantes HLTV 1.0.
+ */
+export function hltvRating(i: HltvRatingInput): number | null {
+  if (i.rounds <= 0) return null;
+  const k2 = i.doubleKills;
+  const k3 = i.tripleKills;
+  const k4 = i.quadroKills;
+  const k5 = i.pentaKills;
+  const k1 = Math.max(0, i.kills - (2 * k2 + 3 * k3 + 4 * k4 + 5 * k5));
+  const killRating = i.kills / i.rounds / 0.679;
+  const survival = (i.rounds - i.deaths) / i.rounds / 0.317;
+  const rmk = (1 * k1 + 4 * k2 + 9 * k3 + 16 * k4 + 25 * k5) / i.rounds / 1.277;
+  return (killRating + 0.7 * survival + rmk) / 2.7;
+}
+
 /** One stored match for a player (API shape). */
 export interface MatchSummary {
   matchId: string;
@@ -220,6 +249,8 @@ export interface StatsAggregate {
   clutchWinRate: number; // 0-100
   entrySuccessRate: number; // 0-100
   utilityDamagePerMatch: number;
+  /** Rating HLTV 1.0 agrégé sur la période (B16.8) ; null si pas de rounds. */
+  rating: number | null;
 }
 
 export interface MapStat {
