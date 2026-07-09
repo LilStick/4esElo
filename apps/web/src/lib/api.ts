@@ -22,6 +22,7 @@ import type {
   RegisterLookupResponse,
   RegisterRequest,
   RegisterResponse,
+  RoastResponse,
   StatsRange,
   WrappedResponse,
 } from "@4eselo/types";
@@ -106,6 +107,11 @@ export function getPlayer(id: string, source: EloSource = "faceit") {
 /** Rafraîchit l'ELO d'un joueur à la demande (B16.10) — resync Faceit, rate-limité 1/min. */
 export function refreshPlayerElo(id: string) {
   return post<RefreshEloResponse>(`/players/${id}/refresh`);
+}
+
+/** Roast du joueur (B7.7) — punchlines profil (négatif + positif) + forecast ELO. */
+export function getPlayerRoast(id: string) {
+  return get<RoastResponse>(`/players/${id}/roast`);
 }
 
 export function getPlayerStats(id: string, range: StatsRange = "all") {

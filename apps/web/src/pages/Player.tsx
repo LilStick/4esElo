@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { IconType } from "react-icons";
 import {
   TbArrowLeft,
   TbChartBar,
   TbExternalLink,
+  TbFlame,
   TbLock,
   TbMap2,
   TbRadar2,
@@ -22,6 +23,7 @@ import { RadarPerf } from "../components/RadarPerf";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
+import { ProfileRoast } from "../components/ProfileRoast";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
 import { PlayerDuos } from "../components/PlayerDuos";
 import { EloSummaryCard } from "../components/EloSummaryCard";
@@ -89,13 +91,6 @@ export function Player() {
 
   return (
     <div>
-      <Link
-        to="/classement"
-        className="inline-flex items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink"
-      >
-        <TbArrowLeft size={16} /> Classement
-      </Link>
-
       {isLoading && <PlayerSkeleton />}
       {isError && (
         <EmptyState
@@ -108,9 +103,15 @@ export function Player() {
       )}
 
       {data && (
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_minmax(0,920px)_1fr] lg:items-start">
-          {/* Rail annexe : identité + activité (dans le gutter gauche, collé au centre) */}
+        <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,920px)_1fr] lg:items-start">
+          {/* Rail annexe : retour + identité + activité (dans le gutter gauche, collé au centre) */}
           <aside className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-end">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex cursor-pointer items-center gap-1.5 self-start text-sm text-ink-dim transition-colors hover:text-ink"
+            >
+              <TbArrowLeft size={16} /> Retour
+            </button>
             <Card className="flex flex-col items-center gap-4 p-6 text-center">
               <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
               <div className="min-w-0">
@@ -227,8 +228,15 @@ export function Player() {
             </div>
           </div>
 
-          {/* Gutter droit : vide, pour que la colonne principale soit centrée */}
-          <div className="hidden lg:block" />
+          {/* Rail droit : diagnostic 4esBot (roast déterministe, négatif + positif) */}
+          <aside className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-start">
+            <div>
+              <div className="mb-3">
+                <SectionTitle icon={TbFlame}>Roast</SectionTitle>
+              </div>
+              <ProfileRoast id={id} />
+            </div>
+          </aside>
         </div>
       )}
     </div>
