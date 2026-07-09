@@ -1,5 +1,6 @@
 export { Avatar } from "./Avatar";
 export { Card } from "./Card";
+export { CountUp } from "./CountUp";
 export { Button } from "./Button";
 export { EloGauge } from "./EloGauge";
 export { LevelBadge } from "./LevelBadge";
