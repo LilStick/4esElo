@@ -7,6 +7,8 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : badges emoji de perf récente à côté du pseudo — sur le classement (max 3, « +N » au-delà) et sur le profil (tous), avec un tooltip au survol (emoji + libellé + comment on le gagne) ; rien affiché si aucun badge. Données de l'API B5.8. (#259)
+
 - Web : punchline « 4esBot » sur le détail d'un match — une vanne ou un compliment calculé depuis les stats de la game (moteur partagé), affiché dans la modale de match (barre d'accent V/D, emoji, ton fun) ; rien si la game est banale. (#302)
 
 - Web : passe responsive shell + home + profil — sidebar repliée d'office et toggle masqué sous 1760 px (fini les chevauchements), bulle du shell retirée en mode menu burger (contenu à plat), home et profil basculent en une colonne à 1280 px avec un ordre lisible (centre d'abord), et le profil ne s'écrase plus sur les laptops. (#208)
