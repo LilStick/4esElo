@@ -13,7 +13,7 @@ import {
   TbTargetArrow,
   TbTrophy,
 } from "react-icons/tb";
-import type { MatchSummary } from "@4eselo/types";
+import { matchRoast, type MatchSummary } from "@4eselo/types";
 import { Modal, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
@@ -84,6 +84,8 @@ export function MatchDetailModal({
   const s = match?.stats;
   const win = match?.result === 1;
   const r = s ? matchRating(s) : null;
+  // Punchline contextuelle de la game (hype ou vanne), moteur partagé #263.
+  const roast = s && match ? matchRoast(s, match.result) : null;
 
   return (
     <Modal open={isOpen} onClose={onClose} title="Détail du match" size="lg">
@@ -152,6 +154,22 @@ export function MatchDetailModal({
               </div>
             </div>
           </div>
+
+          {/* Punchline 4esBot de la game (hype ou vanne) — barre d'accent + chip emoji, verre discret */}
+          {roast && (
+            <div className="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.025] py-3 pr-4 pl-5">
+              <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", win ? "bg-win" : "bg-loss")} />
+              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white/[0.05] text-xl leading-none">
+                {roast.emoji}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold tracking-[0.16em] text-ink-faint uppercase">
+                  {roast.label}
+                </div>
+                <div className="text-sm font-medium text-ink">{roast.text}</div>
+              </div>
+            </div>
+          )}
 
           {/* Bande vedette : rating + stats clés */}
           <div className="grid grid-cols-2 divide-white/[0.06] rounded-xl border border-white/[0.06] bg-white/[0.02] sm:grid-cols-4 sm:divide-x">
