@@ -5,12 +5,19 @@ import { db } from "@4eselo/db";
 import type {
   LeaderboardEntry,
   LeaderboardResponse,
+  MapsLeaderboardResponse,
   MoverEntry,
   MoversResponse,
   OvertakesResponse,
 } from "@4eselo/types";
 import { computeOvertakes } from "./streaks";
 import { computeBadges, type BadgeMatch } from "./badges";
+import {
+  computeMapLeaderboard,
+  MIN_MAP_MATCHES,
+  type MapLeaderboardPlayer,
+  type MapLeaderboardRow,
+} from "./stats";
 import { readSource, badRequest } from "./http";
 
 export const leaderboardRoutes = new Hono();
@@ -133,6 +140,48 @@ leaderboardRoutes.get("/leaderboard/overtakes", async (c) => {
   );
 
   return c.json<OvertakesResponse>({ source, window, overtakes });
+});
+
+// Static path déclaré avant /leaderboard (comme movers/overtakes).
+leaderboardRoutes.get("/leaderboard/maps", async (c) => {
+  const playerRows = await db.execute<{
+    id: string;
+    faceit_nickname: string | null;
+    discord_name: string | null;
+    discord_id: string | null;
+    discord_avatar: string | null;
+  }>(sql`select id, faceit_nickname, discord_name, discord_id, discord_avatar from players`);
+  const matchRows = await db.execute<{
+    player_id: string;
+    map: string;
+    result: number;
+    kills: number;
+    deaths: number;
+  }>(sql`
+    select player_id, map, result,
+           coalesce((stats->>'kills')::int, 0) as kills,
+           coalesce((stats->>'deaths')::int, 0) as deaths
+    from faceit_match_stats
+  `);
+
+  const players: MapLeaderboardPlayer[] = playerRows.map((p) => ({
+    id: p.id,
+    nickname: p.faceit_nickname ?? p.discord_name ?? p.id,
+    discordId: p.discord_id,
+    discordAvatar: p.discord_avatar,
+  }));
+  const rows: MapLeaderboardRow[] = matchRows.map((r) => ({
+    playerId: r.player_id,
+    map: r.map,
+    result: r.result,
+    kills: r.kills,
+    deaths: r.deaths,
+  }));
+
+  return c.json<MapsLeaderboardResponse>({
+    minMatches: MIN_MAP_MATCHES,
+    maps: computeMapLeaderboard(players, rows),
+  });
 });
 
 leaderboardRoutes.get("/leaderboard", async (c) => {

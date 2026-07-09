@@ -1,7 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { hltvRating, type FaceitMatchStats } from "@4eselo/types";
-import { computeAggregate, computeMapStats, rangeCutoff, type MatchForStats } from "./stats";
+import {
+  computeAggregate,
+  computeMapStats,
+  computeMapLeaderboard,
+  rangeCutoff,
+  type MatchForStats,
+} from "./stats";
 
 function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
   return {
@@ -178,4 +184,42 @@ test("aggregate: rating HLTV agrégé sur les totaux (rounds via kr), null si au
   // aucun match / kr=0 partout → pas de rounds → rating null
   assert.equal(computeAggregate("all", []).rating, null);
   assert.equal(computeAggregate("all", [match("de_x", 1, { kills: 10, kr: 0 })]).rating, null);
+});
+
+test("map leaderboard: par map, classé par winrate, seuil de games (B13.6)", () => {
+  const players = [
+    { id: "p1", nickname: "alice", discordId: null, discordAvatar: null },
+    { id: "p2", nickname: "bob", discordId: null, discordAvatar: null },
+  ];
+  const rows = [
+    ...Array.from({ length: 5 }, (_, i) => ({
+      playerId: "p1",
+      map: "de_mirage",
+      result: i < 4 ? 1 : 0,
+      kills: 20,
+      deaths: 10,
+    })),
+    ...Array.from({ length: 5 }, (_, i) => ({
+      playerId: "p2",
+      map: "de_mirage",
+      result: i < 2 ? 1 : 0,
+      kills: 15,
+      deaths: 15,
+    })),
+    ...Array.from({ length: 3 }, () => ({
+      playerId: "p2",
+      map: "de_dust2",
+      result: 1,
+      kills: 10,
+      deaths: 10,
+    })),
+  ];
+  const lb = computeMapLeaderboard(players, rows, 5);
+  assert.equal(lb.length, 1); // dust2 exclu (p2 n'a que 3 games < 5)
+  assert.equal(lb[0]!.map, "de_mirage");
+  assert.equal(lb[0]!.players.length, 2);
+  assert.equal(lb[0]!.players[0]!.player.nickname, "alice"); // 80% en tête
+  assert.equal(lb[0]!.players[0]!.winRate, 80);
+  assert.equal(lb[0]!.players[0]!.kd, 2); // 100 kills / 50 deaths
+  assert.equal(lb[0]!.players[1]!.player.nickname, "bob"); // 40%
 });
