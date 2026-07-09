@@ -18,6 +18,7 @@ import type {
   PlayerWrappedResponse,
   PresenceResponse,
   RecentMatchesResponse,
+  RefreshEloResponse,
   RegisterLookupResponse,
   RegisterRequest,
   RegisterResponse,
@@ -100,6 +101,11 @@ export function getPlayerWrapped(year: number, month: number, playerId: string) 
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
   return get<PlayerDetail>(`/players/${id}?source=${source}`);
+}
+
+/** Rafraîchit l'ELO d'un joueur à la demande (B16.10) — resync Faceit, rate-limité 1/min. */
+export function refreshPlayerElo(id: string) {
+  return post<RefreshEloResponse>(`/players/${id}/refresh`);
 }
 
 export function getPlayerStats(id: string, range: StatsRange = "all") {

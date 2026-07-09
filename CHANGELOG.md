@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : bouton « rafraîchir l'ELO » (icône) sur la carte ELO du profil — resync Faceit à la demande, spinner pendant, l'ELO affiché se met à jour sans recharger ; message propre si déjà à jour ou rate-limité (429). (#303)
 - Web : rating moyen (façon HLTV) sur le profil, dans le bento de stats et suivant le sélecteur de période, couleur selon la valeur ; bouton « Comparer » (icône) sur la carte de profil de performance qui pré-remplit le joueur sur la page de comparaison. La formule de rating par match pointe désormais vers la source unique partagée (`packages/types`). (#286)
 - Web : flux « Matchs récents » du pôle dans un rail à droite de la home (tous joueurs confondus, avatar, map, V/D, ±ELO coloré), en remplacement du widget « Mouvements récents » ; un clic sur une ligne ouvre la modale de détail du match. (#285)
 - API : carte de partage OG par joueur — `GET /players/:id/og.png` génère une carte perso (avatar, pseudo, niveau, ELO, winrate/K-D/rating) en PNG via SVG→resvg (sans navigateur headless, police Inter embarquée) ; `GET /player/:id` sert aux crawlers (Discord/Twitter/WhatsApp) un HTML avec les balises OG du bon joueur, les navigateurs étant redirigés vers la SPA. Joueur sans stats → carte dégradée. Coller un lien de profil affiche désormais la carte du joueur au lieu de l'aperçu générique. (#253)
