@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from "motion/react";
 import {
+  TbBulb,
   TbConfetti,
   TbGitCompare,
   TbInfoCircle,
@@ -72,6 +73,7 @@ const NAV = [
   { to: "/classement", label: "Classement", icon: TbTrophy, end: false },
   { to: "/compare", label: "Comparer", icon: TbGitCompare, end: false },
   { to: "/social", label: "Social", icon: TbUsersGroup, end: false },
+  { to: "/ideas", label: "Idées", icon: TbBulb, end: false },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle, end: false },
   { to: `/wrapped/${currentPeriod()}`, label: "Wrapped", icon: TbConfetti, end: false },
   { to: "/changelog", label: "Nouveautés", icon: TbSparkles, end: false },
