@@ -162,17 +162,26 @@ export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader & Week
 
 /** Real MatchStatsStore backed by Postgres via Drizzle. */
 export const dbMatchStatsStore: MatchStatsStore & EloAfterStore = {
-  async setEloAfter(playerId, matchId, elo) {
+  async setNewestMatchEloAfter(playerId, elo) {
+    // Match le plus récent du joueur (match_id départage les ex æquo → stable).
+    const [newest] = await db
+      .select({ matchId: faceitMatchStats.matchId, eloAfter: faceitMatchStats.eloAfter })
+      .from(faceitMatchStats)
+      .where(eq(faceitMatchStats.playerId, playerId))
+      .orderBy(desc(faceitMatchStats.playedAt), desc(faceitMatchStats.matchId))
+      .limit(1);
+    if (!newest || newest.eloAfter !== null) return null;
     await db
       .update(faceitMatchStats)
       .set({ eloAfter: elo })
       .where(
         and(
           eq(faceitMatchStats.playerId, playerId),
-          eq(faceitMatchStats.matchId, matchId),
+          eq(faceitMatchStats.matchId, newest.matchId),
           isNull(faceitMatchStats.eloAfter),
         ),
       );
+    return newest.matchId;
   },
 
   async getStoredMatchIds(playerId, matchIds) {
