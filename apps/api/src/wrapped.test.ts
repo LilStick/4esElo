@@ -330,3 +330,70 @@ test("monthRange : bornes UTC du mois, décembre inclus", () => {
   const dec = monthRange(2026, 12);
   assert.equal(dec.end.toISOString(), "2027-01-01T00:00:00.000Z");
 });
+
+test("B7.10 tibia-dor / chirurgien : pire et meilleur HS%", () => {
+  const awards = computeAwards(
+    inputs({
+      matches: [
+        ...games("p1", MIN_MATCHES, { hsPercent: 20, adr: 80 }),
+        ...games("p2", MIN_MATCHES, { hsPercent: 55, adr: 80 }),
+      ],
+    }),
+  );
+  const tibia = winnersOf(awards, "tibia-dor");
+  assert.equal(tibia.length, 1);
+  assert.equal(tibia[0]!.playerId, "p1"); // pire HS%
+  assert.equal(tibia[0]!.value, 20);
+  const chir = winnersOf(awards, "chirurgien");
+  assert.equal(chir.length, 1);
+  assert.equal(chir[0]!.playerId, "p2"); // meilleur HS%
+  assert.equal(chir[0]!.value, 55);
+});
+
+test("B7.10 baby-sitter : le plus de kills en défaite", () => {
+  const awards = computeAwards(
+    inputs({
+      matches: [
+        ...games("p1", MIN_MATCHES, { kills: 30 }, { result: 0 }), // hard carry mais défaites
+        ...games("p2", MIN_MATCHES, { kills: 30 }, { result: 1 }), // que des wins → 0 kill en défaite
+      ],
+    }),
+  );
+  const bs = winnersOf(awards, "baby-sitter");
+  assert.equal(bs.length, 1);
+  assert.equal(bs[0]!.playerId, "p1");
+  assert.equal(bs[0]!.value, 30 * MIN_MATCHES);
+});
+
+test("B7.10 hamster : le plus de games pour un ΔELO ≤ 0", () => {
+  const awards = computeAwards(
+    inputs({
+      matches: [...games("p1", MIN_MATCHES + 2), ...games("p2", MIN_MATCHES)],
+      eloSnapshots: [
+        { playerId: "p1", elo: 1500, capturedAt: new Date("2026-06-01T00:00:00Z") },
+        { playerId: "p1", elo: 1420, capturedAt: new Date("2026-06-25T00:00:00Z") }, // -80
+        { playerId: "p2", elo: 1500, capturedAt: new Date("2026-06-01T00:00:00Z") },
+        { playerId: "p2", elo: 1600, capturedAt: new Date("2026-06-25T00:00:00Z") }, // +100 → exclu
+      ],
+    }),
+  );
+  const ham = winnersOf(awards, "hamster");
+  assert.equal(ham.length, 1);
+  assert.equal(ham[0]!.playerId, "p1"); // p2 a un ΔELO positif → écarté
+  assert.equal(ham[0]!.value, MIN_MATCHES + 2);
+});
+
+test("B7.10 chatouilleur : pire ADR moyen", () => {
+  const awards = computeAwards(
+    inputs({
+      matches: [
+        ...games("p1", MIN_MATCHES, { adr: 45, hsPercent: 40 }),
+        ...games("p2", MIN_MATCHES, { adr: 95, hsPercent: 40 }),
+      ],
+    }),
+  );
+  const chat = winnersOf(awards, "chatouilleur");
+  assert.equal(chat.length, 1);
+  assert.equal(chat[0]!.playerId, "p1");
+  assert.equal(chat[0]!.value, 45);
+});

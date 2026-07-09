@@ -68,6 +68,12 @@ export const AWARD_META: Record<AwardKey, { emoji: string; title: string }> = {
   nolife: { emoji: "🌙", title: "Nolife" },
   "abonne-absent": { emoji: "⏰", title: "Abonné absent" },
   fantome: { emoji: "👻", title: "Fantôme" },
+  // Prix roast (B7.10)
+  "tibia-dor": { emoji: "🦵", title: "Tibia d'or" },
+  chirurgien: { emoji: "🎯", title: "Chirurgien" },
+  "baby-sitter": { emoji: "🚑", title: "Baby-sitter" },
+  hamster: { emoji: "🐹", title: "Hamster" },
+  chatouilleur: { emoji: "🪶", title: "Chatouilleur" },
 };
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -348,7 +354,84 @@ function fantome(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("fantome", candidates);
 }
 
-/** Calcule les 9 awards du mois. Liste vide si personne d'éligible nulle part. */
+// --- Prix roast (B7.10) — validés en features-talk. ---
+
+/** 🦵 Tibia d'or : pire HS% moyen du mois. */
+function tibiaDor(pool: PlayerMonth[]): AwardWinner[] {
+  const candidates = pool
+    .filter((p) => p.matches.length >= MIN_MATCHES)
+    .map((p) => {
+      const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
+      // Le plus bas gagne → inversion pour pickWinners (max), value réelle restaurée après.
+      return { player: p.player, value: -hs, punchline: `${hs}% de HS ce mois — tu vises les chevilles.` };
+    });
+  return pickWinners("tibia-dor", candidates).map((w) => ({ ...w, value: -w.value }));
+}
+
+/** 🎯 Chirurgien : meilleur HS% moyen. */
+function chirurgien(pool: PlayerMonth[]): AwardWinner[] {
+  const candidates = pool
+    .filter((p) => p.matches.length >= MIN_MATCHES)
+    .map((p) => {
+      const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
+      return { player: p.player, value: hs, punchline: `${hs}% de HS — les casques ne servent plus à rien.` };
+    })
+    .filter((c) => c.value > 0);
+  return pickWinners("chirurgien", candidates);
+}
+
+/** 🚑 Baby-sitter : le plus de kills cumulés en défaite (gros carry, équipe aux abonnés absents). */
+function babySitter(pool: PlayerMonth[]): AwardWinner[] {
+  const candidates = pool
+    .filter((p) => p.matches.length >= MIN_MATCHES)
+    .map((p) => {
+      const kills = p.matches.filter((m) => m.result === 0).reduce((s, m) => s + m.stats.kills, 0);
+      return {
+        player: p.player,
+        value: kills,
+        punchline: `${kills} kills en défaite — mal entouré, le poto.`,
+      };
+    })
+    .filter((c) => c.value > 0);
+  return pickWinners("baby-sitter", candidates);
+}
+
+/** 🐹 Hamster : le plus de games pour un ΔELO ≤ 0 (le grind qui ne rapporte rien). */
+function hamster(pool: PlayerMonth[], deltas: Map<string, { start: number; end: number }>): AwardWinner[] {
+  const candidates: Candidate[] = [];
+  for (const p of pool) {
+    if (p.matches.length < MIN_MATCHES) continue;
+    const d = deltas.get(p.player.id);
+    if (!d) continue;
+    const delta = d.end - d.start;
+    if (delta > 0) continue; // il faut que le grind n'ait rien rapporté
+    candidates.push({
+      player: p.player,
+      value: p.matches.length,
+      tiebreak: -delta,
+      punchline: `${p.matches.length} games pour ${delta} ELO — la roue tourne dans le vide.`,
+    });
+  }
+  return pickWinners("hamster", candidates);
+}
+
+/** 🪶 Chatouilleur : pire ADR moyen du mois. */
+function chatouilleur(pool: PlayerMonth[]): AwardWinner[] {
+  const candidates = pool
+    .filter((p) => p.matches.length >= MIN_MATCHES)
+    .map((p) => {
+      const adr = round1(avg(p.matches.map((m) => m.stats.adr)));
+      return {
+        player: p.player,
+        value: -adr,
+        punchline: `${adr} d'ADR ce mois — tu distribues des caresses.`,
+      };
+    })
+    .filter((c) => c.value < 0); // adr > 0 (données présentes)
+  return pickWinners("chatouilleur", candidates).map((w) => ({ ...w, value: -w.value }));
+}
+
+/** Calcule les 14 awards du mois (9 originaux + 5 roast B7.10). Liste vide si personne d'éligible. */
 export function computeAwards(inputs: WrappedInputs): AwardWinner[] {
   const pool = groupByPlayer(inputs);
   const deltas = eloDeltas(inputs.eloSnapshots);
@@ -363,6 +446,11 @@ export function computeAwards(inputs: WrappedInputs): AwardWinner[] {
     ...nolife(pool),
     ...abonneAbsent(pool, playtimes),
     ...fantome(pool),
+    ...tibiaDor(pool),
+    ...chirurgien(pool),
+    ...babySitter(pool),
+    ...hamster(pool, deltas),
+    ...chatouilleur(pool),
   ];
 }
 
