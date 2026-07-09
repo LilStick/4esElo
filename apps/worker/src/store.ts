@@ -17,6 +17,7 @@ import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
 import type { AnnouncementStore, MonthActivityReader } from "./announceWrapped";
 import type { WeekActivityReader } from "./weeklyRecap";
+import type { PeriodActivityReader } from "./announceBigWrapped";
 import { utcDay } from "./playtime";
 
 /** Real SnapshotStore backed by Postgres via Drizzle. */
@@ -98,7 +99,10 @@ export const dbPlaytimeStore: PlaytimeStore = {
 };
 
 /** Real AnnouncementStore + activity readers backed by Postgres via Drizzle. */
-export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader & WeekActivityReader = {
+export const dbAnnouncementStore: AnnouncementStore &
+  MonthActivityReader &
+  WeekActivityReader &
+  PeriodActivityReader = {
   async insertUnique(a) {
     // dedupeKey unique : la relance de la même période est un no-op, pas une erreur.
     const rows = await db
@@ -112,6 +116,15 @@ export const dbAnnouncementStore: AnnouncementStore & MonthActivityReader & Week
   async monthHasMatches(year, month) {
     const start = new Date(Date.UTC(year, month - 1, 1));
     const end = new Date(Date.UTC(year, month, 1));
+    const [row] = await db
+      .select({ one: sql<number>`1` })
+      .from(faceitMatchStats)
+      .where(and(gte(faceitMatchStats.playedAt, start), lt(faceitMatchStats.playedAt, end)))
+      .limit(1);
+    return row !== undefined;
+  },
+
+  async hasMatchesInRange(start, end) {
     const [row] = await db
       .select({ one: sql<number>`1` })
       .from(faceitMatchStats)

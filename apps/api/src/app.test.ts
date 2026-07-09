@@ -21,6 +21,8 @@ import type {
   OvertakesResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
+  BigWrappedResponse,
+  PlayerBigWrappedResponse,
   RoastResponse,
 } from "@4eselo/types";
 import { app } from "./app";
@@ -541,6 +543,47 @@ test("B7.2: GET /wrapped/:y/:m/:playerId → 404 unknown player, 400 bad uuid", 
   assert.equal(missing.status, 404);
   const bad = await app.request(`/wrapped/2026/6/hackerman`);
   assert.equal(bad.status, 400);
+});
+
+test("B7.12: GET /wrapped/big/:period → awards du pôle sur la période longue", { skip }, async () => {
+  // Le segment statique "big" doit router ici, pas vers /wrapped/:year/:month.
+  const res = await app.request(`/wrapped/big/2026`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as BigWrappedResponse;
+  assert.equal(body.period, "2026");
+  assert.ok(Array.isArray(body.awards));
+
+  // Semestre : juin ∈ H1.
+  const h1 = (await (await app.request(`/wrapped/big/2026-H1`)).json()) as BigWrappedResponse;
+  assert.equal(h1.period, "2026-H1");
+});
+
+test(
+  "B7.12: GET /wrapped/big/:period sans data → awards vides ; période invalide → 400",
+  { skip },
+  async () => {
+    const empty = await app.request(`/wrapped/big/2020`);
+    assert.equal(empty.status, 200);
+    assert.deepEqual(await empty.json(), { period: "2020", awards: [] });
+    for (const bad of [`/wrapped/big/nope`, `/wrapped/big/2026-H3`, `/wrapped/big/26`]) {
+      assert.equal((await app.request(bad)).status, 400, bad);
+    }
+  },
+);
+
+test("B7.12: GET /wrapped/big/:period/:playerId → résumé du joueur sur la période", { skip }, async () => {
+  const res = await app.request(`/wrapped/big/2026/${playerId}`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as PlayerBigWrappedResponse;
+  assert.equal(body.period, "2026");
+  assert.equal(body.matches, 3); // les 3 matchs de juin ∈ 2026
+  assert.equal(body.wins, 2);
+  assert.deepEqual(body.topMap, { map: "de_mirage", matches: 2, winRate: 100 });
+  // ses 2 snapshots ELO de janvier ∈ 2026 → delta calculé (contrairement au mois de juin)
+  assert.deepEqual(body.elo, { start: 1000, end: 1100, delta: 100 });
+
+  const missing = await app.request(`/wrapped/big/2026/00000000-0000-0000-0000-000000000000`);
+  assert.equal(missing.status, 404);
 });
 
 test("B5.2: /players/:id/activity counts per UTC day, sparse, window applied", { skip }, async () => {
