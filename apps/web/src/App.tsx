@@ -13,6 +13,7 @@ import { Wrapped } from "./pages/Wrapped";
 import { WrappedPlayer } from "./pages/WrappedPlayer";
 import { Compare } from "./pages/Compare";
 import { Social } from "./pages/Social";
+import { Ideas } from "./pages/Ideas";
 import { Changelog } from "./pages/Changelog";
 import { Register } from "./pages/Register";
 import { Admin } from "./pages/Admin";
@@ -53,6 +54,7 @@ function AnimatedRoutes() {
           <Route path="/wrapped/:period/:player" element={<WrappedPlayer />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/social" element={<Social />} />
+          <Route path="/ideas" element={<Ideas />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/changelog" element={<Changelog />} />

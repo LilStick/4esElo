@@ -6,6 +6,7 @@ import type {
   AnnouncementsResponse,
   DuosResponse,
   EloSource,
+  IdeasResponse,
   StaffAnnouncementRequest,
   LeaderboardResponse,
   LineupsResponse,
@@ -19,6 +20,7 @@ import type {
   PlayerDuosResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
+  PostIdeaResponse,
   PresenceResponse,
   RecentMatchesResponse,
   RefreshEloResponse,
@@ -98,6 +100,16 @@ export function getPresence() {
 
 export function getAnnouncements(limit = 5) {
   return get<AnnouncementsResponse>(`/announcements?limit=${limit}`);
+}
+
+/** Boîte à idées (B17.8) — fil des idées récentes. */
+export function getIdeas() {
+  return get<IdeasResponse>(`/ideas`);
+}
+
+/** Poster une idée (session requise, 500 car. max, 3/jour). */
+export function postIdea(text: string) {
+  return post<PostIdeaResponse>(`/ideas`, { text });
 }
 
 export function getWrapped(year: number, month: number) {
