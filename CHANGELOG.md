@@ -7,6 +7,8 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : punchline « 4esBot » sur le détail d'un match — une vanne ou un compliment calculé depuis les stats de la game (moteur partagé), affiché dans la modale de match (barre d'accent V/D, emoji, ton fun) ; rien si la game est banale. (#302)
+
 - Web : passe responsive shell + home + profil — sidebar repliée d'office et toggle masqué sous 1760 px (fini les chevauchements), bulle du shell retirée en mode menu burger (contenu à plat), home et profil basculent en une colonne à 1280 px avec un ordre lisible (centre d'abord), et le profil ne s'écrase plus sur les laptops. (#208)
 - Web : fix responsive de la home — le layout multi-colonnes (rails 280/320 px) s'active dès 1280 px (`xl`) au lieu de 1536 px (`2xl`), pour que les widgets restent compacts sur les écrans laptop ~1280–1440 px au lieu de s'empiler pleine largeur. (#297)
 - Web : encart « Roast » sur le profil — la mascotte 4esBot (poulet CS) analyse les dernières games au clic et déroule 2-3 punchlines déterministes (négatif + positif) avec un effet de frappe, + prévision d'ELO, depuis `GET /players/:id/roast`. Rail droit du profil, état neutre si pas assez de games. (#264)
