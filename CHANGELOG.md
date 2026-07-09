@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- Web : bouton « rafraîchir l'ELO » (icône) sur la carte ELO du profil — resync Faceit à la demande, spinner pendant, l'ELO affiché se met à jour sans recharger ; message propre si déjà à jour ou rate-limité (429). (#303)
 - Web : rating moyen (façon HLTV) sur le profil, dans le bento de stats et suivant le sélecteur de période, couleur selon la valeur ; bouton « Comparer » (icône) sur la carte de profil de performance qui pré-remplit le joueur sur la page de comparaison. La formule de rating par match pointe désormais vers la source unique partagée (`packages/types`). (#286)
 - Web : flux « Matchs récents » du pôle dans un rail à droite de la home (tous joueurs confondus, avatar, map, V/D, ±ELO coloré), en remplacement du widget « Mouvements récents » ; un clic sur une ligne ouvre la modale de détail du match. (#285)
 - Tests : socle e2e Playwright — boote la vraie stack (API + web + Postgres) et la teste en conditions réelles : e2e API en HTTP réel (`/health`, `/leaderboard`, `/players/:id`, `/players/:id/og.png`) + smoke « la SPA monte », seed déterministe, job CI dédié. Pas de parcours UI métier (front en mouvement jusqu'à la v1) ; le socle est prêt pour en ajouter plus tard. (#312)

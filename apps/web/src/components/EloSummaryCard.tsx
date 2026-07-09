@@ -1,7 +1,9 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getPlayerMatches } from "../lib/api";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { TbRefresh } from "react-icons/tb";
+import { ApiError, getPlayerMatches, refreshPlayerElo } from "../lib/api";
 import { mapScreen } from "../lib/mapScreens";
+import { cn } from "../lib/cn";
 import { Card, LevelBadge } from "../ui";
 
 /** Couleur du palier façon Faceit : gris → vert → jaune → orange → rouge. */
@@ -19,9 +21,29 @@ function levelColor(level: number | null): string {
  * de niveau au centre, ELO en gros dessous, matchs + winrate en pied.
  */
 export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | null; level: number | null }) {
+  const qc = useQueryClient();
+  const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" } | null>(null);
   const { data } = useQuery({
     queryKey: ["matches", id, 50],
     queryFn: () => getPlayerMatches(id, 50),
+  });
+
+  const refresh = useMutation({
+    mutationFn: () => refreshPlayerElo(id),
+    onSuccess: async (res) => {
+      await qc.invalidateQueries({ queryKey: ["player", id] });
+      setMsg({ text: res.changed ? "ELO mis à jour" : "Déjà à jour", tone: "ok" });
+    },
+    onError: (e) => {
+      const status = e instanceof ApiError ? e.status : 0;
+      setMsg({
+        text: status === 429 ? "Déjà à jour, réessaie dans 1 min" : "Échec, réessaie plus tard",
+        tone: "warn",
+      });
+    },
+    onSettled: () => {
+      window.setTimeout(() => setMsg(null), 3500);
+    },
   });
 
   const items = data?.items ?? [];
@@ -68,6 +90,27 @@ export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | n
         className="pointer-events-none absolute -top-32 left-1/2 h-64 w-[460px] -translate-x-1/2 rounded-full opacity-[0.14] blur-3xl"
         style={{ background: color }}
       />
+
+      {/* Rafraîchir l'ELO à la demande (B16.10) */}
+      <button
+        onClick={() => refresh.mutate()}
+        disabled={refresh.isPending}
+        aria-label="Rafraîchir l'ELO"
+        title="Rafraîchir l'ELO"
+        className="absolute top-3 right-3 z-10 grid size-9 cursor-pointer place-items-center rounded-lg border border-white/[0.12] bg-white/[0.04] text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none disabled:cursor-default disabled:opacity-50"
+      >
+        <TbRefresh size={16} className={refresh.isPending ? "animate-spin" : ""} />
+      </button>
+      {msg && (
+        <div
+          className={cn(
+            "absolute top-14 right-3 z-10 rounded-md px-2 py-1 text-[11px] font-semibold",
+            msg.tone === "ok" ? "bg-win/15 text-win" : "bg-loss/15 text-loss",
+          )}
+        >
+          {msg.text}
+        </div>
+      )}
 
       <div className="relative">
         <div className="flex flex-col items-center gap-2 py-2">
