@@ -26,6 +26,10 @@ import lockup from "../assets/logo/4esElo_lockup_transparent.png";
 import mark from "../assets/logo/4esElo_mark_transparent.png";
 
 const SIDEBAR_KEY = "4eselo:sidebar-collapsed";
+/** En dessous de cette largeur, la sidebar reste repliée (icônes) et le toggle
+ *  disparaît : ça évite que la sidebar dépliée + son toggle chevauchent le
+ *  contenu (rail gauche de la home) sur les écrans laptop. Ajustable. */
+const EXPAND_MIN_PX = 1760;
 
 /**
  * Déclencheur de la recherche globale (Ctrl/Cmd+K). Une seule structure pour
@@ -212,8 +216,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState(false);
   const [help, setHelp] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_KEY) === "1");
+  // Sous EXPAND_MIN_PX on force le repli (et on masque le toggle) → pas de chevauchement.
+  const [canExpand, setCanExpand] = useState(
+    () => typeof window === "undefined" || window.matchMedia(`(min-width: ${EXPAND_MIN_PX}px)`).matches,
+  );
   const reduce = useReducedMotion();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${EXPAND_MIN_PX}px)`);
+    const onChange = () => setCanExpand(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  // Repli effectif : préférence utilisateur si l'écran est assez large, sinon forcé.
+  const effectiveCollapsed = canExpand ? collapsed : true;
 
   const toggleCollapsed = () => {
     setCollapsed((c) => {
@@ -300,20 +319,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         className={cn(
           "fixed inset-y-0 left-0 z-30 hidden flex-col py-6 transition-[width] duration-200 ease-out lg:flex",
           "px-6",
-          collapsed ? "w-24" : "w-60",
+          effectiveCollapsed ? "w-24" : "w-60",
         )}
       >
         <div className="flex h-10 items-center">
-          <Brand collapsed={collapsed} />
+          <Brand collapsed={effectiveCollapsed} />
         </div>
         <div data-tour="search" className="mt-6">
-          <SearchTrigger onClick={() => setSearch(true)} collapsed={collapsed} />
+          <SearchTrigger onClick={() => setSearch(true)} collapsed={effectiveCollapsed} />
         </div>
         <div data-tour="nav" className="mt-4 flex-1">
-          <NavList collapsed={collapsed} />
+          <NavList collapsed={effectiveCollapsed} />
         </div>
         <div data-tour="auth" className="border-t border-white/[0.06] pt-3">
-          <AuthMenu collapsed={collapsed} />
+          <AuthMenu collapsed={effectiveCollapsed} />
         </div>
       </aside>
 
@@ -381,26 +400,30 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div
         className={cn(
           "flex min-h-0 flex-1 flex-col transition-[padding-left] duration-200 ease-out",
-          collapsed ? "lg:pl-24" : "lg:pl-60",
+          effectiveCollapsed ? "lg:pl-24" : "lg:pl-60",
         )}
       >
         <main className="flex w-full min-h-0 flex-1 flex-col px-4 py-6 lg:py-6 lg:pr-6 lg:pl-0">
-          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-gradient-to-b from-surface to-bg">
+          {/* La « bulle » (cadre arrondi + dégradé + décor) n'existe qu'à partir de lg.
+              En mode menu burger (mobile), le contenu s'affiche à plat, pleine largeur. */}
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden lg:rounded-[28px] lg:bg-gradient-to-b lg:from-surface lg:to-bg">
             {/* Décor — en dehors du conteneur qui défile, reste fixe avec le cadre. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-32 -right-32 size-96 rounded-full bg-brand/10 blur-3xl"
+              className="pointer-events-none absolute -top-32 -right-32 hidden size-96 rounded-full bg-brand/10 blur-3xl lg:block"
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute -bottom-40 -left-32 size-80 rounded-full bg-brand/[0.06] blur-3xl"
+              className="pointer-events-none absolute -bottom-40 -left-32 hidden size-80 rounded-full bg-brand/[0.06] blur-3xl lg:block"
             />
-            <CollapseToggle
-              collapsed={collapsed}
-              onClick={toggleCollapsed}
-              className="absolute top-2 left-2 z-20 lg:top-3 lg:left-3"
-            />
-            <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden p-4 lg:p-8">
+            {canExpand && (
+              <CollapseToggle
+                collapsed={collapsed}
+                onClick={toggleCollapsed}
+                className="absolute top-2 left-2 z-20 lg:top-3 lg:left-3"
+              />
+            )}
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden p-0 lg:p-8">
               <div className="flex flex-1 flex-col">{children}</div>
               <div className="mx-auto mt-6 w-full max-w-[1400px]">
                 <Footer />

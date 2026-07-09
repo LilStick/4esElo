@@ -33,8 +33,8 @@ import { useTitle } from "../lib/useTitle";
 
 function PlayerSkeleton() {
   return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_minmax(0,920px)_1fr] lg:items-start">
-      <div className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-end">
+    <div className="grid gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
+      <div className="flex flex-col gap-4 xl:w-[300px] xl:justify-self-end">
         <Card className="flex flex-col items-center gap-4 p-6">
           <Skeleton className="size-26 rounded-full" />
           <Skeleton className="h-6 w-36" />
@@ -61,7 +61,7 @@ function PlayerSkeleton() {
           ))}
         </div>
       </div>
-      <div className="hidden lg:block" />
+      <div className="hidden xl:block" />
     </div>
   );
 }
@@ -103,99 +103,124 @@ export function Player() {
       )}
 
       {data && (
-        <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,920px)_1fr] lg:items-start">
-          {/* Rail annexe : retour + identité + activité (dans le gutter gauche, collé au centre) */}
-          <aside className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-end">
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex cursor-pointer items-center gap-1.5 self-start text-sm text-ink-dim transition-colors hover:text-ink"
-            >
-              <TbArrowLeft size={16} /> Retour
-            </button>
-            <Card className="flex flex-col items-center gap-4 p-6 text-center">
-              <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
-              <div className="min-w-0">
-                <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
-                <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">
-                  {data.faceitNickname && (
-                    <a
-                      href={`https://www.faceit.com/fr/players/${data.faceitNickname}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
-                    >
-                      Faceit <TbExternalLink size={13} />
-                    </a>
-                  )}
-                  {data.steamId64 && (
-                    <a
-                      href={`https://steamcommunity.com/profiles/${data.steamId64}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
-                    >
-                      Steam <TbExternalLink size={13} />
-                    </a>
-                  )}
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
+          {/* Colonne gauche (desktop). En 1 colonne, `contents` aplatit ses items dans la grille
+              et chacun est ordonné via `order-*` pour donner la séquence demandée. */}
+          <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
+            {/* 1 — profil + retour */}
+            <div className="order-1 flex flex-col gap-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex cursor-pointer items-center gap-1.5 self-start text-sm text-ink-dim transition-colors hover:text-ink"
+              >
+                <TbArrowLeft size={16} /> Retour
+              </button>
+              <Card className="flex flex-col items-center gap-4 p-6 text-center">
+                <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
+                <div className="min-w-0">
+                  <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
+                  <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">
+                    {data.faceitNickname && (
+                      <a
+                        href={`https://www.faceit.com/fr/players/${data.faceitNickname}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
+                      >
+                        Faceit <TbExternalLink size={13} />
+                      </a>
+                    )}
+                    {data.steamId64 && (
+                      <a
+                        href={`https://steamcommunity.com/profiles/${data.steamId64}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
+                      >
+                        Steam <TbExternalLink size={13} />
+                      </a>
+                    )}
+                  </div>
                 </div>
+
+                {(isAlumni(data.promoEnd) ||
+                  promoLabel(data.promoStart, data.promoEnd) ||
+                  data.formation) && (
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    {isAlumni(data.promoEnd) && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
+                        🎓 Alumni
+                      </span>
+                    )}
+                    {promoLabel(data.promoStart, data.promoEnd) && (
+                      <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-ink-dim">
+                        Promo {promoLabel(data.promoStart, data.promoEnd)}
+                      </span>
+                    )}
+                    {data.formation && (
+                      <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[11px] text-ink-dim">
+                        {data.formation}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <ShareButton className="w-full" />
+
+                {data.playtimePrivate === true && (
+                  <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
+                    <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
+                    <span>
+                      Heures de jeu privées — passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
+                      <a
+                        href="https://steamcommunity.com/my/edit/settings"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-loss underline-offset-2 hover:underline"
+                      >
+                        Steam
+                      </a>{" "}
+                      pour apparaître dans les stats de temps de jeu.
+                    </span>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* 6 — heatmap d'activité */}
+            <div className="order-6">
+              <ActivityHeatmap id={id} />
+            </div>
+
+            {/* 9 — avec qui il win le + */}
+            <div className="order-9">
+              <PlayerDuos id={id} />
+            </div>
+
+            {/* 10 — roast 4esBot (déterministe, négatif + positif) */}
+            <div className="order-10">
+              <div className="mb-3">
+                <SectionTitle icon={TbFlame}>Roast</SectionTitle>
               </div>
+              <ProfileRoast id={id} />
+            </div>
+          </div>
 
-              {(isAlumni(data.promoEnd) || promoLabel(data.promoStart, data.promoEnd) || data.formation) && (
-                <div className="flex flex-wrap items-center justify-center gap-1.5">
-                  {isAlumni(data.promoEnd) && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
-                      🎓 Alumni
-                    </span>
-                  )}
-                  {promoLabel(data.promoStart, data.promoEnd) && (
-                    <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-ink-dim">
-                      Promo {promoLabel(data.promoStart, data.promoEnd)}
-                    </span>
-                  )}
-                  {data.formation && (
-                    <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[11px] text-ink-dim">
-                      {data.formation}
-                    </span>
-                  )}
-                </div>
-              )}
+          {/* Colonne centrale (desktop). En 1 colonne, `contents` + `order-*` intercalent ses
+              items avec ceux de la colonne gauche selon la séquence demandée. */}
+          <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
+            {/* 2 — ELO */}
+            <div className="order-2">
+              <EloSummaryCard id={id} elo={data.elo} level={data.level} />
+            </div>
 
-              <ShareButton className="w-full" />
+            {/* 3 — performances récentes */}
+            <div className="order-3">
+              <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
+            </div>
 
-              {data.playtimePrivate === true && (
-                <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
-                  <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
-                  <span>
-                    Heures de jeu privées — passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
-                    <a
-                      href="https://steamcommunity.com/my/edit/settings"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-loss underline-offset-2 hover:underline"
-                    >
-                      Steam
-                    </a>{" "}
-                    pour apparaître dans les stats de temps de jeu.
-                  </span>
-                </div>
-              )}
-            </Card>
-
-            <ActivityHeatmap id={id} />
-
-            <PlayerDuos id={id} />
-          </aside>
-
-          {/* Colonne principale — centrée sur la page */}
-          <div className="flex min-w-0 flex-col gap-4">
-            {/* ELO — carte principale façon « Season » */}
-            <EloSummaryCard id={id} elo={data.elo} level={data.level} />
-
-            {/* Performances récentes — courbe + forme + récap */}
-            <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
-
-            {/* Statistiques agrégées (depuis les matchs), filtrables par période */}
-            <div>
+            {/* 4 — statistiques */}
+            <div className="order-4 min-w-0">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
                 <RangeTabs value={range} onChange={setRange} />
@@ -203,24 +228,24 @@ export function Player() {
               <StatsBento id={id} range={range} />
             </div>
 
-            {/* Radar de performance */}
-            <div>
+            {/* 5 — profil de performance */}
+            <div className="order-5">
               <div className="mb-3">
                 <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
               </div>
               <RadarPerf id={id} range={range} />
             </div>
 
-            {/* Stats par map */}
-            <div>
+            {/* 7 — par map */}
+            <div className="order-7">
               <div className="mb-3">
                 <SectionTitle icon={TbMap2}>Par map</SectionTitle>
               </div>
               <MapStats id={id} range={range} />
             </div>
 
-            {/* Matchs récents */}
-            <div>
+            {/* 8 — matchs récents */}
+            <div className="order-8 min-w-0">
               <div className="mb-3">
                 <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
               </div>
@@ -228,15 +253,8 @@ export function Player() {
             </div>
           </div>
 
-          {/* Rail droit : diagnostic 4esBot (roast déterministe, négatif + positif) */}
-          <aside className="flex flex-col gap-4 lg:w-[300px] lg:justify-self-start">
-            <div>
-              <div className="mb-3">
-                <SectionTitle icon={TbFlame}>Roast</SectionTitle>
-              </div>
-              <ProfileRoast id={id} />
-            </div>
-          </aside>
+          {/* Gutter droit : vide, pour que la colonne principale reste centrée */}
+          <div className="hidden xl:block" />
         </div>
       )}
     </div>
