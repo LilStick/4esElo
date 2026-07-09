@@ -1,4 +1,4 @@
-import type { DuoPlayer, DuoStat } from "@4eselo/types";
+import type { DuoPlayer, DuoStat, LineupStat } from "@4eselo/types";
 
 /**
  * Duos (B4.1) — fonctions pures, zéro I/O. Deux membres dans le même match
@@ -88,4 +88,94 @@ export function computePlayerDuos(
   minMatches: number = MIN_DUO_MATCHES,
 ): DuoStat[] {
   return computeDuos(players, matches, minMatches).filter((d) => d.players.some((p) => p.id === playerId));
+}
+
+/** Games ensemble minimum pour qu'un lineup apparaisse (B4.4). */
+export const MIN_LINEUP_MATCHES = 3;
+const MAX_LINEUP_SIZE = 5;
+
+/** Toutes les k-combinaisons (indices croissants → pas de doublon ni de permutation). */
+function combinations<T>(arr: T[], k: number): T[][] {
+  const res: T[][] = [];
+  const combo: T[] = [];
+  const rec = (start: number): void => {
+    if (combo.length === k) {
+      res.push([...combo]);
+      return;
+    }
+    for (let i = start; i < arr.length; i++) {
+      combo.push(arr[i]!);
+      rec(i + 1);
+      combo.pop();
+    }
+  };
+  rec(0);
+  return res;
+}
+
+/**
+ * Lineups (B4.4) : groupes de 3 à 5 membres coéquipiers (même match + même
+ * résultat), prolongement des duos. Comme les duos, on compte tous les
+ * sous-ensembles (un 5-stack alimente aussi ses trios/quatuors). Sous 3 membres
+ * = territoire des duos, ignoré.
+ */
+export function computeLineups(
+  players: DuoPlayer[],
+  matches: SocialMatchRow[],
+  minMatches: number = MIN_LINEUP_MATCHES,
+): LineupStat[] {
+  const byId = new Map(players.map((p) => [p.id, p]));
+
+  const byMatch = new Map<string, SocialMatchRow[]>();
+  for (const m of matches) {
+    if (!byId.has(m.playerId)) continue;
+    const list = byMatch.get(m.matchId) ?? [];
+    list.push(m);
+    byMatch.set(m.matchId, list);
+  }
+
+  const groups = new Map<string, { members: string[]; matches: number; wins: number }>();
+  for (const rows of byMatch.values()) {
+    // Regroupe par résultat : même résultat = même équipe (une seule gagne).
+    const byResult = new Map<number, string[]>();
+    for (const r of rows) {
+      const list = byResult.get(r.result) ?? [];
+      list.push(r.playerId);
+      byResult.set(r.result, list);
+    }
+    for (const [result, ids] of byResult) {
+      if (ids.length < 3) continue; // duos gérés ailleurs
+      for (let k = 3; k <= Math.min(MAX_LINEUP_SIZE, ids.length); k++) {
+        for (const combo of combinations(ids, k)) {
+          const key = [...combo].sort().join("|");
+          const entry = groups.get(key) ?? { members: [...combo].sort(), matches: 0, wins: 0 };
+          entry.matches += 1;
+          entry.wins += result; // 1 = win
+          groups.set(key, entry);
+        }
+      }
+    }
+  }
+
+  const out: LineupStat[] = [];
+  for (const g of groups.values()) {
+    if (g.matches < minMatches) continue;
+    const members = g.members.map((id) => byId.get(id)!).sort((a, b) => a.nickname.localeCompare(b.nickname));
+    out.push({
+      players: members,
+      size: members.length,
+      matches: g.matches,
+      wins: g.wins,
+      winRate: round1((g.wins / g.matches) * 100),
+    });
+  }
+
+  // Meilleur lineup d'abord ; égalités départagées par games puis taille puis pseudo.
+  return out.sort(
+    (x, y) =>
+      y.winRate - x.winRate ||
+      y.matches - x.matches ||
+      y.size - x.size ||
+      x.players[0]!.nickname.localeCompare(y.players[0]!.nickname),
+  );
 }

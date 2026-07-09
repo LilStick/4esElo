@@ -320,6 +320,24 @@ export interface PlayerDuosResponse extends DuosResponse {
   playerId: string;
 }
 
+/** Lineups (B4.4) : groupes de 3 à 5 membres qui jouent ensemble. */
+export interface LineupStat {
+  /** Les membres du groupe, ordre stable (pseudo alphabétique). */
+  players: DuoPlayer[];
+  /** Taille du groupe (3, 4 ou 5). */
+  size: number;
+  matches: number;
+  wins: number;
+  winRate: number; // 0-100
+}
+
+export interface LineupsResponse {
+  /** Games ensemble minimum pour apparaître. */
+  minMatches: number;
+  /** Triés par winrate desc, puis nb de games, puis taille. */
+  lineups: LineupStat[];
+}
+
 /** Annonce du site (B7.4) : Wrapped mensuel auto, plus tard l'annonce staff (B17.4). */
 export interface Announcement {
   id: string;
