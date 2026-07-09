@@ -11,10 +11,12 @@ import type {
   PlayerStatsResponse,
   AchievementState,
   AchievementsResponse,
+  RoastResponse,
 } from "@4eselo/types";
 import { computeStreak } from "./streaks";
 import { computeBadges, type BadgeMatch } from "./badges";
 import { evaluateAchievements, bestEloGainWithin } from "./achievements";
+import { profileRoast, forecastElo, type RoastProfileInput } from "./roast";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
 import { readSource, readPlayerId, badRequest } from "./http";
 
@@ -241,4 +243,76 @@ playersRoutes.get("/players/:id/achievements", async (c) => {
     unlockedAt: e.unlocked ? (dateById.get(e.def.id) ?? null) : null,
   }));
   return c.json<AchievementsResponse>({ achievements: states });
+});
+
+playersRoutes.get("/players/:id/roast", async (c) => {
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  const rows = await db
+    .select({
+      map: faceitMatchStats.map,
+      result: faceitMatchStats.result,
+      stats: faceitMatchStats.stats,
+    })
+    .from(faceitMatchStats)
+    .where(eq(faceitMatchStats.playerId, id))
+    .orderBy(desc(faceitMatchStats.playedAt));
+
+  const n = rows.length;
+  let kills = 0;
+  let deaths = 0;
+  let hsSum = 0;
+  let adrSum = 0;
+  let cW = 0;
+  let cA = 0;
+  let eW = 0;
+  let eA = 0;
+  for (const m of rows) {
+    kills += m.stats.kills;
+    deaths += m.stats.deaths;
+    hsSum += m.stats.hsPercent;
+    adrSum += m.stats.adr;
+    cW += m.stats.clutch1v1Wins + m.stats.clutch1v2Wins;
+    cA += m.stats.clutch1v1Count + m.stats.clutch1v2Count;
+    eW += m.stats.entryWins;
+    eA += m.stats.entryCount;
+  }
+  const streak = computeStreak(rows.map((m) => m.result));
+  const allMaps = computeMapStats(rows.map((m) => ({ map: m.map, result: m.result, stats: m.stats })));
+  const topMap = allMaps[0]
+    ? { map: allMaps[0].map, winRate: allMaps[0].winRate, matches: allMaps[0].matches }
+    : null;
+  const eligibleMaps = allMaps.filter((mp) => mp.matches >= 5);
+  const worstMap = eligibleMaps.length
+    ? eligibleMaps.reduce((w, mp) => (mp.winRate < w.winRate ? mp : w))
+    : null;
+
+  const snaps = await db
+    .select({ elo: eloSnapshots.elo, capturedAt: eloSnapshots.capturedAt })
+    .from(eloSnapshots)
+    .where(and(eq(eloSnapshots.playerId, id), eq(eloSnapshots.source, "faceit")))
+    .orderBy(asc(eloSnapshots.capturedAt));
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recent30 = snaps.filter((s) => s.capturedAt.getTime() >= cutoff);
+  const eloDelta30d = recent30.length >= 2 ? recent30[recent30.length - 1]!.elo - recent30[0]!.elo : null;
+
+  const input: RoastProfileInput = {
+    matches: n,
+    avgHs: n ? hsSum / n : 0,
+    kd: deaths > 0 ? kills / deaths : kills,
+    adr: n ? adrSum / n : 0,
+    clutchAttempts: cA,
+    clutchWinRate: cA > 0 ? (cW / cA) * 100 : 0,
+    entryAttempts: eA,
+    entrySuccessRate: eA > 0 ? (eW / eA) * 100 : 0,
+    currentWinStreak: streak.current?.type === "win" ? streak.current.length : 0,
+    eloDelta30d,
+    worstMap: worstMap ? { map: worstMap.map, winRate: worstMap.winRate, matches: worstMap.matches } : null,
+    topMap,
+  };
+
+  return c.json<RoastResponse>({ lines: profileRoast(input), forecast: forecastElo(snaps, new Date()) });
 });

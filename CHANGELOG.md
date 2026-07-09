@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-09
 
+- API : moteur roast + forecast ELO — `GET /players/:id/roast` (2-3 punchlines conditionnées aux stats, sans IA, ton fun) + prévision d'ELO (tendance linéaire 30 j) ; roast par-match partagé (`matchRoast` dans `packages/types`) réutilisable par le front. Débloque #264 et #302. (#263)
 - API : 5 nouveaux prix « roast » au Wrapped mensuel — 🦵 Tibia d'or (pire HS%), 🎯 Chirurgien (meilleur HS%), 🚑 Baby-sitter (carry en défaite), 🐹 Hamster (games pour un ΔELO ≤ 0), 🪶 Chatouilleur (pire ADR). (#301)
 - API : classement du pôle par map — `GET /leaderboard/maps` (par map, membres classés par winrate + K-D, min. 5 games, maps triées par activité). Débloque #109. (#300)
 - API : rafraîchir l'ELO à la demande — `POST /players/:id/refresh` resync un joueur depuis Faceit (snapshot-on-change), rate-limité 1/min/joueur ; sans worker 24/7, permet de forcer la maj de l'ELO du profil. Débloque #303. (#283)

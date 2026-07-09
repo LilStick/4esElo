@@ -21,6 +21,7 @@ import type {
   OvertakesResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
+  RoastResponse,
 } from "@4eselo/types";
 import { app } from "./app";
 
@@ -940,5 +941,33 @@ test("B13.6: /leaderboard/maps classe les membres par map (seuil de games)", { s
   } finally {
     await db.delete(players).where(eq(players.id, a));
     await db.delete(players).where(eq(players.id, b));
+  }
+});
+
+test("B7.6: /players/:id/roast renvoie des punchlines profil + forecast", { skip }, async () => {
+  const [p] = await db
+    .insert(players)
+    .values({ discordName: "iroast", faceitNickname: "iroast_nick", steamId64: "765_iroast" })
+    .returning({ id: players.id });
+  const pid = p!.id;
+  try {
+    await db.insert(faceitMatchStats).values(
+      Array.from({ length: 12 }, (_, i) => ({
+        matchId: `iroast-${i}`,
+        playerId: pid,
+        map: "de_mirage",
+        playedAt: new Date(`2026-06-${String((i % 28) + 1).padStart(2, "0")}T20:00:00Z`),
+        result: i % 2,
+        stats: makeStats({ hsPercent: 25, kills: 15, deaths: 15, adr: 70 }), // HS 25 → Chasseur de tibias
+      })),
+    );
+    const res = await app.request(`/players/${pid}/roast`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as RoastResponse;
+    assert.ok(Array.isArray(body.lines) && body.lines.length >= 1);
+    assert.ok(body.lines.some((l) => l.label === "Chasseur de tibias"));
+    assert.ok("forecast" in body); // champ présent (null ici : pas de snapshots récents)
+  } finally {
+    await db.delete(players).where(eq(players.id, pid)); // cascade
   }
 });
