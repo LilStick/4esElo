@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-10
 
+- Web : card « Performances récentes » refaite façon Faceit — courbe d'ELO lissée où chaque sommet est un match, barème rang + ELO à gauche, bande V/D alignée sous les points, et tooltip riche au survol (map, V/D, date, rating, K/D/A, ±ELO) ; survol partagé courbe ↔ bande. (#333)
 - Web : micro-animations premium — count-up des chiffres clés (ELO du profil, bento de stats, records du pôle), entrée en cascade + léger lift au survol du bento, pastille active qui glisse sur le sélecteur de période, barre de survol glissante sur « avec qui il win le + », et tooltip au survol du radar de perf ; tout coupé si `prefers-reduced-motion`. (#205)
 - Web : section « Modération — bans » dans le panel admin — bannir un membre (dropdown avec avatars + raison, confirmation) et débannir (confirmation), liste des comptes bannis (raison + date) ; réservé aux admins. Données de l'API B17.9. (#270)
 - Web : page « Boîte à idées » (`/ideas`, entrée nav) — formulaire connecté (compteur 500 car.) qui relaie l'idée dans le salon Discord dédié, + fil des idées récentes (auteur, « toi », date) ; états non connecté (CTA login), rate-limit (3/jour) et succès gérés. Données de l'API B17.7. (#268)
