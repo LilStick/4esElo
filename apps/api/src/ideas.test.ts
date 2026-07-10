@@ -56,8 +56,14 @@ async function sessionFor(discordId: string): Promise<string> {
     .find((c) => c.startsWith("4eselo_session="))!;
 }
 
-const TEST_IDS = ["idea-a", "idea-rl", "idea-hook", "idea-b"];
-const saved = { config: authDeps.config, oauth: authDeps.oauth, webhook: ideasDeps.webhook };
+const TEST_IDS = ["idea-a", "idea-rl", "idea-hook", "idea-b", "idea-bot"];
+const saved = {
+  config: authDeps.config,
+  oauth: authDeps.oauth,
+  webhook: ideasDeps.webhook,
+  bot: ideasDeps.bot,
+  ideasChannelId: ideasDeps.ideasChannelId,
+};
 let sent: DiscordWebhookMessage[] = [];
 
 before(async () => {
@@ -67,6 +73,9 @@ before(async () => {
 
 beforeEach(() => {
   sent = [];
+  // Par défaut : pas de bot → relais par webhook (comme la config B17.7 d'origine).
+  ideasDeps.bot = null;
+  ideasDeps.ideasChannelId = null;
   ideasDeps.webhook = {
     async send(msg) {
       sent.push(msg);
@@ -78,6 +87,8 @@ after(async () => {
   authDeps.config = saved.config;
   authDeps.oauth = saved.oauth;
   ideasDeps.webhook = saved.webhook;
+  ideasDeps.bot = saved.bot;
+  ideasDeps.ideasChannelId = saved.ideasChannelId;
   if (DB_UP) await db.delete(ideas).where(inArray(ideas.discordId, TEST_IDS));
 });
 
@@ -139,6 +150,37 @@ test("POST /ideas : webhook mort → idée quand même stockée, pas de 500", { 
   const { idea } = (await res.json()) as PostIdeaResponse;
   assert.equal(idea.text, "malgré le webhook cassé");
 });
+
+test(
+  "POST /ideas : bot configuré → poste dans le salon + amorce ✅/❌ (webhook ignoré) (B17.12)",
+  { skip },
+  async () => {
+    const posts: { channelId: string; description: string }[] = [];
+    const reactions: { messageId: string; emoji: string }[] = [];
+    ideasDeps.ideasChannelId = "chan-ideas";
+    ideasDeps.bot = {
+      async postMessage(channelId, msg) {
+        posts.push({ channelId, description: msg.description });
+        return "msg-42";
+      },
+      async react(_channelId, messageId, emoji) {
+        reactions.push({ messageId, emoji });
+      },
+    };
+
+    const cookie = await sessionFor("idea-bot");
+    const res = await postIdea(cookie, { text: "vote pls" });
+    assert.equal(res.status, 201);
+
+    assert.deepEqual(posts, [{ channelId: "chan-ideas", description: "vote pls" }]);
+    // ✅ puis ❌ amorcés sur le message posté
+    assert.deepEqual(reactions, [
+      { messageId: "msg-42", emoji: "✅" },
+      { messageId: "msg-42", emoji: "❌" },
+    ]);
+    assert.equal(sent.length, 0); // le webhook n'est pas utilisé quand le bot relaie
+  },
+);
 
 test("GET /ideas : l'idée d'un autre membre est mine=false", { skip }, async () => {
   const aCookie = await sessionFor("idea-a");
