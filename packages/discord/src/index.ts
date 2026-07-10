@@ -12,3 +12,4 @@ export {
   type DiscordWebhookOptions,
 } from "./webhook";
 export { discordAvatarUrl, fetchAvatarDataUri, type FetchAvatarOptions } from "./avatar";
+export { DiscordBotClient, type DiscordBot, type DiscordBotMessage, type DiscordBotOptions } from "./bot";

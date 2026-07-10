@@ -28,6 +28,10 @@ const env = loadEnv(
     DISCORD_ASSO_INVITE_URL: z.string().url().optional(),
     /** Webhook du salon idées (dev). Absent = idées stockées sans relais Discord (B17.7). */
     DISCORD_IDEAS_WEBHOOK_URL: z.string().url().optional(),
+    /** Token du bot dev : poste les idées + amorce le vote ✅/❌ (B17.12) ; sinon fallback webhook. */
+    DISCORD_BOT_TOKEN: z.string().optional(),
+    /** Salon où le bot poste les idées à voter (B17.12). Requis avec DISCORD_BOT_TOKEN pour le relais bot. */
+    DISCORD_IDEAS_CHANNEL_ID: z.string().optional(),
     SESSION_SECRET: z.string().min(32, "SESSION_SECRET : 32 caractères minimum").optional(),
     /** Whitelist admin : discord_id séparés par des virgules. */
     ADMIN_DISCORD_IDS: z.string().default(""),
@@ -38,6 +42,8 @@ export const API_PORT = env.API_PORT;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
 export const FACEIT_API_KEY = env.FACEIT_API_KEY;
 export const DISCORD_IDEAS_WEBHOOK_URL = env.DISCORD_IDEAS_WEBHOOK_URL;
+export const DISCORD_BOT_TOKEN = env.DISCORD_BOT_TOKEN;
+export const DISCORD_IDEAS_CHANNEL_ID = env.DISCORD_IDEAS_CHANNEL_ID;
 /** Origines autorisées par le CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
 
