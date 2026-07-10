@@ -54,12 +54,22 @@ function profile(over: Partial<RoastProfileInput> = {}): RoastProfileInput {
   };
 }
 
-test("matchRoast : ace > carry win > carry loss ; game banale → null", () => {
+test("matchRoast : exploits > vannes ; GG resserré, victoire portée, défaites chambrées (B7.14)", () => {
   assert.equal(matchRoast(stats({ pentaKills: 1 }), 1)!.label, "Ace");
   assert.equal(matchRoast(stats({ kills: 27, deaths: 12 }), 1)!.label, "Patron du lobby");
   assert.equal(matchRoast(stats({ kills: 22, deaths: 20 }), 0)!.label, "Mal entouré");
   assert.equal(matchRoast(stats({ adr: 40, kills: 8, deaths: 12 }), 1)!.label, "Chatouilleur"); // ADR faible même en win
-  assert.equal(matchRoast(stats({ kills: 10, deaths: 14 }), 0), null); // défaite banale
+  // GG réservé aux vraies bonnes games (K/D positif)
+  assert.equal(matchRoast(stats({ kills: 20, deaths: 15, adr: 80 }), 1)!.label, "GG");
+  // victoire portée (K/D ≤ 0) → surtout pas « GG »
+  assert.equal(matchRoast(stats({ kills: 12, deaths: 18, adr: 70 }), 1)!.label, "Porté");
+  // défaite à K/D négatif → chambrée (avant : null)
+  assert.equal(matchRoast(stats({ kills: 10, deaths: 14, adr: 70 }), 0)!.label, "Balayé");
+  // entrées catastrophiques (prioritaire sur « Balayé »)
+  assert.equal(
+    matchRoast(stats({ entryCount: 5, entryWins: 0, kills: 12, deaths: 13, adr: 70 }), 0)!.label,
+    "Livraison express",
+  );
 });
 
 test("profileRoast : chute libre prioritaire, tri par priorité, max 3", () => {
