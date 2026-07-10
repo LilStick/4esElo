@@ -4,7 +4,7 @@ import type { EloPoint, PlayerStreak } from "@4eselo/types";
 import { getPlayerMatches } from "../lib/api";
 import { Card, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
-import { EloChart } from "./EloChart";
+import { MatchPerfGraph } from "./MatchPerfGraph";
 
 /**
  * Bloc « Performances récentes » façon Faceit : courbe d'ELO + bandeau V/D
@@ -51,20 +51,9 @@ export function RecentPerformance({
 
       <Card className="p-5">
         <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Courbe + bandeau de forme */}
+          {/* Courbe par match (chaque sommet = un match) + bande V/D alignée */}
           <div className="min-w-0 flex-1">
-            <EloChart points={history} />
-            {chrono.length > 0 && (
-              <div className="mt-3 flex gap-1">
-                {chrono.map((m) => (
-                  <span
-                    key={m.matchId}
-                    className={cn("h-1.5 min-w-0 flex-1 rounded-full", m.result === 1 ? "bg-win" : "bg-loss")}
-                    title={m.result === 1 ? "Victoire" : "Défaite"}
-                  />
-                ))}
-              </div>
-            )}
+            <MatchPerfGraph matches={chrono} />
           </div>
 
           {/* Récap */}
