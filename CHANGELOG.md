@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-10
 
+- API : roast par match enrichi (`matchRoast`) — « GG » réservé aux vraies bonnes games (K/D positif), victoire portée par l'équipe → punchline dédiée, et nouvelles vannes en défaite (« Livraison express » entrées ratées, « Balayé » K/D négatif) ; règles partagées `packages/types`, zéro changement front. (#338)
 - Web : heatmap d'activité refaite — fenêtre récente à taille de carreau fixe qui tient dans la card (nb de semaines calculé selon la largeur), sans scroll ; labels jours + mois toujours visibles, carreaux plus gros sur le home que sur le profil. (#334)
 - Web : card « Performances récentes » refaite façon Faceit — courbe d'ELO lissée où chaque sommet est un match, barème rang + ELO à gauche, bande V/D alignée sous les points, et tooltip riche au survol (map, V/D, date, rating, K/D/A, ±ELO) ; survol partagé courbe ↔ bande. (#333)
 - Web : micro-animations premium — count-up des chiffres clés (ELO du profil, bento de stats, records du pôle), entrée en cascade + léger lift au survol du bento, pastille active qui glisse sur le sélecteur de période, barre de survol glissante sur « avec qui il win le + », et tooltip au survol du radar de perf ; tout coupé si `prefers-reduced-motion`. (#205)

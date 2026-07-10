@@ -234,7 +234,23 @@ export function matchRoast(s: FaceitMatchStats, result: number): RoastLine | nul
       label: "Charnier",
       text: `${s.kills}-${s.deaths} — cette game restera entre nous.`,
     };
-  if (result === 1) return { emoji: "✅", label: "GG", text: `${s.kills}-${s.deaths}, propre.` };
+  if (s.entryCount >= 4 && s.entryWins <= 1)
+    return {
+      emoji: "📦",
+      label: "Livraison express",
+      text: `${s.entryWins}/${s.entryCount} entrées gagnées — t'ouvres la porte et tu livres ton corps.`,
+    };
+  if (result === 0 && s.kills < s.deaths)
+    return {
+      emoji: "🧹",
+      label: "Balayé",
+      text: `${s.kills}-${s.deaths} — t'as surtout fait de la figuration.`,
+    };
+  // « GG » réservé aux vraies bonnes games (K/D positif) ; sinon victoire portée.
+  if (result === 1 && s.kills > s.deaths)
+    return { emoji: "✅", label: "GG", text: `${s.kills}-${s.deaths}, propre.` };
+  if (result === 1)
+    return { emoji: "🎟️", label: "Porté", text: `${s.kills}-${s.deaths} en gagnant — merci les mates.` };
   return null;
 }
 
