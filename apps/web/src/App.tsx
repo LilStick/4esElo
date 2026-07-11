@@ -31,10 +31,14 @@ function AnimatedRoutes() {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
   // Largeur max par page (portée par la page, pas le shell, pour ne pas reflow pendant la transition) :
-  // profil + home = large (mise en page à rail latéral), compare = intermédiaire, reste = compact.
+  // profil + home + wrapped = large (grilles à 3 colonnes), compare = intermédiaire, reste = compact.
   const p = location.pathname;
   const maxw =
-    p.startsWith("/player/") || p === "/" ? "max-w-[1400px]" : p === "/compare" ? "max-w-6xl" : "max-w-4xl";
+    p.startsWith("/player/") || p === "/" || p.startsWith("/wrapped")
+      ? "max-w-[1400px]"
+      : p === "/compare"
+        ? "max-w-6xl"
+        : "max-w-4xl";
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div

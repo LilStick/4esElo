@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
-import { TbConfetti, TbSparkles } from "react-icons/tb";
+import { Link, useParams } from "react-router-dom";
+import { TbArrowRight, TbConfetti, TbSparkles } from "react-icons/tb";
 import { getWrapped } from "../lib/api";
 import { groupAwards } from "../lib/awards";
 import { parsePeriod, monthLabel } from "../lib/period";
@@ -27,7 +27,7 @@ export function Wrapped() {
   const groups = useMemo(() => (data ? groupAwards(data.awards) : []), [data]);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Hero compact */}
       <Card className="relative overflow-hidden p-5">
         <MapBackdrop src={heroScreen} />
@@ -39,10 +39,22 @@ export function Wrapped() {
           <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] text-brand">
             <TbConfetti size={24} />
           </span>
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-extrabold tracking-[-0.03em]">Wrapped du pôle</h1>
             <p className="text-sm text-ink-dim capitalize">{title}</p>
           </div>
+          {d && (
+            <Link
+              to={`/wrapped/big/${d.year}`}
+              className="group inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-brand/25 bg-brand/[0.08] px-3 py-1.5 text-xs font-bold text-brand transition-colors hover:bg-brand/15"
+            >
+              BIG Wrapped {d.year}
+              <TbArrowRight
+                size={14}
+                className="transition-transform duration-200 group-hover:translate-x-0.5"
+              />
+            </Link>
+          )}
         </div>
       </Card>
 
@@ -73,11 +85,9 @@ export function Wrapped() {
       )}
 
       {groups.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {groups.map((g) => (
-            <div key={g.award} className="w-full sm:w-[320px]">
-              <AwardCard g={g} linkTo={(id) => `/wrapped/${period}/${id}`} />
-            </div>
+            <AwardCard key={g.award} g={g} linkTo={(id) => `/wrapped/${period}/${id}`} />
           ))}
         </div>
       )}

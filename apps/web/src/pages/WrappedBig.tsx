@@ -43,7 +43,7 @@ export function WrappedBig() {
   const winnerCount = useMemo(() => (data ? new Set(data.awards.map((a) => a.playerId)).size : 0), [data]);
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {!p && (
         <EmptyState icon={TbSparkles} title="Période invalide">
           L'adresse du BIG Wrapped doit ressembler à « 2026 » ou « 2026-H1 ».
@@ -106,7 +106,7 @@ export function WrappedBig() {
           )}
 
           {groups.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {groups.map((g, i) => (
                 <motion.div
                   key={g.award}
@@ -114,7 +114,6 @@ export function WrappedBig() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{ duration: 0.35, ease: "easeOut", delay: Math.min(i * 0.05, 0.3) }}
-                  className="w-full sm:w-[320px]"
                 >
                   <AwardCard g={g} linkTo={(id) => `/wrapped/big/${period}/${id}`} />
                 </motion.div>
