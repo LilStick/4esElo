@@ -11,6 +11,8 @@ import { Player } from "./pages/Player";
 import { Achievements } from "./pages/Achievements";
 import { Wrapped } from "./pages/Wrapped";
 import { WrappedPlayer } from "./pages/WrappedPlayer";
+import { WrappedBig } from "./pages/WrappedBig";
+import { WrappedBigPlayer } from "./pages/WrappedBigPlayer";
 import { Compare } from "./pages/Compare";
 import { Social } from "./pages/Social";
 import { Ideas } from "./pages/Ideas";
@@ -50,6 +52,8 @@ function AnimatedRoutes() {
           <Route path="/asso" element={<Asso />} />
           <Route path="/player/:id" element={<Player />} />
           <Route path="/player/:id/succes" element={<Achievements />} />
+          <Route path="/wrapped/big/:period" element={<WrappedBig />} />
+          <Route path="/wrapped/big/:period/:player" element={<WrappedBigPlayer />} />
           <Route path="/wrapped/:period" element={<Wrapped />} />
           <Route path="/wrapped/:period/:player" element={<WrappedPlayer />} />
           <Route path="/compare" element={<Compare />} />

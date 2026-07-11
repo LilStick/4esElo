@@ -39,3 +39,19 @@ export function currentPeriod(): string {
   const d = new Date();
   return toPeriod(d.getFullYear(), d.getMonth() + 1);
 }
+
+/** BIG Wrapped (B7.12) — période longue : "2026" (année) | "2026-H1" | "2026-H2". */
+export type BigPeriod = { year: number; half: 1 | 2 | null };
+
+/** Parse une période longue d'URL (null si invalide). */
+export function parseBigPeriod(period: string): BigPeriod | null {
+  const m = period.match(/^(\d{4})(?:-H([12]))?$/);
+  if (!m) return null;
+  return { year: Number(m[1]), half: m[2] ? (Number(m[2]) as 1 | 2) : null };
+}
+
+/** Libellé lisible « Année 2026 » / « 1er semestre 2026 » / « 2e semestre 2026 ». */
+export function bigPeriodLabel(p: BigPeriod): string {
+  if (p.half === null) return `Année ${p.year}`;
+  return `${p.half === 1 ? "1er" : "2e"} semestre ${p.year}`;
+}
