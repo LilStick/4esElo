@@ -1,84 +1,16 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { TbConfetti, TbSparkles } from "react-icons/tb";
-import type { AwardKey, AwardWinner } from "@4eselo/types";
+import { TbArrowRight, TbConfetti, TbSparkles } from "react-icons/tb";
 import { getWrapped } from "../lib/api";
+import { groupAwards } from "../lib/awards";
 import { parsePeriod, monthLabel } from "../lib/period";
-import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Card, Skeleton } from "../ui";
+import { Card, Skeleton } from "../ui";
+import { AwardCard } from "../components/AwardCard";
 import { EmptyState } from "../components/EmptyState";
 import { MapBackdrop } from "../components/MapBackdrop";
 import { useTitle } from "../lib/useTitle";
 import heroScreen from "../assets/maps/screens/de_inferno.png";
-
-type Group = {
-  award: AwardKey;
-  emoji: string;
-  title: string;
-  punchline: string;
-  winners: {
-    playerId: string;
-    nickname: string;
-    value: number;
-    discordId: string | null;
-    discordAvatar: string | null;
-  }[];
-};
-
-/** Regroupe les gagnants par award (ex æquo → une seule carte). */
-function groupAwards(awards: AwardWinner[]): Group[] {
-  const map = new Map<AwardKey, Group>();
-  for (const a of awards) {
-    const winner = {
-      playerId: a.playerId,
-      nickname: a.nickname,
-      value: a.value,
-      discordId: a.discordId,
-      discordAvatar: a.discordAvatar,
-    };
-    const g = map.get(a.award);
-    if (g) g.winners.push(winner);
-    else
-      map.set(a.award, {
-        award: a.award,
-        emoji: a.emoji,
-        title: a.title,
-        punchline: a.punchline,
-        winners: [winner],
-      });
-  }
-  return [...map.values()];
-}
-
-function AwardCard({ g, period }: { g: Group; period: string }) {
-  return (
-    <Card className="flex h-full flex-col gap-4 p-5">
-      <div className="flex items-center gap-3">
-        <span className="text-4xl leading-none">{g.emoji}</span>
-        <div className="text-lg font-bold">{g.title}</div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        {g.winners.map((w) => (
-          <Link
-            key={w.playerId}
-            to={`/wrapped/${period}/${w.playerId}`}
-            className="group flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5"
-          >
-            <Avatar name={w.nickname} size={26} src={discordAvatarUrl(w.discordId, w.discordAvatar)} />
-            <span className="flex-1 truncate text-sm font-semibold transition-colors group-hover:text-brand-hi">
-              {w.nickname}
-            </span>
-            <span className="font-mono text-xs font-bold text-brand tabular-nums">{w.value}</span>
-          </Link>
-        ))}
-      </div>
-
-      <p className="mt-auto text-sm text-ink-dim italic">« {g.punchline} »</p>
-    </Card>
-  );
-}
 
 export function Wrapped() {
   const { period = "" } = useParams();
@@ -95,7 +27,7 @@ export function Wrapped() {
   const groups = useMemo(() => (data ? groupAwards(data.awards) : []), [data]);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {/* Hero compact */}
       <Card className="relative overflow-hidden p-5">
         <MapBackdrop src={heroScreen} />
@@ -107,10 +39,22 @@ export function Wrapped() {
           <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] text-brand">
             <TbConfetti size={24} />
           </span>
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-extrabold tracking-[-0.03em]">Wrapped du pôle</h1>
             <p className="text-sm text-ink-dim capitalize">{title}</p>
           </div>
+          {d && (
+            <Link
+              to={`/wrapped/big/${d.year}`}
+              className="group inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-brand/25 bg-brand/[0.08] px-3 py-1.5 text-xs font-bold text-brand transition-colors hover:bg-brand/15"
+            >
+              BIG Wrapped {d.year}
+              <TbArrowRight
+                size={14}
+                className="transition-transform duration-200 group-hover:translate-x-0.5"
+              />
+            </Link>
+          )}
         </div>
       </Card>
 
@@ -141,11 +85,9 @@ export function Wrapped() {
       )}
 
       {groups.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {groups.map((g) => (
-            <div key={g.award} className="w-full sm:w-[320px]">
-              <AwardCard g={g} period={period} />
-            </div>
+            <AwardCard key={g.award} g={g} linkTo={(id) => `/wrapped/${period}/${id}`} />
           ))}
         </div>
       )}

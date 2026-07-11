@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-12
+
+- Web : page « BIG Wrapped » longue période (`/wrapped/big/:period`, ex. `2026` ou `2026-H1`) — façon Spotify Wrapped : hero animé + compteurs (awards / primés), grille des awards du pôle qui se révèle en cascade, et page perso (stats de la période, percentiles « top X% » face au pôle, awards du joueur) ; états période invalide / sans data soignés. Entrée depuis la bannière d'annonce annuelle. Données de l'API B7.12. (#321)
+
 ## 2026-07-10
 
 - API : boîte à idées votable — une idée soumise est postée dans le salon Discord **par le bot** (nouveau client bot dans `packages/discord`) qui amorce ✅/❌ pour permettre le vote (un webhook ne peut pas réagir) ; fallback webhook si pas de bot, stockage seul sinon (jamais bloquant). Config `DISCORD_BOT_TOKEN` + `DISCORD_IDEAS_CHANNEL_ID`. Débloque le vote sur les idées des membres. (#339)

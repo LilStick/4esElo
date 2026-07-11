@@ -5,6 +5,7 @@ import type {
   Announcement,
   AnnouncementsResponse,
   BansResponse,
+  BigWrappedResponse,
   DuosResponse,
   EloSource,
   IdeasResponse,
@@ -19,6 +20,7 @@ import type {
   OvertakesResponse,
   PlayerDetail,
   PlayerDuosResponse,
+  PlayerBigWrappedResponse,
   PlayerStatsResponse,
   PlayerWrappedResponse,
   PostIdeaResponse,
@@ -119,6 +121,15 @@ export function getWrapped(year: number, month: number) {
 
 export function getPlayerWrapped(year: number, month: number, playerId: string) {
   return get<PlayerWrappedResponse>(`/wrapped/${year}/${month}/${playerId}`);
+}
+
+/** BIG Wrapped du pôle (période longue : "2026" | "2026-H1" | "2026-H2"). */
+export function getBigWrapped(period: string) {
+  return get<BigWrappedResponse>(`/wrapped/big/${period}`);
+}
+
+export function getPlayerBigWrapped(period: string, playerId: string) {
+  return get<PlayerBigWrappedResponse>(`/wrapped/big/${period}/${playerId}`);
 }
 
 export function getPlayer(id: string, source: EloSource = "faceit") {
