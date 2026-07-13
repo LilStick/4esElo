@@ -20,6 +20,7 @@ import type {
   MoversResponse,
   OvertakesResponse,
   PlayerStatsResponse,
+  PlayerBenchmarkResponse,
   PlayerWrappedResponse,
   BigWrappedResponse,
   PlayerBigWrappedResponse,
@@ -316,6 +317,41 @@ test("GET /players/:id/stats rejects an unknown range with 400", { skip }, async
 
 test("GET /players/:id/stats returns 404 for an unknown player", { skip }, async () => {
   const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/stats`);
+  assert.equal(res.status, 404);
+});
+
+test("B5.11: GET /players/:id/benchmark renvoie value + percentile par stat clé", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/benchmark`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as PlayerBenchmarkResponse;
+
+  assert.equal(body.range, "all");
+  assert.equal(body.matches, 3);
+  // 3 matchs seedés < seuil (10) → non classé : percentiles null, mais valeur brute présente.
+  assert.equal(body.qualified, false);
+  assert.equal(body.stats.adr.value, 86.7); // (90+60+110)/3
+  assert.equal(body.stats.adr.percentile, null);
+  for (const key of ["adr", "kd", "hsPercent", "clutchWinRate", "entrySuccessRate", "winRate"] as const) {
+    assert.ok(key in body.stats, `stat ${key} manquante`);
+    assert.equal(body.stats[key].percentile, null);
+  }
+});
+
+test("B5.11: GET /players/:id/benchmark?range=7d exclut les matchs hors fenêtre", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/benchmark?range=7d`);
+  const body = (await res.json()) as PlayerBenchmarkResponse;
+  assert.equal(body.range, "7d");
+  assert.equal(body.matches, 0);
+  assert.equal(body.stats.adr.value, 0);
+});
+
+test("B5.11: GET /players/:id/benchmark rejette un range inconnu avec 400", { skip }, async () => {
+  const res = await app.request(`/players/${playerId}/benchmark?range=1y`);
+  assert.equal(res.status, 400);
+});
+
+test("B5.11: GET /players/:id/benchmark renvoie 404 pour un joueur inconnu", { skip }, async () => {
+  const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/benchmark`);
   assert.equal(res.status, 404);
 });
 

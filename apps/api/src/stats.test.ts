@@ -5,6 +5,7 @@ import {
   computeAggregate,
   computeMapStats,
   computeMapLeaderboard,
+  percentile,
   rangeCutoff,
   type MatchForStats,
 } from "./stats";
@@ -222,4 +223,19 @@ test("map leaderboard: par map, classé par winrate, seuil de games (B13.6)", ()
   assert.equal(lb[0]!.players[0]!.winRate, 80);
   assert.equal(lb[0]!.players[0]!.kd, 2); // 100 kills / 50 deaths
   assert.equal(lb[0]!.players[1]!.player.nickname, "bob"); // 40%
+});
+
+test("percentile : médiane, extrêmes, ex æquo, échantillon vide", () => {
+  const sample = [10, 20, 30, 40, 50];
+  // La médiane (30) est ≤ à 3 des 5 valeurs → 60%.
+  assert.equal(percentile(30, sample), 60);
+  // Le max est ≤ à tout l'échantillon → 100% ; en dessous de tout → 20% (lui-même compté s'il est dedans).
+  assert.equal(percentile(50, sample), 100);
+  assert.equal(percentile(10, sample), 20);
+  // Sous le minimum → 0%.
+  assert.equal(percentile(5, sample), 0);
+  // Ex æquo : tous à 30, une valeur de 30 est ≤ à toutes → 100%.
+  assert.equal(percentile(30, [30, 30, 30]), 100);
+  // Échantillon vide → 0, jamais de division par zéro.
+  assert.equal(percentile(42, []), 0);
 });

@@ -368,6 +368,26 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
+/** Stats classées dans le benchmark intra-asso (B5.11) — pour toutes, "plus haut = mieux". */
+export type BenchmarkStatKey = "adr" | "kd" | "hsPercent" | "clutchWinRate" | "entrySuccessRate" | "winRate";
+
+/** Valeur du membre + son percentile (0-100) face au pôle ; null s'il n'est pas dans le référentiel. */
+export interface BenchmarkStat {
+  value: number;
+  percentile: number | null;
+}
+
+/**
+ * Ta place dans l'asso (B5.11) : par stat clé, ta valeur et ton percentile intra-asso.
+ * `qualified` = tu as assez de matchs sur la fenêtre pour être classé (sinon percentiles null).
+ */
+export interface PlayerBenchmarkResponse {
+  range: StatsRange;
+  matches: number;
+  qualified: boolean;
+  stats: Record<BenchmarkStatKey, BenchmarkStat>;
+}
+
 /** Register (B17.2) : préviusalisation du pseudo Faceit avant confirmation. */
 export interface RegisterLookupResponse {
   faceitId: string;

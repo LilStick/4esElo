@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-13
 
+- API : benchmark intra-asso (`GET /players/:id/benchmark?range=…`) — situe un membre face au pôle par stat clé (ADR, K/D, HS %, clutch %, entry %, winRate) avec un percentile « top X% de l'asso », sur la même fenêtre que `/stats`. Référentiel = membres actifs (≥ 10 matchs) ; en dessous → non classé (`percentile: null`). Fonction `percentile` factorisée (partagée avec le Wrapped). (#350)
 - API : punchlines du Wrapped conscientes de la période — sur un BIG Wrapped les awards disent « cette année » / « ce semestre » au lieu de « ce mois-ci » (libellé propagé dans `computeAwards`) ; le Wrapped mensuel reste inchangé. (#348)
 
 ## 2026-07-12

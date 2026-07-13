@@ -6,6 +6,7 @@ import type {
   PlayerWrappedResponse,
   WrappedPercentiles,
 } from "@4eselo/types";
+import { percentile } from "./stats";
 
 /**
  * Moteur d'awards du Wrapped mensuel (B7.2) — fonctions pures, zéro I/O.
@@ -493,12 +494,6 @@ export function computeAwards(inputs: WrappedInputs, label: string = MONTHLY_LAB
     ...hamster(pool, deltas),
     ...chatouilleur(pool, label),
   ];
-}
-
-/** Percentile 0-100 : part des joueurs actifs du mois dont la valeur est ≤ à la sienne. */
-function percentile(value: number, all: number[]): number {
-  if (all.length === 0) return 0;
-  return Math.round((all.filter((v) => v <= value).length / all.length) * 100);
 }
 
 /** Cœur du Wrapped perso (sans l'étiquette de période) — partagé mensuel / BIG (B7.12). */
