@@ -38,6 +38,15 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const pct = (num: number, den: number) => (den > 0 ? round1((num / den) * 100) : 0);
 const ratio = (num: number, den: number) => (den > 0 ? round1(num / den) : num > 0 ? num : 0);
 
+/**
+ * Percentile 0-100 : part de l'échantillon dont la valeur est ≤ `value` (ta place, incluse).
+ * Partagé Wrapped (percentiles perso) ↔ benchmark asso (B5.11). Échantillon vide → 0.
+ */
+export function percentile(value: number, all: number[]): number {
+  if (all.length === 0) return 0;
+  return Math.round((all.filter((v) => v <= value).length / all.length) * 100);
+}
+
 export function computeAggregate(range: StatsRange, matches: MatchForStats[]): StatsAggregate {
   const n = matches.length;
   let wins = 0;

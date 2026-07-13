@@ -9,6 +9,7 @@ import type {
   MatchesResponse,
   PlayerDetail,
   PlayerStatsResponse,
+  PlayerBenchmarkResponse,
   AchievementState,
   AchievementsResponse,
   RoastResponse,
@@ -17,7 +18,8 @@ import { computeStreak } from "./streaks";
 import { computeBadges, type BadgeMatch } from "./badges";
 import { evaluateAchievements, bestEloGainWithin } from "./achievements";
 import { profileRoast, forecastElo, type RoastProfileInput } from "./roast";
-import { computeAggregate, computeMapStats, rangeCutoff, RANGES } from "./stats";
+import { computeAggregate, computeMapStats, rangeCutoff, RANGES, type MatchForStats } from "./stats";
+import { computeBenchmark, type PlayerAggregate } from "./benchmark";
 import { readSource, readPlayerId, badRequest } from "./http";
 import { effectiveEloDelta } from "./eloDelta";
 
@@ -194,6 +196,47 @@ playersRoutes.get("/players/:id/stats", async (c) => {
     overall: computeAggregate(range, rows),
     maps: computeMapStats(rows),
   });
+});
+
+// Ta place dans l'asso (B5.11) : percentile intra-asso par stat clé, sur la même fenêtre que /stats.
+playersRoutes.get("/players/:id/benchmark", async (c) => {
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const parsed = rangeSchema.safeParse(c.req.query("range"));
+  if (!parsed.success) return c.json({ error: "invalid range (7d|30d|3m|all)" }, 400);
+  const range = parsed.data;
+
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  // Tous les matchs de la fenêtre, tous membres confondus (le référentiel = l'asso).
+  const cutoff = rangeCutoff(range, new Date());
+  const base = db
+    .select({
+      playerId: faceitMatchStats.playerId,
+      map: faceitMatchStats.map,
+      result: faceitMatchStats.result,
+      stats: faceitMatchStats.stats,
+    })
+    .from(faceitMatchStats);
+  const rows = cutoff ? await base.where(gte(faceitMatchStats.playedAt, cutoff)) : await base;
+
+  const byPlayer = new Map<string, MatchForStats[]>();
+  for (const r of rows) {
+    const list = byPlayer.get(r.playerId) ?? [];
+    list.push({ map: r.map, result: r.result, stats: r.stats });
+    byPlayer.set(r.playerId, list);
+  }
+
+  const allPlayers = await db.select({ id: players.id }).from(players);
+  const aggregates: PlayerAggregate[] = allPlayers.map((p) => ({
+    playerId: p.id,
+    aggregate: computeAggregate(range, byPlayer.get(p.id) ?? []),
+  }));
+
+  const benchmark = computeBenchmark(range, id, aggregates);
+  if (!benchmark) return c.json({ error: "player not found" }, 404);
+  return c.json<PlayerBenchmarkResponse>(benchmark);
 });
 
 playersRoutes.get("/players/:id/achievements", async (c) => {
