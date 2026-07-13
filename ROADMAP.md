@@ -83,6 +83,22 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 > Déploiement / hébergement : ticketé → **bloc B12** (epic #59).
 
+## À revoir après déploiement
+
+> Choses **codées « à l'aveugle » faute de vraie data**, ou qui **s'appuient sur du fragile** : à surveiller / affiner une fois en prod avec du trafic réel. À reprendre en hotfix/amélioration, pas des bugs.
+
+**Réglages à calibrer sur la vraie data (`type:chore`) :**
+
+- **Benchmark asso (B5.11, #350)** — seuil de 10 matchs + liste des stats choisis sans distribution réelle sous les yeux. Une fois en prod : étudier la distribution des stats du pôle et ajuster seuil + axes selon les retours des membres.
+- **Seuils « au feeling » du Wrapped / social** — `MIN_MATCHES` (Wrapped = 5), `MIN_DUO_MATCHES` (5), `MIN_CLUTCH_ATTEMPTS`, seuils one-trick (`ONE_TRICK_MIN_SHARE/WINRATE`). Posés à l'estime ; à confronter au volume réel (trop stricts = awards vides, trop laxes = bruités).
+
+**Dépendances fragiles à surveiller (peuvent mourir du jour au lendemain) :**
+
+- **Présence live** (`presence.ts` + `packages/faceit/live.ts`) — confirmation « en match Faceit » via un endpoint **non officiel** derrière Cloudflare, best-effort. Déjà dégradé proprement (`inFaceitMatch: null`), mais si Faceit durcit, prévoir de retirer/remplacer la confirmation.
+- **Backfill de l'historique ELO** (`backfillElo.ts`, `eloHistory.ts`, `curlFetch.ts`) — endpoint interne `/stats/v1` souvent 403 (loterie Cloudflare), 1 tentative/joueur/jour. Jamais une dépendance dure (décision 2026-07-03) ; à re-vérifier post-déploiement.
+- **Heuristique `elo_after` par match** (`eloAfter.ts`, `eloDelta.ts`, #93/#141) — approximation au tick tant que le backfill réel est en retard ; la vraie data l'écrase quand elle arrive. Vérifier la qualité de la courbe une fois du volume accumulé.
+- **Relais Discord (idées, cartes)** — best-effort : bot/webhook absent ou mort → on stocke quand même, jamais bloquant. À reconfirmer quand le bot register (B6/phase 2) aura son auth.
+
 ## Décisions
 
 > Les choix d'archi **tranchés** — pour ne pas les re-débattre (humains comme agents). Process validé par vote le 2026-07-02 : on débat sur Discord `#features-talk`, le verdict s'écrit ici en 2-3 lignes (date + choix + pourquoi).
