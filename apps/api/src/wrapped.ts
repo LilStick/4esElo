@@ -110,6 +110,16 @@ export function periodRange(period: string): { start: Date; end: Date } | null {
   return null;
 }
 
+/**
+ * Libellé de fenêtre injecté dans les punchlines des awards.
+ * Mensuel → "ce mois-ci" ; BIG Wrapped → "cette année" (YYYY) ou "ce semestre" (YYYY-H1/H2).
+ * `period` est déjà validé par `periodRange` en amont.
+ */
+export const MONTHLY_LABEL = "ce mois-ci";
+export function periodLabel(period: string): string {
+  return /^\d{4}$/.test(period) ? "cette année" : "ce semestre";
+}
+
 const parisHourFmt = new Intl.DateTimeFormat("fr-FR", {
   timeZone: "Europe/Paris",
   hour: "2-digit",
@@ -282,7 +292,11 @@ function puant(pool: PlayerMonth[]): AwardWinner[] {
 }
 
 /** 📉 Chute libre : pire ΔELO du mois (négatif obligatoire). */
-function chuteLibre(pool: PlayerMonth[], deltas: Map<string, { start: number; end: number }>): AwardWinner[] {
+function chuteLibre(
+  pool: PlayerMonth[],
+  deltas: Map<string, { start: number; end: number }>,
+  label: string,
+): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
     const d = deltas.get(p.player.id);
@@ -293,20 +307,20 @@ function chuteLibre(pool: PlayerMonth[], deltas: Map<string, { start: number; en
       player: p.player,
       // pickWinners prend le max → on inverse pour garder la pire chute, value réelle dans la punchline.
       value: -delta,
-      punchline: `${delta} ELO ce mois-ci (${d.start} → ${d.end}) — pensez à lui.`,
+      punchline: `${delta} ELO ${label} (${d.start} → ${d.end}) — pensez à lui.`,
     });
   }
   return pickWinners("chute-libre", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
 /** 🔥 Tryharder : le plus de games. */
-function tryharder(pool: PlayerMonth[]): AwardWinner[] {
+function tryharder(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
     .map((p) => ({
       player: p.player,
       value: p.matches.length,
-      punchline: `${p.matches.length} games ce mois-ci — le grind ne s'arrête jamais.`,
+      punchline: `${p.matches.length} games ${label} — le grind ne s'arrête jamais.`,
     }));
   return pickWinners("tryharder", candidates);
 }
@@ -347,7 +361,7 @@ function nolife(pool: PlayerMonth[]): AwardWinner[] {
 }
 
 /** ⏰ Abonné absent : le moins de minutes CS2 jouées sur le mois (playtime Steam lisible requis). */
-function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>): AwardWinner[] {
+function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>, label: string): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
     const minutes = playtimes.get(p.player.id);
@@ -357,20 +371,20 @@ function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>): Awar
       player: p.player,
       // Le moins de playtime gagne → inversion pour pickWinners (max), value réelle restaurée après.
       value: -minutes,
-      punchline: `${hours} h de CS2 ce mois-ci — l'abonnement tourne à vide.`,
+      punchline: `${hours} h de CS2 ${label} — l'abonnement tourne à vide.`,
     });
   }
   return pickWinners("abonne-absent", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
 /** 👻 Fantôme : zéro game sur le mois — dispensé du minimum de games, évidemment. */
-function fantome(pool: PlayerMonth[]): AwardWinner[] {
+function fantome(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length === 0)
     .map((p) => ({
       player: p.player,
       value: 0,
-      punchline: `0 game ce mois-ci — vu pour la dernière fois il y a longtemps.`,
+      punchline: `0 game ${label} — vu pour la dernière fois il y a longtemps.`,
     }));
   // Un fantôme n'est un fantôme que si le pôle, lui, a joué.
   if (candidates.length === pool.length) return [];
@@ -380,13 +394,13 @@ function fantome(pool: PlayerMonth[]): AwardWinner[] {
 // --- Prix roast (B7.10) — validés en features-talk. ---
 
 /** 🦵 Tibia d'or : pire HS% moyen du mois. */
-function tibiaDor(pool: PlayerMonth[]): AwardWinner[] {
+function tibiaDor(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
     .map((p) => {
       const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
       // Le plus bas gagne → inversion pour pickWinners (max), value réelle restaurée après.
-      return { player: p.player, value: -hs, punchline: `${hs}% de HS ce mois — tu vises les chevilles.` };
+      return { player: p.player, value: -hs, punchline: `${hs}% de HS ${label} — tu vises les chevilles.` };
     });
   return pickWinners("tibia-dor", candidates).map((w) => ({ ...w, value: -w.value }));
 }
@@ -439,7 +453,7 @@ function hamster(pool: PlayerMonth[], deltas: Map<string, { start: number; end: 
 }
 
 /** 🪶 Chatouilleur : pire ADR moyen du mois. */
-function chatouilleur(pool: PlayerMonth[]): AwardWinner[] {
+function chatouilleur(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
     .map((p) => {
@@ -447,15 +461,19 @@ function chatouilleur(pool: PlayerMonth[]): AwardWinner[] {
       return {
         player: p.player,
         value: -adr,
-        punchline: `${adr} d'ADR ce mois — tu distribues des caresses.`,
+        punchline: `${adr} d'ADR ${label} — tu distribues des caresses.`,
       };
     })
     .filter((c) => c.value < 0); // adr > 0 (données présentes)
   return pickWinners("chatouilleur", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
-/** Calcule les 14 awards du mois (9 originaux + 5 roast B7.10). Liste vide si personne d'éligible. */
-export function computeAwards(inputs: WrappedInputs): AwardWinner[] {
+/**
+ * Calcule les 14 awards de la fenêtre (9 originaux + 5 roast B7.10). Liste vide si personne d'éligible.
+ * `label` = libellé de période inséré dans les punchlines ("ce mois-ci" par défaut ;
+ * "cette année"/"ce semestre" pour un BIG Wrapped, cf. `periodLabel`).
+ */
+export function computeAwards(inputs: WrappedInputs, label: string = MONTHLY_LABEL): AwardWinner[] {
   const pool = groupByPlayer(inputs);
   const deltas = eloDeltas(inputs.eloSnapshots);
   const playtimes = monthlyPlaytime(inputs.playtimeSnapshots);
@@ -463,17 +481,17 @@ export function computeAwards(inputs: WrappedInputs): AwardWinner[] {
     ...rat(pool),
     ...spammeur(pool),
     ...puant(pool),
-    ...chuteLibre(pool, deltas),
-    ...tryharder(pool),
+    ...chuteLibre(pool, deltas, label),
+    ...tryharder(pool, label),
     ...ministreDuClutch(pool),
     ...nolife(pool),
-    ...abonneAbsent(pool, playtimes),
-    ...fantome(pool),
-    ...tibiaDor(pool),
+    ...abonneAbsent(pool, playtimes, label),
+    ...fantome(pool, label),
+    ...tibiaDor(pool, label),
     ...chirurgien(pool),
     ...babySitter(pool),
     ...hamster(pool, deltas),
-    ...chatouilleur(pool),
+    ...chatouilleur(pool, label),
   ];
 }
 
@@ -486,7 +504,11 @@ function percentile(value: number, all: number[]): number {
 /** Cœur du Wrapped perso (sans l'étiquette de période) — partagé mensuel / BIG (B7.12). */
 type PlayerWrappedCore = Omit<PlayerWrappedResponse, "year" | "month">;
 
-function computePlayerWrappedCore(playerId: string, inputs: WrappedInputs): PlayerWrappedCore | null {
+function computePlayerWrappedCore(
+  playerId: string,
+  inputs: WrappedInputs,
+  label: string = MONTHLY_LABEL,
+): PlayerWrappedCore | null {
   const player = inputs.players.find((p) => p.id === playerId);
   if (!player) return null;
 
@@ -555,7 +577,7 @@ function computePlayerWrappedCore(playerId: string, inputs: WrappedInputs): Play
     playtimeMinutes: playtime ?? null,
     elo: d ? { start: d.start, end: d.end, delta: d.end - d.start } : null,
     percentiles,
-    awards: computeAwards(inputs).filter((a) => a.playerId === playerId),
+    awards: computeAwards(inputs, label).filter((a) => a.playerId === playerId),
   };
 }
 
@@ -576,6 +598,6 @@ export function computePlayerBigWrapped(
   period: string,
   inputs: WrappedInputs,
 ): PlayerBigWrappedResponse | null {
-  const core = computePlayerWrappedCore(playerId, inputs);
+  const core = computePlayerWrappedCore(playerId, inputs, periodLabel(period));
   return core ? { period, ...core } : null;
 }

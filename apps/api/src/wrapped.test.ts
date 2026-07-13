@@ -4,8 +4,10 @@ import type { AwardKey, FaceitMatchStats } from "@4eselo/types";
 import {
   computeAwards,
   computePlayerWrapped,
+  computePlayerBigWrapped,
   monthRange,
   periodRange,
+  periodLabel,
   parisHour,
   MIN_MATCHES,
   type WrappedInputs,
@@ -415,4 +417,50 @@ test("B7.10 chatouilleur : pire ADR moyen", () => {
   assert.equal(chat.length, 1);
   assert.equal(chat[0]!.playerId, "p1");
   assert.equal(chat[0]!.value, 45);
+});
+
+// --- B7.15 : les punchlines s'adaptent à la période (mensuel vs BIG Wrapped). ---
+
+test("periodLabel : année → « cette année », semestre → « ce semestre »", () => {
+  assert.equal(periodLabel("2026"), "cette année");
+  assert.equal(periodLabel("2026-H1"), "ce semestre");
+  assert.equal(periodLabel("2026-H2"), "ce semestre");
+});
+
+/** Inputs riches déclenchant plusieurs awards « à période » (games, HS bas, ADR bas). */
+function labelledInputs(): WrappedInputs {
+  return inputs({
+    matches: [
+      ...games("p1", MIN_MATCHES, { hsPercent: 10, adr: 50 }),
+      ...games("p2", MIN_MATCHES, { hsPercent: 55, adr: 95 }),
+    ],
+  });
+}
+
+test("computeAwards : par défaut les punchlines disent « ce mois-ci » (mensuel, pas de régression)", () => {
+  const awards = computeAwards(labelledInputs());
+  const tryharder = winnersOf(awards, "tryharder");
+  assert.equal(tryharder.length > 0, true);
+  assert.match(tryharder[0]!.punchline, /ce mois-ci/);
+});
+
+test("computeAwards : BIG Wrapped annuel → « cette année », plus aucun « ce mois » (bug B7.15)", () => {
+  const awards = computeAwards(labelledInputs(), periodLabel("2026"));
+  // Aucune punchline ne doit plus mentionner le mois sur une fenêtre annuelle.
+  for (const a of awards) {
+    assert.doesNotMatch(a.punchline, /ce mois/, `award ${a.award} mentionne encore le mois`);
+  }
+  // Au moins un award « à période » porte le bon libellé.
+  assert.equal(
+    awards.some((a) => a.punchline.includes("cette année")),
+    true,
+  );
+});
+
+test("computePlayerBigWrapped : les awards du joueur suivent la période (« ce semestre »)", () => {
+  const wrapped = computePlayerBigWrapped("p1", "2026-H1", labelledInputs());
+  assert.notEqual(wrapped, null);
+  for (const a of wrapped!.awards) {
+    assert.doesNotMatch(a.punchline, /ce mois/, `award ${a.award} mentionne encore le mois`);
+  }
 });
