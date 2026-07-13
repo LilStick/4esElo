@@ -67,7 +67,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 **Communauté** : promo EFREI à l'inscription ✅ voté + login Discord ✅ voté → **ticketés en B17** (register sur site, Alumni 🎓 auto, panel admin).
 
-**Qualité** : **passe QA complète du site avant la mise en ligne** (idée Noé 2026-07-07 : parcourir toutes les pages/états et ticketer chaque bug en `type:bugfix` — premier cas : widget « En jeu maintenant » qui confondait connecté/en jeu, cf. #214) · label `type:bugfix` créé pour tracer ces corrections.
+**Qualité** : **passe QA complète du site avant la mise en ligne** (idée Noé 2026-07-07 : parcourir toutes les pages/états et ticketer chaque bug en `type:bugfix` — premier cas : widget « En jeu maintenant » qui confondait connecté/en jeu, cf. #214) · label `type:bugfix` créé pour tracer ces corrections · **rapport de bug par les membres** _(maybe)_ : pas de système dédié (surface > valeur pour une petite asso, et les membres remontent direct sur Discord) — au mieux une _catégorie bug_ sur la boîte à idées existante, à ré-évaluer **après** le lancement si les membres remontent vraiment des bugs.
 
 **Gamification** : succès déblocables · course au titre de saison + hall of fame · XP/level d'asso · jeu de pronostics · rivalries auto-détectées · bounties/challenges de la semaine.
 
@@ -108,6 +108,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 - **2026-07-02 — Pattern provider** : toute I/O réseau vit dans `packages/<provider>` (client typé + zod + tests), les apps consomment via interfaces injectables — enforced par ESLint. Ajouter une source (Premier, allstar…) = un nouveau package, zéro refactor.
 - **2026-07-02 — Décisions tracées ici** : Discord = salle de débat, le repo = source de vérité. Voté ✅ 2/0.
 - **2026-07-03, amendée 2026-07-06 — Courbe ELO : forward-first + backfill opportuniste** : la courbe se construit d'abord via nos snapshots (10 min, on-change) et l'heuristique au tick (#93). L'endpoint non officiel d'historique (variante `/stats/v1`, trouvée par Arthur) est accessible par intermittence (loterie Cloudflare) → le passé se récupère en **best-effort** : 1 tentative/joueur/jour, jamais une dépendance (#141). Voté ✅ 2/0.
+- **2026-07-13 — Pas d'investissement dans les relais Discord côté membres** : le serveur asso n'étant pas un canal fiable (ni admin ni bot invitable, cf. 2026-07-07), la surface membres = le **site**. Le relais Discord des idées existant reste (best-effort, inoffensif, no-op si non configuré) mais on n'ajoute **pas** de nouvelles features à relais membres (ex. boîte à bugs). Les alertes **techniques**, elles, vont au **Discord de dev** (on y est admin) — cf. canari de B12.4 (#71). Décision Noé.
 
 ## Comment contribuer à ce fichier
 
