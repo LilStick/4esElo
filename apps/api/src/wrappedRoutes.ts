@@ -6,7 +6,13 @@ import type {
   BigWrappedResponse,
   PlayerBigWrappedResponse,
 } from "@4eselo/types";
-import { computeAwards, computePlayerWrapped, computePlayerBigWrapped, periodRange } from "./wrapped";
+import {
+  computeAwards,
+  computePlayerWrapped,
+  computePlayerBigWrapped,
+  periodRange,
+  periodLabel,
+} from "./wrapped";
 import { loadWrappedInputs, loadWrappedInputsForRange } from "./wrappedData";
 import { uuidSchema, badRequest } from "./http";
 
@@ -25,7 +31,7 @@ wrappedRoutes.get("/wrapped/big/:period", async (c) => {
   if (!range) return badRequest(c, "invalid period (YYYY | YYYY-H1 | YYYY-H2)");
 
   const inputs = await loadWrappedInputsForRange(range.start, range.end);
-  return c.json<BigWrappedResponse>({ period, awards: computeAwards(inputs) });
+  return c.json<BigWrappedResponse>({ period, awards: computeAwards(inputs, periodLabel(period)) });
 });
 
 wrappedRoutes.get("/wrapped/big/:period/:playerId", async (c) => {
