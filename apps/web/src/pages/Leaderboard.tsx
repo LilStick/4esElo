@@ -132,7 +132,7 @@ export function Leaderboard() {
           <span className={cn("truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
             {nameOf(e)}
           </span>
-          <Badges ids={e.badges} max={3} />
+          <Badges tiers={e.badgeTiers} max={3} />
         </span>
         {isAlumni(e.promoEnd) && (
           <span title="Alumni" aria-label="Alumni" className="shrink-0 text-[13px] leading-none">

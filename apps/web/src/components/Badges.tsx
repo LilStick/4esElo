@@ -1,33 +1,47 @@
-import { BADGE_CATALOG, type BadgeId } from "@4eselo/types";
+import type { BadgeTier } from "@4eselo/types";
 import { cn } from "../lib/cn";
 
+/** Au-delà, on n'empile pas N émojis : on montre l'émoji + « ×N » (lisibilité). */
+const MAX_REPEAT = 3;
+
 /**
- * Badges emoji (B5.9) — mini-icônes de perf récente à côté du pseudo, avec un
- * tooltip au survol (emoji + libellé + comment on le gagne). `max` limite
- * l'affichage sur le classement (le reste passe en « +N »). Rien si aucun badge.
+ * Badges à paliers (B5.14) — façon Calibrum. Chaque badge rend `count` émojis
+ * (paliers) avec un tooltip = `message` (fourni par l'API, déjà fenêtré : 24h sur
+ * le classement/home, 30j sur le profil). `max` limite le nombre de badges affichés
+ * (le reste passe en « +N »). Le badge négatif `coldstreak` est teinté « loss ».
+ * Rien si aucun badge.
  */
-export function Badges({ ids, max, className }: { ids: BadgeId[]; max?: number; className?: string }) {
-  if (!ids || ids.length === 0) return null;
-  const shown = max ? ids.slice(0, max) : ids;
-  const extra = ids.length - shown.length;
+export function Badges({ tiers, max, className }: { tiers: BadgeTier[]; max?: number; className?: string }) {
+  if (!tiers || tiers.length === 0) return null;
+  const shown = max ? tiers.slice(0, max) : tiers;
+  const extra = tiers.length - shown.length;
 
   return (
-    <span className={cn("inline-flex shrink-0 items-center gap-1", className)}>
-      {shown.map((id) => {
-        const b = BADGE_CATALOG[id];
+    <span className={cn("inline-flex shrink-0 items-center gap-1.5", className)}>
+      {shown.map((t) => {
+        const negative = t.id === "coldstreak";
+        const repeat = Math.min(t.count, MAX_REPEAT);
         return (
-          <span key={id} className="group/badge relative inline-flex leading-none">
-            <span aria-label={b.label} className="cursor-default text-[13px]">
-              {b.emoji}
+          <span key={t.id} className="group/badge relative inline-flex leading-none">
+            <span
+              aria-label={t.message}
+              className={cn(
+                "inline-flex cursor-default items-center gap-0.5 text-[13px]",
+                negative && "rounded bg-loss/12 px-1 py-0.5",
+              )}
+            >
+              {Array.from({ length: repeat }, (_, i) => (
+                <span key={i}>{t.emoji}</span>
+              ))}
+              {t.count > MAX_REPEAT && (
+                <span className="ml-0.5 font-mono text-[10px] font-bold text-ink-faint">×{t.count}</span>
+              )}
             </span>
             <span
               role="tooltip"
-              className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[220px] -translate-x-1/2 rounded-lg border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover/badge:opacity-100"
+              className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-55 -translate-x-1/2 rounded-lg border border-white/10 bg-surface-2 px-2.5 py-1.5 text-left text-xs font-semibold text-ink opacity-0 shadow-xl transition-opacity duration-150 group-hover/badge:opacity-100"
             >
-              <span className="block text-xs font-bold text-ink">
-                {b.emoji} {b.label}
-              </span>
-              <span className="mt-0.5 block text-[11px] text-ink-dim">{b.description}</span>
+              {t.emoji} {t.message}
             </span>
           </span>
         );

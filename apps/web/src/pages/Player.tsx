@@ -147,7 +147,7 @@ export function Player() {
                   </div>
                 </div>
 
-                <Badges ids={data.badges} className="flex-wrap justify-center" />
+                <Badges tiers={data.badgeTiers} className="flex-wrap justify-center" />
 
                 {(isAlumni(data.promoEnd) ||
                   promoLabel(data.promoStart, data.promoEnd) ||

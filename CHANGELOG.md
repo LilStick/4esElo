@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-15
 
+- Web : badges à paliers (`badgeTiers`) sur classement (24h), home (24h) et profil (30j) — `count` émojis + tooltip `message`, badge négatif `coldstreak` teinté. (#363)
 - API : badges à paliers façon Calibrum (`badgeTiers`) — chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip), calculé sur une **fenêtre** : 24h sur le classement/home, 30j sur le profil. 🔥/😰 séries (win/défaite), 🚿 grind à paliers, 🎯/💣/🧠 par bandes de taux. Champ **additif** (coexiste avec `badges`), le front migrera dessus. Seuils à affiner post-déploiement. (#361)
 - Web : carte « Ta place dans l'asso » sur le profil — affiche le benchmark intra-asso (percentile « top X% » par stat clé : win rate, K/D, ADR, HS %, clutch, entry), piloté par le sélecteur de période des stats. Palier coloré (top 10 % / 25 %), état « pas encore classé » soigné sous 10 matchs. Consomme l'API B5.11. (#358)
 
