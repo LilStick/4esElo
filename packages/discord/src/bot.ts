@@ -1,7 +1,7 @@
 import { DiscordError } from "./oauth";
 
 /**
- * Client bot Discord (REST v10) — pattern provider : l'I/O réseau vit ici.
+ * Client bot Discord (REST v10) - pattern provider : l'I/O réseau vit ici.
  * Sert à poster une idée dans un salon PUIS à amorcer les réactions de vote
  * (✅/❌), ce qu'un webhook ne peut pas faire (B17.12). `allowed_mentions` vide →
  * un texte utilisateur avec @everyone/pings ne ping personne.
@@ -15,7 +15,7 @@ export interface DiscordBotMessage {
   footer?: string;
 }
 
-/** Ce que l'app consomme — mockable en test. */
+/** Ce que l'app consomme - mockable en test. */
 export interface DiscordBot {
   /** Poste un embed dans un salon, renvoie l'id du message créé. */
   postMessage(channelId: string, msg: DiscordBotMessage): Promise<string>;
@@ -66,7 +66,7 @@ export class DiscordBotClient implements DiscordBot {
   }
 
   async react(channelId: string, messageId: string, emoji: string): Promise<void> {
-    // PUT /channels/{c}/messages/{m}/reactions/{emoji}/@me — l'emoji unicode est URL-encodé.
+    // PUT /channels/{c}/messages/{m}/reactions/{emoji}/@me - l'emoji unicode est URL-encodé.
     const res = await this.fetchImpl(
       `${API}/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}/@me`,
       {

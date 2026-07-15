@@ -4,7 +4,7 @@ import { FaceitError, eloToLevel, type EloHistoryProvider } from "@4eselo/faceit
  * Opportunistic ELO backfill (B2.10, voted 2026-07-06): one polite attempt per
  * player per UTC day against the unofficial history endpoint. A 200 fills the
  * player's past in one go (per-match eloAfter/eloDelta + the retro curve);
- * a 403 means "not today" — silent, retried tomorrow. Never a dependency:
+ * a 403 means "not today" - silent, retried tomorrow. Never a dependency:
  * the forward pipeline (#93) keeps working either way.
  */
 
@@ -28,7 +28,7 @@ export interface PlayerToBackfill {
 export type BackfillResult =
   | { status: "done-already" }
   | { status: "attempted-today" }
-  | { status: "blocked" } // 403 — retry tomorrow
+  | { status: "blocked" } // 403 - retry tomorrow
   | { status: "ok"; matchesFilled: number; snapshotsInserted: number };
 
 const sameUtcDay = (a: Date, b: Date) => a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);

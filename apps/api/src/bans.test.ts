@@ -9,7 +9,7 @@ import { app } from "./app";
 import { authDeps } from "./auth";
 import { invalidateBanCache } from "./banCache";
 
-/** Intégration bans (B17.9) — OAuth Discord mocké, vraie DB. */
+/** Intégration bans (B17.9) - OAuth Discord mocké, vraie DB. */
 
 async function dbReachable(): Promise<boolean> {
   try {
@@ -20,7 +20,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const ADMIN = "111111";
 const VICTIM = "222222";

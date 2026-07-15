@@ -76,7 +76,7 @@ export class FaceitClient {
           signal: AbortSignal.timeout(this.timeoutMs),
         });
       } catch (err) {
-        // Network error or timeout — transient by nature.
+        // Network error or timeout - transient by nature.
         lastError = new FaceitError(0, path, err instanceof Error ? err.message : String(err));
         await this.backoff(attempt);
         continue;

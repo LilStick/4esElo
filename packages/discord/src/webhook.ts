@@ -1,19 +1,19 @@
 import { DiscordError } from "./oauth";
 
 /**
- * Webhook Discord (B17.7) — pattern provider : l'I/O réseau vit ici. Sert à
+ * Webhook Discord (B17.7) - pattern provider : l'I/O réseau vit ici. Sert à
  * relayer les idées des membres dans un salon. Sécurité : `allowed_mentions`
  * vide → un texte utilisateur contenant @everyone/@here/pings ne ping personne.
  */
 
 export interface DiscordWebhookMessage {
   title?: string;
-  /** Corps du message — affiché tel quel (texte utilisateur), jamais interprété comme mention. */
+  /** Corps du message - affiché tel quel (texte utilisateur), jamais interprété comme mention. */
   description: string;
   footer?: string;
 }
 
-/** Ce que l'app consomme — mockable en test. */
+/** Ce que l'app consomme - mockable en test. */
 export interface DiscordWebhook {
   send(msg: DiscordWebhookMessage): Promise<void>;
 }

@@ -1,7 +1,7 @@
 /**
  * Cartes de partage OG par joueur (B5.4). Coller un lien de profil dans Discord
  * affiche la carte du joueur (avatar, pseudo, niveau, ELO, stats) au lieu de
- * l'aperçu générique — chaque partage devient une pub perso.
+ * l'aperçu générique - chaque partage devient une pub perso.
  *
  * - `GET /players/:id/og.png` : carte rendue en PNG (SVG → resvg, aucun navigateur
  *   headless), cachée quelques minutes.
@@ -158,7 +158,7 @@ export function renderCrawlerHtml(d: CrawlerHtmlData): string {
     Boolean,
   );
   const description = escapeXml(
-    bits.length > 0 ? `${bits.join(" · ")} — sur le classement CS2 du pôle` : "Sur le classement CS2 du pôle",
+    bits.length > 0 ? `${bits.join(" · ")} - sur le classement CS2 du pôle` : "Sur le classement CS2 du pôle",
   );
   const img = escapeXml(d.imageUrl);
   const url = escapeXml(d.pageUrl);
@@ -215,7 +215,7 @@ async function loadCardData(id: string): Promise<OgCardData | null> {
     stats = [
       { label: "Winrate", value: `${agg.winRate}%` },
       { label: "K/D", value: agg.kd.toFixed(2) },
-      { label: "Rating", value: agg.rating !== null ? agg.rating.toFixed(2) : "—" },
+      { label: "Rating", value: agg.rating !== null ? agg.rating.toFixed(2) : "-" },
     ];
   }
 

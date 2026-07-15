@@ -9,7 +9,7 @@ import {
 /**
  * Match ingestion (B2.3): for one member, walk their bounded match history
  * (newest first), skip what's already stored, fetch per-match stats and store
- * this member's row. Pure logic — network and DB come in as interfaces.
+ * this member's row. Pure logic - network and DB come in as interfaces.
  */
 
 export interface MatchReader {
@@ -45,7 +45,7 @@ export interface IngestOptions {
   maxMatches?: number;
   /** History page size (Faceit accepts up to 100). */
   pageSize?: number;
-  /** Delay between two Faceit calls — keeps us under the rate limit. */
+  /** Delay between two Faceit calls - keeps us under the rate limit. */
   throttleMs?: number;
   /** Injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
@@ -56,9 +56,9 @@ export interface IngestResult {
   /** Matches seen inside the window. */
   scanned: number;
   inserted: number;
-  /** Already stored (dedup) or bye/forfeit — nothing to fetch. */
+  /** Already stored (dedup) or bye/forfeit - nothing to fetch. */
   skipped: number;
-  /** Stats fetch failed or member missing from the match — retried next run. */
+  /** Stats fetch failed or member missing from the match - retried next run. */
   failed: number;
   /** Ids of the matches inserted by THIS run (feeds the eloAfter heuristic). */
   insertedMatchIds: string[];

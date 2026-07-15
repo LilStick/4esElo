@@ -1,7 +1,7 @@
 import type { AchievementDef } from "@4eselo/types";
 
 /**
- * Succès permanents (B7.8) — logique pure, zéro I/O. Chaque succès est un palier
+ * Succès permanents (B7.8) - logique pure, zéro I/O. Chaque succès est un palier
  * sur une métrique cumulée du joueur ; la progression = current / target. Le
  * déblocage (current ≥ target) est figé côté DB à la première détection.
  */
@@ -26,7 +26,7 @@ interface CatalogEntry extends AchievementDef {
   metric: (i: AchievementInput) => number;
 }
 
-/** Catalogue (14 succès) — paliers ancrés dans les stats stockées. */
+/** Catalogue (14 succès) - paliers ancrés dans les stats stockées. */
 export const ACHIEVEMENTS: CatalogEntry[] = [
   {
     id: "games_100",

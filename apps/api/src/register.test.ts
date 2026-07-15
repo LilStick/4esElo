@@ -11,7 +11,7 @@ import { authDeps } from "./auth";
 import { registerDeps, isAlumni } from "./register";
 
 /**
- * Intégration register (B17.2) — Faceit ET Discord mockés, vraie DB.
+ * Intégration register (B17.2) - Faceit ET Discord mockés, vraie DB.
  * Skip propre si Postgres absent.
  */
 
@@ -24,7 +24,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const FAKE_CONFIG = {
   clientId: "cid",

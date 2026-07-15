@@ -18,7 +18,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const UNKNOWN = "00000000-0000-0000-0000-000000000000";
 let playerId = "";

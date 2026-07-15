@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Steam presence provider — who's online / in CS2 right now.
+ * Steam presence provider - who's online / in CS2 right now.
  * Two paths, same output:
  *  - With STEAM_API_KEY: official GetPlayerSummaries (one batched call for up
  *    to 100 ids, exposes `gameserverip` → community-server detection ≈ Faceit).
@@ -124,7 +124,7 @@ export class SteamClient implements PresenceReader {
       for (const id of batch) {
         const p = byId.get(id);
         if (!p) {
-          // Steam omits players it can't show (private profile) — unknown, not offline.
+          // Steam omits players it can't show (private profile) - unknown, not offline.
           out.push({ steamId64: id, online: null, inGameCs2: false, onCommunityServer: null });
           continue;
         }

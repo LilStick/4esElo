@@ -42,14 +42,14 @@ async function main() {
   });
 
   console.log(
-    `Registered ${player.nickname} — elo=${player.cs2.elo}, level=${player.cs2.skillLevel}, steam=${player.cs2.steamId64}`,
+    `Registered ${player.nickname} - elo=${player.cs2.elo}, level=${player.cs2.skillLevel}, steam=${player.cs2.steamId64}`,
   );
   process.exit(0);
 }
 
 main().catch((err) => {
   if (err instanceof FaceitNotFoundError) {
-    console.error(`Nickname not found on Faceit. (The API key itself works — auth passed.)`);
+    console.error(`Nickname not found on Faceit. (The API key itself works - auth passed.)`);
   } else if (err instanceof FaceitError) {
     console.error(
       `Faceit API error ${err.status}. If 401/403, the API key is wrong or not a server-side key.`,

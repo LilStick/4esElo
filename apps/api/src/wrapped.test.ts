@@ -65,7 +65,7 @@ function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
   };
 }
 
-/** N matchs identiques pour un joueur — l'après-midi (pas nolife) sur des maps variées par défaut. */
+/** N matchs identiques pour un joueur - l'après-midi (pas nolife) sur des maps variées par défaut. */
 function games(
   playerId: string,
   n: number,

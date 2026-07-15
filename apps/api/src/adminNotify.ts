@@ -2,7 +2,7 @@ import { DiscordBotClient, type DiscordBot } from "@4eselo/discord";
 import { DISCORD_BOT_TOKEN, DISCORD_ADMIN_CHANNEL_ID } from "./env";
 
 /**
- * Notif Discord des actions admin (B17.13) — ban, débannissement, suppression.
+ * Notif Discord des actions admin (B17.13) - ban, débannissement, suppression.
  * Poste dans un salon dédié (nous, les mainteneurs), best-effort : si le bot ou
  * le salon ne sont pas configurés c'est un no-op silencieux, et une erreur réseau
  * ne fait jamais échouer l'action admin. Deps injectables pour les tests.

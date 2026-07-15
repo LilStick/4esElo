@@ -8,7 +8,7 @@ import type { RefreshEloResponse } from "@4eselo/types";
 import { app } from "./app";
 import { refreshDeps, resetRefreshCooldown } from "./refresh";
 
-/** Intégration refresh ELO à la demande (B16.6) — Faceit mocké, vraie DB. */
+/** Intégration refresh ELO à la demande (B16.6) - Faceit mocké, vraie DB. */
 
 async function dbReachable(): Promise<boolean> {
   try {
@@ -19,7 +19,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 let pid = "";
 let currentElo = 1500; // ce que le faux Faceit renvoie (mutable par test)

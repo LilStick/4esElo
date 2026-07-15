@@ -2,10 +2,10 @@ import { z } from "zod";
 import { FaceitError } from "./client";
 
 /**
- * UNOFFICIAL — per-match ELO history from the faceit.com frontend API
+ * UNOFFICIAL - per-match ELO history from the faceit.com frontend API
  * (`/stats/v1/...`, found by Arthur, #141). Behind Cloudflare bot management:
  * a discrete request usually passes, bursts get 403'd (measured 2026-07-04/06).
- * Consumers MUST be opportunistic — one polite attempt, treat 403 as "not
+ * Consumers MUST be opportunistic - one polite attempt, treat 403 as "not
  * today", never retry-storm. Kept behind EloHistoryProvider so the source can
  * be swapped without touching the backfill logic.
  */

@@ -2,7 +2,7 @@ import { and, eq, gte, lt } from "drizzle-orm";
 import { db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
 import { monthRange, type WrappedInputs } from "./wrapped";
 
-/** Tout ce que le moteur d'awards consomme pour un mois donné (B7.2) —
+/** Tout ce que le moteur d'awards consomme pour un mois donné (B7.2) -
  *  partagé entre /wrapped et l'admin regenerate (B17.4). */
 export async function loadWrappedInputs(year: number, month: number): Promise<WrappedInputs> {
   const { start, end } = monthRange(year, month);

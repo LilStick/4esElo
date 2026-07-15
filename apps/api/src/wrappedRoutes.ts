@@ -23,7 +23,7 @@ const wrappedParamsSchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
 });
 
-// BIG Wrapped (B7.12) — période longue : "2026" (année) ou "2026-H1"/"2026-H2".
+// BIG Wrapped (B7.12) - période longue : "2026" (année) ou "2026-H1"/"2026-H2".
 // Segment statique "big" → Hono le route ici, pas vers /wrapped/:year/:month.
 wrappedRoutes.get("/wrapped/big/:period", async (c) => {
   const period = c.req.param("period");

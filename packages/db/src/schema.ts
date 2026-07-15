@@ -20,7 +20,7 @@ export const players = pgTable("players", {
   faceitId: text("faceit_id").unique(),
   faceitNickname: text("faceit_nickname"),
   steamId64: text("steam_id64"),
-  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») — libre, suggéré côté front. Register B17.2. */
+  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») - libre, suggéré côté front. Register B17.2. */
   formation: text("formation"),
   /** Années de promo (ex. 2026-2028) ; Alumni 🎓 = promoEnd < année courante. */
   promoStart: integer("promo_start"),
@@ -78,7 +78,7 @@ export const faceitMatchStats = pgTable(
 );
 
 /** Daily samples of lifetime CS2 playtime (Steam). Monthly playtime = diff
- *  between two samples — feeds the Wrapped ⏰ award (B7.1). */
+ *  between two samples - feeds the Wrapped ⏰ award (B7.1). */
 export const playtimeSnapshots = pgTable(
   "playtime_snapshots",
   {
@@ -144,7 +144,7 @@ export const bannedDiscordIds = pgTable("banned_discord_ids", {
 });
 
 /** Vue match-level (B4.3) : une ligne par match (clé `matchId` seule), pour la
- *  composition des équipes et le score — brique des lineups (B4.4). Complète
+ *  composition des équipes et le score - brique des lineups (B4.4). Complète
  *  `faceit_match_stats` (une ligne par match ET par membre). */
 export const matches = pgTable(
   "matches",
