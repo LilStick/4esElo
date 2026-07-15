@@ -56,7 +56,7 @@ add(
   docker.ok,
   true,
   docker.ok ? `Docker daemon OK (server ${docker.out})` : "Docker daemon unreachable",
-  "Start Docker — Windows: Docker Desktop or WSL2 | macOS: `colima start` (or Docker Desktop) | Linux: `sudo systemctl start docker`",
+  "Start Docker - Windows: Docker Desktop or WSL2 | macOS: `colima start` (or Docker Desktop) | Linux: `sudo systemctl start docker`",
 );
 
 // 4. Dependencies installed
@@ -76,7 +76,7 @@ if (env) {
     !!env.FACEIT_API_KEY,
     false,
     env.FACEIT_API_KEY ? "FACEIT_API_KEY set" : "FACEIT_API_KEY missing (optional)",
-    "Get a server-side key at https://developers.faceit.com — needed only to fetch real data",
+    "Get a server-side key at https://developers.faceit.com - needed only to fetch real data",
   );
 }
 
@@ -97,7 +97,7 @@ if (env?.DATABASE_URL) {
 }
 
 // Report
-console.log("\n  4esElo — preflight\n  " + "-".repeat(40));
+console.log("\n  4esElo - preflight\n  " + "-".repeat(40));
 for (const r of results) {
   const icon = r.ok ? "✓" : r.critical ? "✗" : "!";
   console.log(`  ${icon} ${r.label}`);
@@ -111,6 +111,6 @@ if (failed.length === 0) {
   console.log(`  Ready to work.${warned.length ? ` (${warned.length} optional warning)` : ""}\n`);
   process.exit(0);
 } else {
-  console.log(`  ${failed.length} blocking issue(s) — fix the ✗ above before working.\n`);
+  console.log(`  ${failed.length} blocking issue(s) - fix the ✗ above before working.\n`);
   process.exit(1);
 }

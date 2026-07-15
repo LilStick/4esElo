@@ -6,7 +6,7 @@ import type { PresenceEntry, PresenceResponse } from "@4eselo/types";
 /**
  * Presence assembly (B15.5): Steam says who's in CS2, the unofficial Faceit
  * endpoint (fragile, best-effort) confirms "in a Faceit match" for those only.
- * The result is cached 60s in memory — presence is ephemeral, no table needed.
+ * The result is cached 60s in memory - presence is ephemeral, no table needed.
  */
 
 export interface PresencePlayerRow {
@@ -67,7 +67,7 @@ export async function getPresence(rows: PresencePlayerRow[]): Promise<PresenceRe
       try {
         entry.inFaceitMatch = (await presenceDeps.live.getOngoingMatch(row.faceitId)).inMatch;
       } catch {
-        entry.inFaceitMatch = null; // Cloudflare said no — Steam's answer stands
+        entry.inFaceitMatch = null; // Cloudflare said no - Steam's answer stands
       }
       await presenceDeps.sleep(300);
     }

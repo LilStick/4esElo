@@ -8,7 +8,7 @@ import { loadEnv } from "@4eselo/env";
 const here = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(here, "../../../.env") });
 
-// Single access point for env vars — `process.env` is forbidden elsewhere
+// Single access point for env vars - `process.env` is forbidden elsewhere
 // (lint), and the app refuses to start half-configured (B11.3).
 const env = loadEnv(
   z.object({
@@ -18,7 +18,7 @@ const env = loadEnv(
     /** Requis pour le register (lookup pseudo Faceit) ; absent = register en 503. */
     FACEIT_API_KEY: z.string().optional(),
     WEB_ORIGINS: z.string().default("http://localhost:5173"),
-    // Auth Discord (B17.1) — optionnels : absents = auth désactivée proprement
+    // Auth Discord (B17.1) - optionnels : absents = auth désactivée proprement
     // (les routes /auth répondent 503, /me répond anonyme). Tout-ou-rien vérifié plus bas.
     // Préfixe OAUTH/ASSO : les DISCORD_* non préfixés appartiennent au bot dev (B9).
     DISCORD_OAUTH_CLIENT_ID: z.string().optional(),
@@ -72,10 +72,10 @@ const setKeys = AUTH_KEYS.filter((k) => env[k]);
 // Config à moitié remplie = erreur de setup, pas un choix → fail-fast (B11.3).
 if (setKeys.length > 0 && setKeys.length < AUTH_KEYS.length) {
   const missing = AUTH_KEYS.filter((k) => !env[k]).join(", ");
-  throw new Error(`Auth Discord à moitié configurée — il manque : ${missing} (voir .env.example)`);
+  throw new Error(`Auth Discord à moitié configurée - il manque : ${missing} (voir .env.example)`);
 }
 
-/** null = auth désactivée (aucune var renseignée) — le site reste 100% consultable. */
+/** null = auth désactivée (aucune var renseignée) - le site reste 100% consultable. */
 export const AUTH_CONFIG: AuthConfig | null =
   setKeys.length === AUTH_KEYS.length
     ? {

@@ -10,7 +10,7 @@ import { computeAwards } from "./wrapped";
 import { loadWrappedInputs } from "./wrappedData";
 
 /**
- * Endpoints admin (B17.4) — tous derrière requireAdmin (session + whitelist).
+ * Endpoints admin (B17.4) - tous derrière requireAdmin (session + whitelist).
  * L'annonce staff vit dans `announcements` (type "staff", dedupeKey fixe →
  * une seule active, PUT = upsert). La lecture publique = GET /announcements.
  */
@@ -73,7 +73,7 @@ adminRoutes.delete("/admin/players/:id", async (c) => {
   if (!id.success) return c.json({ error: "invalid player id (uuid)" }, 400);
   // Garde-fou : la suppression cascade sur tout l'historique (snapshots, matchs…).
   if (c.req.query("confirm") !== "true") {
-    return c.json({ error: "destructive — add ?confirm=true" }, 400);
+    return c.json({ error: "destructive - add ?confirm=true" }, 400);
   }
   const [deleted] = await db.delete(players).where(eq(players.id, id.data)).returning({ id: players.id });
   if (!deleted) return c.json({ error: "player not found" }, 404);
@@ -130,7 +130,7 @@ adminRoutes.post("/admin/wrapped/:year/:month/regenerate", async (c) => {
 
   const inputs = await loadWrappedInputs(year, month);
   const awards = computeAwards(inputs);
-  if (awards.length === 0) return c.json({ error: "mois sans données — rien à annoncer" }, 409);
+  if (awards.length === 0) return c.json({ error: "mois sans données - rien à annoncer" }, 409);
 
   // Re-publie l'annonce du mois (recréée si supprimée, re-datée sinon).
   const MONTHS = "janvier février mars avril mai juin juillet août septembre octobre novembre décembre".split(

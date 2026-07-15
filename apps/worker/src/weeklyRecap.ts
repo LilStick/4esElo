@@ -4,7 +4,7 @@
  * grinder, plus belle progression et plus dure semaine côté ELO). Même mécanique
  * que le Wrapped (#156) : dédup par semaine ISO → relançable sans doublon, et si
  * le worker était down le lundi, l'annonce part à la relance suivante.
- * Logique pure — la DB arrive via `WeekActivityReader`.
+ * Logique pure - la DB arrive via `WeekActivityReader`.
  */
 import type { AnnouncementStore } from "./announce";
 

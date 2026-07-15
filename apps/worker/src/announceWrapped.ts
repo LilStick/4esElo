@@ -1,9 +1,9 @@
 /**
  * Annonce mensuelle du Wrapped (B7.4) : dès qu'un mois se termine, une annonce
  * « Le Wrapped de <mois> est là » est insérée pour la home. Pas de check
- * « on est le 1er » : la clé de dédup par mois fait tout — si le worker était
+ * « on est le 1er » : la clé de dédup par mois fait tout - si le worker était
  * down le 1er, l'annonce part à la relance suivante, jamais en double.
- * Logique pure — la DB arrive en interface.
+ * Logique pure - la DB arrive en interface.
  */
 import type { AnnouncementStore } from "./announce";
 

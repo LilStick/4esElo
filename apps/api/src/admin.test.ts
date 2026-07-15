@@ -8,7 +8,7 @@ import type { Announcement, AnnouncementsResponse, FaceitMatchStats } from "@4es
 import { app } from "./app";
 import { authDeps } from "./auth";
 
-/** Intégration admin (B17.4) — Discord mocké, vraie DB, requireAdmin sur tout. */
+/** Intégration admin (B17.4) - Discord mocké, vraie DB, requireAdmin sur tout. */
 
 async function dbReachable(): Promise<boolean> {
   try {
@@ -19,7 +19,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const FAKE_CONFIG = {
   clientId: "cid",
@@ -207,7 +207,7 @@ test(
     const empty = await jsonReq("POST", "/admin/wrapped/2021/5/regenerate", admin);
     assert.equal(empty.status, 409);
 
-    // juin 2026 : les matchs seedés d'app.test.ts n'existent pas ici — on seed le nôtre
+    // juin 2026 : les matchs seedés d'app.test.ts n'existent pas ici - on seed le nôtre
     const [p] = await db
       .insert(players)
       .values({ discordName: "iadm-wrap", faceitNickname: "iadm_wrap_nick", steamId64: "765_iadm_w" })

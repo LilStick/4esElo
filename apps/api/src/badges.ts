@@ -2,7 +2,7 @@ import type { BadgeId, BadgeTier } from "@4eselo/types";
 import { computeStreak } from "./streaks";
 
 /**
- * Badges emoji (B5.8) — logique pure, zéro I/O : les matchs arrivent en
+ * Badges emoji (B5.8) - logique pure, zéro I/O : les matchs arrivent en
  * paramètre, l'endpoint fait la requête. Chaque règle a un seuil documenté et
  * une taille d'échantillon minimale pour éviter le « 100 % sur 1 game ».
  */
@@ -18,7 +18,7 @@ export interface BadgeMatch {
   clutchWins: number;
 }
 
-// Seuils — ajustables ; documentés ici volontairement (source de vérité unique).
+// Seuils - ajustables ; documentés ici volontairement (source de vérité unique).
 const STREAK_MIN = 3; // 🔥 victoires consécutives en cours
 const HS_MIN_MATCHES = 10; // 🎯 assez de matchs pour que la moyenne veuille dire qqch
 const HS_RATE = 50; // % HS moyen
@@ -69,18 +69,18 @@ export function computeBadges(matches: BadgeMatch[]): BadgeId[] {
 }
 
 /**
- * Badges À PALIERS façon Calibrum (B5.13) — `computeBadgeTiers`.
+ * Badges À PALIERS façon Calibrum (B5.13) - `computeBadgeTiers`.
  * L'appelant passe les matchs DÉJÀ fenêtrés (24h pour classement/home, 30j pour profil).
  * Chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip). Additif : ne
  * remplace pas `computeBadges`. Seuils = premier jet, à affiner post-déploiement.
  */
-// Paliers (tous ajustables — cf. ROADMAP « À revoir après déploiement »).
+// Paliers (tous ajustables - cf. ROADMAP « À revoir après déploiement »).
 const STREAK_STEP = 3; // 🔥/😰 : 1 émoji par tranche de 3
 const GRIND_STEP = 2; // 🚿 : 1 émoji par tranche de 2 matchs sur la journée, plafonné à 3
 const HS_BANDS: [number, number] = [50, 60]; // 🎯 %HS → 1 puis 2 émojis
 const ENTRY_BANDS: [number, number] = [55, 70]; // 💣 % duels d'entrée
 const CLUTCH_BANDS: [number, number] = [50, 65]; // 🧠 % clutchs
-// Min-samples relâchés (fenêtres courtes) — sinon jamais de badge sur 24h.
+// Min-samples relâchés (fenêtres courtes) - sinon jamais de badge sur 24h.
 const TIER_HS_MIN = 5;
 const TIER_ENTRY_MIN = 8;
 const TIER_CLUTCH_MIN = 4;

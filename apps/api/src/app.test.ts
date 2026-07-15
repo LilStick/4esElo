@@ -28,7 +28,7 @@ import type {
 } from "@4eselo/types";
 import { app } from "./app";
 
-/** All-zero stats, overridable per test — matches the FaceitMatchStats shape. */
+/** All-zero stats, overridable per test - matches the FaceitMatchStats shape. */
 function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
   return {
     kills: 0,
@@ -73,7 +73,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 let playerId = "";
 let moverId = "";
@@ -627,7 +627,7 @@ test("B5.2: /players/:id/activity counts per UTC day, sparse, window applied", {
   assert.equal(res.status, 200);
   const body = (await res.json()) as ActivityResponse;
   assert.equal(body.days, 365);
-  // ses 3 matchs seedés (01, 02, 03 juin) — un jour = une entrée, rien d'autre
+  // ses 3 matchs seedés (01, 02, 03 juin) - un jour = une entrée, rien d'autre
   assert.deepEqual(body.activity, [
     { day: "2026-06-01", matches: 1 },
     { day: "2026-06-02", matches: 1 },
@@ -904,7 +904,7 @@ test("B11.1: CORS allows the configured front origin only", { skip }, async () =
 });
 
 test(
-  "B15.11: GET /matches/recent — flux global, plus récent d'abord, avec joueur + eloDelta",
+  "B15.11: GET /matches/recent - flux global, plus récent d'abord, avec joueur + eloDelta",
   { skip },
   async () => {
     const [feedP] = await db

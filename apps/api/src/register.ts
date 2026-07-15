@@ -13,7 +13,7 @@ import { readSession } from "./auth";
  * Deux temps côté front : lookup (préviusalisation à confirmer) puis POST.
  */
 
-/** Ce que le register consomme de Faceit — mockable en test. */
+/** Ce que le register consomme de Faceit - mockable en test. */
 export interface FaceitLookup {
   getPlayerByNickname(nickname: string): Promise<FaceitPlayer>;
 }
@@ -52,7 +52,7 @@ registerRoutes.get("/register/lookup", async (c) => {
     found = await registerDeps.faceit.getPlayerByNickname(parsed.data);
   } catch (err) {
     if (err instanceof FaceitNotFoundError) {
-      return c.json({ error: "pseudo Faceit introuvable — vérifie l'orthographe exacte" }, 404);
+      return c.json({ error: "pseudo Faceit introuvable - vérifie l'orthographe exacte" }, 404);
     }
     throw err; // Faceit down → onError → 500 structuré
   }
@@ -94,12 +94,12 @@ registerRoutes.post("/register", async (c) => {
     found = await registerDeps.faceit.getPlayerByNickname(parsed.data.faceitNickname);
   } catch (err) {
     if (err instanceof FaceitNotFoundError) {
-      return c.json({ error: "pseudo Faceit introuvable — vérifie l'orthographe exacte" }, 404);
+      return c.json({ error: "pseudo Faceit introuvable - vérifie l'orthographe exacte" }, 404);
     }
     throw err;
   }
 
-  // 1 Discord = 1 compte, 1 Faceit = 1 personne — vérifié avant insert pour des
+  // 1 Discord = 1 compte, 1 Faceit = 1 personne - vérifié avant insert pour des
   // messages clairs ; les contraintes uniques restent le filet anti-course.
   const [conflict] = await db
     .select({ discordId: players.discordId, faceitId: players.faceitId })

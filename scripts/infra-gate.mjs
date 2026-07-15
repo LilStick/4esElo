@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // PreToolUse hook (Claude Code): blocks infra-dependent commands when Postgres
-// is unreachable, instead of letting them fail obscurely — or worse, succeed
+// is unreachable, instead of letting them fail obscurely - or worse, succeed
 // silently (`pnpm test` skips the integration tests when Postgres is down and
 // still exits green).
 //
@@ -77,7 +77,7 @@ const up = await tcpProbe(host, port);
 if (up) process.exit(0);
 
 console.error(
-  `Postgres injoignable (${host}:${port}) — cette commande en dépend.\n` +
+  `Postgres injoignable (${host}:${port}) - cette commande en dépend.\n` +
     `Lance \`pnpm db:up\` (et le daemon Docker avant si besoin : colima start / Docker Desktop), puis réessaie.`,
 );
 process.exit(2);
