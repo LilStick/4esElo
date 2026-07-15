@@ -2,30 +2,40 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { TbArrowLeft, TbArrowRight, TbX } from "react-icons/tb";
-import { TOUR_KEY, TOUR_REPLAY_EVENT } from "../lib/tour";
+import { TOUR_KEY, TOUR_REPLAY_EVENT, bubbleWidth, isMobileViewport, resolveTarget } from "../lib/tour";
 
 type Step = {
   /** Route à afficher pour cette étape (navigue avant de cibler). */
   path?: string;
   /** Sélecteur de l'élément à mettre en lumière (spotlight). Absent = bulle centrée. */
   target?: string;
+  /** Cible sur mobile : sélecteur dédié, `null` pour forcer une bulle centrée, ou
+   *  absent pour réutiliser `target` (élément présent aux deux breakpoints). */
+  targetMobile?: string | null;
   title: string;
   body: string;
+  /** Texte alternatif sur mobile (le layout diffère : menu, drawer…). */
+  bodyMobile?: string;
 };
 
-/** Le parcours guidé : navigue entre les pages et éclaire les vrais éléments. */
+/** Le parcours guidé : navigue entre les pages et éclaire les vrais éléments.
+ *  Sur mobile, la sidebar est cachée -> on cible le header/menu (cf. `resolveTarget`). */
 const STEPS: Step[] = [
   {
     path: "/",
     target: '[data-tour="nav"]',
+    targetMobile: '[data-tour="nav-mobile"]',
     title: "La navigation",
     body: "Accueil, Classement, Comparer, Social, Wrapped… tout est ici, à gauche.",
+    bodyMobile: "Le menu ☰ : ouvre la navigation — Accueil, Classement, Comparer, Social, Wrapped.",
   },
   {
     path: "/",
     target: '[data-tour="search"]',
+    targetMobile: '[data-tour="search-mobile"]',
     title: "Recherche rapide",
     body: "Trouve un membre en un éclair — ou appuie sur ⌘/Ctrl + K de n'importe où.",
+    bodyMobile: "Trouve un membre en un éclair depuis cette loupe.",
   },
   {
     path: "/classement",
@@ -36,12 +46,16 @@ const STEPS: Step[] = [
   {
     path: "/",
     target: '[data-tour="auth"]',
+    targetMobile: null,
     title: "Ton compte",
     body: "Connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
+    bodyMobile:
+      "Ouvre le menu ☰ puis connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
   },
   {
     title: "Tu es prêt 🎯",
     body: "Explore, compare, grimpe. Astuce : la touche « ? » affiche tous les raccourcis clavier à tout moment.",
+    bodyMobile: "Explore, compare, grimpe. Bon jeu 🎮",
   },
 ];
 
@@ -52,8 +66,6 @@ const seen = (): boolean => {
     return true;
   }
 };
-
-const TW = 340; // largeur bulle
 
 /**
  * Onboarding première visite (B14.6) — tour guidé « façon jeu vidéo » : spotlight
@@ -102,8 +114,9 @@ export function Tour() {
       // pendant la navigation, puis voyagera vers la nouvelle une fois localisée.
       return; // l'effet se relance au changement de pathname
     }
-    if (!step.target) {
-      setMode("center"); // étape volontairement centrée (ex. écran final)
+    const targetSel = resolveTarget(step, isMobileViewport(window.innerWidth));
+    if (!targetSel) {
+      setMode("center"); // étape centrée (écran final, ou cible réservée au drawer sur mobile)
       setShownIndex(index);
       return;
     }
@@ -111,7 +124,7 @@ export function Tour() {
     let tries = 0;
     let scrolled = false;
     const tick = () => {
-      const el = document.querySelector<HTMLElement>(step.target!);
+      const el = document.querySelector<HTMLElement>(targetSel);
       const r = el?.getBoundingClientRect();
       if (el && r && r.width > 0 && r.height > 0) {
         elRef.current = el;
@@ -123,16 +136,16 @@ export function Tour() {
         setMode("spot");
         setShownIndex(index); // cible prête → on bascule contenu + position ensemble
         raf = requestAnimationFrame(tick); // colle le spotlight pendant le scroll
-      } else if (tries++ < 90) {
+      } else if (tries++ < 40) {
         raf = requestAnimationFrame(tick);
       } else {
-        setMode("center"); // introuvable (ex. mobile, sidebar cachée) → bulle centrée
+        setMode("center"); // introuvable → bulle centrée (pas de blocage prolongé)
         setShownIndex(index);
       }
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [active, index, step.path, step.target, location.pathname, navigate, reduce]);
+  }, [active, index, step, location.pathname, navigate, reduce]);
 
   // Mesure la hauteur réelle de la bulle → placement sans débordement.
   useLayoutEffect(() => {
@@ -168,6 +181,9 @@ export function Tour() {
   const gap = 14; // écart cible ↔ bulle
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
   const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const mobile = isMobileViewport(vw);
+  // Mobile : feuille pleine largeur (ancrée en bas). Desktop : bulle flottante bornée.
+  const TW = mobile ? Math.min(vw - M * 2, 460) : bubbleWidth(vw, M);
   const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
   // En "center" (ou tant que la cible n'est pas localisée) le spotlight se réduit à
@@ -188,7 +204,12 @@ export function Tour() {
   // le plus de place puis on clampe dans l'écran. Centrée si pas de cible.
   let tipLeft: number;
   let tipTop: number;
-  if (!showSpot) {
+  if (mobile) {
+    // Feuille ancrée en bas, pleine largeur : jamais par-dessus la cible (qui est
+    // mise en lumière au-dessus), placement prévisible, ne masque pas tout l'écran.
+    tipLeft = (vw - TW) / 2;
+    tipTop = clamp(vh - tipH - M, M, vh - tipH - M);
+  } else if (!showSpot) {
     tipLeft = vw / 2 - TW / 2;
     tipTop = vh / 2 - tipH / 2;
   } else {
@@ -230,7 +251,12 @@ export function Tour() {
             height: spot.height,
           }}
           transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 40 }}
-          style={{ boxShadow: "0 0 0 9999px rgba(4,6,10,0.78)" }}
+          style={{
+            boxShadow: "0 0 0 9999px rgba(4,6,10,0.82)",
+            // Anneau brand visible autour de la cible (invisible en mode centré, taille 0).
+            outline: showSpot ? "2px solid rgba(94,139,255,0.85)" : "none",
+            outlineOffset: 2,
+          }}
         />
 
         {/* Capte les clics hors bulle (tour guidé). */}
@@ -254,7 +280,9 @@ export function Tour() {
           }
         >
           <div
-            className="flex flex-col gap-3 bg-gradient-to-b from-surface-2 to-surface p-5"
+            className={
+              "flex flex-col gap-3 bg-gradient-to-b from-surface-2 to-surface " + (mobile ? "p-4" : "p-5")
+            }
             style={{ borderRadius: "calc(var(--r-card) - var(--bezel))" }}
           >
             <div className="flex items-start justify-between gap-3">
@@ -267,7 +295,7 @@ export function Tour() {
                 <TbX size={16} />
               </button>
             </div>
-            <p className="text-sm text-ink-dim">{shown.body}</p>
+            <p className="text-sm text-ink-dim">{mobile ? (shown.bodyMobile ?? shown.body) : shown.body}</p>
 
             <div className="mt-1 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
