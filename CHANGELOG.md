@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-15
 
+- API : +13 succès « endgame » (paliers hauts) — de vrais objectifs pour les gros joueurs (1 000 matchs 🏛️, 500 victoires 👑, 50 000 kills ☠️, 3000 ELO 🌌, +400 ELO/mois 🛸…), sur les métriques déjà calculées ; le front les affiche sans changement (emoji fourni par l'API). (#364)
 - API : badges à paliers façon Calibrum (`badgeTiers`) — chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip), calculé sur une **fenêtre** : 24h sur le classement/home, 30j sur le profil. 🔥/😰 séries (win/défaite), 🚿 grind à paliers, 🎯/💣/🧠 par bandes de taux. Champ **additif** (coexiste avec `badges`), le front migrera dessus. Seuils à affiner post-déploiement. (#361)
 - Web : carte « Ta place dans l'asso » sur le profil — affiche le benchmark intra-asso (percentile « top X% » par stat clé : win rate, K/D, ADR, HS %, clutch, entry), piloté par le sélecteur de période des stats. Palier coloré (top 10 % / 25 %), état « pas encore classé » soigné sous 10 matchs. Consomme l'API B5.11. (#358)
 

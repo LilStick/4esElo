@@ -57,3 +57,15 @@ test("bestEloGainWithin : meilleur gain dans la fenêtre, ignore au-delà", () =
   // day20→day45 = +100 en 25 j (dans la fenêtre) ; day1→day45 exclu (>30j)
   assert.equal(bestEloGainWithin([points[0]!, points[2]!], w), 0); // 44 j d'écart → hors fenêtre
 });
+
+test("B7.16 : paliers hauts (endgame) verrouillés puis débloqués au seuil", () => {
+  // Un gros grinder : débloque les paliers hauts qu'il dépasse, pas les autres.
+  const out = evaluateAchievements(input({ matches: 1200, wins: 300, kills: 26000, maxElo: 2600 }));
+  assert.equal(byId(out, "games_1000").unlocked, true);
+  assert.equal(byId(out, "wins_250").unlocked, true);
+  assert.equal(byId(out, "wins_500").unlocked, false); // 300 < 500
+  assert.equal(byId(out, "kills_25000").unlocked, true);
+  assert.equal(byId(out, "kills_50000").unlocked, false);
+  assert.equal(byId(out, "elo_2500").unlocked, true);
+  assert.equal(byId(out, "elo_3000").unlocked, false); // 2600 < 3000
+});
