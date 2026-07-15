@@ -341,6 +341,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/[0.08] bg-bg/80 px-4 py-3 backdrop-blur-md lg:hidden">
         <button
           onClick={() => setOpen(true)}
+          data-tour="nav-mobile"
           aria-label="Ouvrir le menu"
           className="grid size-10 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
         >
@@ -349,6 +350,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Brand />
         <button
           onClick={() => setSearch(true)}
+          data-tour="search-mobile"
           aria-label="Rechercher"
           className="ml-auto grid size-10 place-items-center rounded-lg text-ink-dim transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
         >
