@@ -39,12 +39,29 @@ export const BADGE_CATALOG: Record<BadgeId, BadgeDef> = {
   grind: { emoji: "🚿", label: "Grind-day", description: "Grosse journée de matchs" },
 };
 
+/**
+ * Badge « à paliers » façon Calibrum (B5.13) — fenêtré (24h classement/home, 30j profil).
+ * `count` = nb d'émojis à afficher (paliers), `message` = tooltip. Additif : coexiste
+ * avec `badges: BadgeId[]` (l'ancien binaire all-time) le temps que le front migre.
+ */
+export interface BadgeTier {
+  /** clé du badge (les `BadgeId` + le négatif « coldstreak »). */
+  id: BadgeId | "coldstreak";
+  emoji: string;
+  /** Nombre de paliers atteints (≥ 1) → autant d'émojis côté front. */
+  count: number;
+  /** Tooltip prêt à afficher (« 8 matchs en 24 h », « 4 victoires d'affilée »…). */
+  message: string;
+}
+
 export interface LeaderboardEntry extends PlayerSummary {
   rank: number;
   /** Last N ELO points, oldest first — only when the request asks for it. */
   sparkline?: number[];
   /** Badges décrochés (B5.8) ; liste vide si aucun. */
   badges: BadgeId[];
+  /** Badges à paliers, fenêtre 24h (B5.13) ; liste vide si aucun. */
+  badgeTiers: BadgeTier[];
 }
 
 export type MoversWindow = "24h" | "7d";
@@ -104,6 +121,8 @@ export interface PlayerDetail extends PlayerSummary {
   streak: PlayerStreak;
   /** Badges décrochés (B5.8) ; liste vide si aucun. */
   badges: BadgeId[];
+  /** Badges à paliers, fenêtre 30j (B5.13) ; liste vide si aucun. */
+  badgeTiers: BadgeTier[];
 }
 
 /** Dépassement au classement (B5.5) : `passer` est passé devant `passed` sur la fenêtre. */

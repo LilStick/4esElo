@@ -11,7 +11,7 @@ import type {
   OvertakesResponse,
 } from "@4eselo/types";
 import { computeOvertakes } from "./streaks";
-import { computeBadges, type BadgeMatch } from "./badges";
+import { computeBadges, computeBadgeTiers, type BadgeMatch } from "./badges";
 import {
   computeMapLeaderboard,
   MIN_MAP_MATCHES,
@@ -230,6 +230,7 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     promoStart: r.promo_start,
     promoEnd: r.promo_end,
     badges: [],
+    badgeTiers: [],
   }));
 
   // Badges (B5.8) : une passe de stats par joueur, champs scalaires extraits du
@@ -266,7 +267,13 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     });
     matchesByPlayer.set(r.player_id, list);
   }
-  for (const entry of leaderboard) entry.badges = computeBadges(matchesByPlayer.get(entry.id) ?? []);
+  const since24h = Date.now() - 24 * 60 * 60 * 1000;
+  for (const entry of leaderboard) {
+    const all = matchesByPlayer.get(entry.id) ?? [];
+    entry.badges = computeBadges(all);
+    // Badges à paliers sur la fenêtre 24h (B5.13) — classement/home = « chaud aujourd'hui ».
+    entry.badgeTiers = computeBadgeTiers(all.filter((m) => m.playedAt.getTime() >= since24h));
+  }
 
   if (sparkline) {
     const points = await db.execute<{ player_id: string; points: number[] }>(sql`

@@ -15,7 +15,7 @@ import type {
   RoastResponse,
 } from "@4eselo/types";
 import { computeStreak } from "./streaks";
-import { computeBadges, type BadgeMatch } from "./badges";
+import { computeBadges, computeBadgeTiers, type BadgeMatch } from "./badges";
 import { evaluateAchievements, bestEloGainWithin } from "./achievements";
 import { profileRoast, forecastElo, type RoastProfileInput } from "./roast";
 import { computeAggregate, computeMapStats, rangeCutoff, RANGES, type MatchForStats } from "./stats";
@@ -94,6 +94,10 @@ playersRoutes.get("/players/:id", async (c) => {
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
     streak: computeStreak(matchRows.map((r) => r.result)),
     badges: computeBadges(badgeMatches),
+    // Badges à paliers sur la fenêtre 30j (B5.13) — profil = forme récente.
+    badgeTiers: computeBadgeTiers(
+      badgeMatches.filter((m) => m.playedAt.getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000),
+    ),
   };
 
   return c.json(detail);
