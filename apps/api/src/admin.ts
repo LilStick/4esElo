@@ -5,6 +5,7 @@ import { announcements, bannedDiscordIds, db, players } from "@4eselo/db";
 import type { Announcement, BanEntry, BansResponse, WrappedResponse } from "@4eselo/types";
 import { requireAdmin, readSession, authDeps } from "./auth";
 import { invalidateBanCache } from "./banCache";
+import { notifyAdminAction } from "./adminNotify";
 import { computeAwards } from "./wrapped";
 import { loadWrappedInputs } from "./wrappedData";
 
@@ -76,6 +77,7 @@ adminRoutes.delete("/admin/players/:id", async (c) => {
   }
   const [deleted] = await db.delete(players).where(eq(players.id, id.data)).returning({ id: players.id });
   if (!deleted) return c.json({ error: "player not found" }, 404);
+  await notifyAdminAction("🗑️ Joueur supprimé", `Joueur \`${id.data}\` supprimé (historique inclus)`);
   return c.json({ ok: true });
 });
 
@@ -189,6 +191,10 @@ adminRoutes.put("/admin/bans/:discordId", async (c) => {
     .values({ discordId: id.data, reason, bannedBy })
     .onConflictDoUpdate({ target: bannedDiscordIds.discordId, set: { reason, bannedBy } });
   invalidateBanCache(); // effet immédiat : coupe aussi les sessions déjà ouvertes
+  await notifyAdminAction(
+    "🔨 Ban",
+    `Discord \`${id.data}\` banni${bannedBy ? ` par \`${bannedBy}\`` : ""}${reason ? ` (raison : ${reason})` : ""}`,
+  );
   return c.json({ ok: true });
 });
 
@@ -197,5 +203,6 @@ adminRoutes.delete("/admin/bans/:discordId", async (c) => {
   if (!id.success) return c.json({ error: "invalid discord id" }, 400);
   await db.delete(bannedDiscordIds).where(eq(bannedDiscordIds.discordId, id.data));
   invalidateBanCache();
+  await notifyAdminAction("♻️ Débannissement", `Discord \`${id.data}\` débanni`);
   return c.json({ ok: true });
 });
