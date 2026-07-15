@@ -117,7 +117,7 @@ export interface FaceitMatchPlayer {
   stats: FaceitMatchStats;
 }
 
-/** Une équipe d'un match (faction) — pour la vue match-level (B4.3, lineups). */
+/** Une équipe d'un match (faction) - pour la vue match-level (B4.3, lineups). */
 export interface FaceitMatchTeam {
   /** faction id Faceit (faction1/faction2), sinon fallback stable. */
   teamId: string;

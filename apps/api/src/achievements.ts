@@ -1,7 +1,7 @@
 import type { AchievementDef } from "@4eselo/types";
 
 /**
- * Succès permanents (B7.8) — logique pure, zéro I/O. Chaque succès est un palier
+ * Succès permanents (B7.8) - logique pure, zéro I/O. Chaque succès est un palier
  * sur une métrique cumulée du joueur ; la progression = current / target. Le
  * déblocage (current ≥ target) est figé côté DB à la première détection.
  */
@@ -26,7 +26,7 @@ interface CatalogEntry extends AchievementDef {
   metric: (i: AchievementInput) => number;
 }
 
-/** Catalogue (14 succès) — paliers ancrés dans les stats stockées. */
+/** Catalogue (14 succès) - paliers ancrés dans les stats stockées. */
 export const ACHIEVEMENTS: CatalogEntry[] = [
   {
     id: "games_100",
@@ -138,6 +138,111 @@ export const ACHIEVEMENTS: CatalogEntry[] = [
     label: "Ascension",
     description: "+200 ELO en un mois",
     target: 200,
+    metric: (i) => i.bestEloGain30d,
+  },
+  // --- Paliers hauts / « endgame » (B7.16) : de vrais objectifs pour les gros joueurs. ---
+  {
+    id: "games_1000",
+    emoji: "🏛️",
+    label: "Légende vivante",
+    description: "Jouer 1 000 matchs",
+    target: 1000,
+    metric: (i) => i.matches,
+  },
+  {
+    id: "wins_250",
+    emoji: "🎖️",
+    label: "Vétéran",
+    description: "Gagner 250 matchs",
+    target: 250,
+    metric: (i) => i.wins,
+  },
+  {
+    id: "wins_500",
+    emoji: "👑",
+    label: "Conquérant",
+    description: "Gagner 500 matchs",
+    target: 500,
+    metric: (i) => i.wins,
+  },
+  {
+    id: "kills_25000",
+    emoji: "🌾",
+    label: "Moissonneur",
+    description: "25 000 kills cumulés",
+    target: 25000,
+    metric: (i) => i.kills,
+  },
+  {
+    id: "kills_50000",
+    emoji: "☠️",
+    label: "Extincteur d'espoirs",
+    description: "50 000 kills cumulés",
+    target: 50000,
+    metric: (i) => i.kills,
+  },
+  {
+    id: "clutch_150",
+    emoji: "🧊",
+    label: "Glacial",
+    description: "Gagner 150 clutchs",
+    target: 150,
+    metric: (i) => i.clutchWins,
+  },
+  {
+    id: "entry_150",
+    emoji: "🐏",
+    label: "Bélier",
+    description: "Gagner 150 duels d'entrée",
+    target: 150,
+    metric: (i) => i.entryWins,
+  },
+  {
+    id: "mvp_300",
+    emoji: "🌟",
+    label: "Superstar",
+    description: "Décrocher 300 MVP",
+    target: 300,
+    metric: (i) => i.mvps,
+  },
+  {
+    id: "ace_25",
+    emoji: "🖐️",
+    label: "Faiseur d'aces",
+    description: "Réussir 25 aces",
+    target: 25,
+    metric: (i) => i.aces,
+  },
+  {
+    id: "sniper_500",
+    emoji: "🥇",
+    label: "Légende AWP",
+    description: "500 kills au sniper",
+    target: 500,
+    metric: (i) => i.sniperKills,
+  },
+  {
+    id: "elo_2500",
+    emoji: "🔱",
+    label: "Titan",
+    description: "Atteindre 2500 ELO",
+    target: 2500,
+    metric: (i) => i.maxElo,
+  },
+  {
+    id: "elo_3000",
+    emoji: "🌌",
+    label: "Stratosphère",
+    description: "Atteindre 3000 ELO",
+    target: 3000,
+    metric: (i) => i.maxElo,
+  },
+  {
+    id: "climb_400",
+    emoji: "🛸",
+    label: "Décollage",
+    description: "+400 ELO en un mois",
+    target: 400,
     metric: (i) => i.bestEloGain30d,
   },
 ];

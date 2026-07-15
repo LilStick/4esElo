@@ -18,7 +18,7 @@ export interface FetchAvatarOptions {
 
 /**
  * Télécharge l'avatar et le renvoie en `data:image/…;base64,…`, ou `null` si
- * quoi que ce soit échoue (CDN down, timeout, hash mort) — l'appelant retombe
+ * quoi que ce soit échoue (CDN down, timeout, hash mort) - l'appelant retombe
  * alors sur une carte dégradée, ce n'est jamais une erreur bloquante.
  */
 export async function fetchAvatarDataUri(

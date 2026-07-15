@@ -8,7 +8,7 @@ import { loadEnv } from "@4eselo/env";
 const here = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(here, "../../../.env") });
 
-// Single access point for env vars — `process.env` is forbidden elsewhere
+// Single access point for env vars - `process.env` is forbidden elsewhere
 // (lint), and the app refuses to start half-configured (B11.3).
 const env = loadEnv(
   z.object({
@@ -18,7 +18,7 @@ const env = loadEnv(
     /** Requis pour le register (lookup pseudo Faceit) ; absent = register en 503. */
     FACEIT_API_KEY: z.string().optional(),
     WEB_ORIGINS: z.string().default("http://localhost:5173"),
-    // Auth Discord (B17.1) — optionnels : absents = auth désactivée proprement
+    // Auth Discord (B17.1) - optionnels : absents = auth désactivée proprement
     // (les routes /auth répondent 503, /me répond anonyme). Tout-ou-rien vérifié plus bas.
     // Préfixe OAUTH/ASSO : les DISCORD_* non préfixés appartiennent au bot dev (B9).
     DISCORD_OAUTH_CLIENT_ID: z.string().optional(),
@@ -32,6 +32,8 @@ const env = loadEnv(
     DISCORD_BOT_TOKEN: z.string().optional(),
     /** Salon où le bot poste les idées à voter (B17.12). Requis avec DISCORD_BOT_TOKEN pour le relais bot. */
     DISCORD_IDEAS_CHANNEL_ID: z.string().optional(),
+    /** Salon des notifs d'actions admin (ban, suppression…) (B17.13). Absent = no-op. */
+    DISCORD_ADMIN_CHANNEL_ID: z.string().optional(),
     SESSION_SECRET: z.string().min(32, "SESSION_SECRET : 32 caractères minimum").optional(),
     /** Whitelist admin : discord_id séparés par des virgules. */
     ADMIN_DISCORD_IDS: z.string().default(""),
@@ -44,6 +46,7 @@ export const FACEIT_API_KEY = env.FACEIT_API_KEY;
 export const DISCORD_IDEAS_WEBHOOK_URL = env.DISCORD_IDEAS_WEBHOOK_URL;
 export const DISCORD_BOT_TOKEN = env.DISCORD_BOT_TOKEN;
 export const DISCORD_IDEAS_CHANNEL_ID = env.DISCORD_IDEAS_CHANNEL_ID;
+export const DISCORD_ADMIN_CHANNEL_ID = env.DISCORD_ADMIN_CHANNEL_ID;
 /** Origines autorisées par le CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
 
@@ -69,10 +72,10 @@ const setKeys = AUTH_KEYS.filter((k) => env[k]);
 // Config à moitié remplie = erreur de setup, pas un choix → fail-fast (B11.3).
 if (setKeys.length > 0 && setKeys.length < AUTH_KEYS.length) {
   const missing = AUTH_KEYS.filter((k) => !env[k]).join(", ");
-  throw new Error(`Auth Discord à moitié configurée — il manque : ${missing} (voir .env.example)`);
+  throw new Error(`Auth Discord à moitié configurée - il manque : ${missing} (voir .env.example)`);
 }
 
-/** null = auth désactivée (aucune var renseignée) — le site reste 100% consultable. */
+/** null = auth désactivée (aucune var renseignée) - le site reste 100% consultable. */
 export const AUTH_CONFIG: AuthConfig | null =
   setKeys.length === AUTH_KEYS.length
     ? {

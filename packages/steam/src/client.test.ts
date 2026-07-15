@@ -48,7 +48,7 @@ const xml = (state: string, message: string) =>
     { status: 200 },
   );
 
-test("XML mode (no key): in-game CS2, online, offline — community server unknown", async () => {
+test("XML mode (no key): in-game CS2, online, offline - community server unknown", async () => {
   const responses: Record<string, Response> = {
     "11": xml("in-game", "In-Game<br/>Counter-Strike 2"),
     "22": xml("online", "Online"),

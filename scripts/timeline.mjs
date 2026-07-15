@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Frise d'avancement des blocs — affichée en début de session (repo-catchup).
+// Frise d'avancement des blocs - affichée en début de session (repo-catchup).
 // Jamais périmée : compteurs live des milestones GitHub + libellés/notes de la
 // table ROADMAP.md. Fail-soft : la moindre erreur → silence, exit 0.
 
@@ -20,7 +20,7 @@ try {
   }
   if (table.length === 0) process.exit(0);
 
-  // 2. Compteurs GitHub par milestone ("Bloc <n> — …")
+  // 2. Compteurs GitHub par milestone ("Bloc <n> - …")
   const milestones = JSON.parse(
     execFileSync(
       "gh",
@@ -35,7 +35,7 @@ try {
   );
   const counts = new Map();
   for (const m of milestones) {
-    const num = /^Bloc (\d+) —/.exec(m.title)?.[1];
+    const num = /^Bloc (\d+) -/.exec(m.title)?.[1];
     if (num) counts.set(`B${num}`, { open: m.open, closed: m.closed });
   }
 
@@ -54,7 +54,7 @@ try {
     );
     for (const i of issues) {
       if (i.labels.some((l) => l.name === "epic")) continue;
-      const num = /^Bloc (\d+) —/.exec(i.milestone?.title ?? "")?.[1];
+      const num = /^Bloc (\d+) -/.exec(i.milestone?.title ?? "")?.[1];
       if (!num) continue;
       const o = ownerOf.get(`B${num}`) ?? { noe: 0, arthur: 0 };
       o[key] += 1;
@@ -81,7 +81,7 @@ try {
     (a, b) => phase(a) - phase(b) || Number(a.bloc.slice(1) || 0) - Number(b.bloc.slice(1) || 0),
   );
 
-  const lines = ["", "  🗺️  4esElo — la frise", "  " + "─".repeat(58)];
+  const lines = ["", "  🗺️  4esElo - la frise", "  " + "─".repeat(58)];
   for (const row of ordered) {
     const c = counts.get(row.bloc);
     const total = c ? c.open + c.closed : 0;

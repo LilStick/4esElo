@@ -5,7 +5,7 @@ import { ingestPlayerMatches, type MatchReader, type MatchStatsStore, type Playe
  * du roster), on tire tout l'historique Faceit dispo une bonne fois (fenêtre large,
  * cap élevé), au lieu de la fenêtre glissante de 90 j de l'ingest incrémental.
  * Best-effort : on marque le joueur fait après la passe ; l'incrémental entretient
- * ensuite. Réutilise ingestPlayerMatches (déjà testé) — le réseau/DB sont injectés.
+ * ensuite. Réutilise ingestPlayerMatches (déjà testé) - le réseau/DB sont injectés.
  */
 
 export interface DeepIngestStore {

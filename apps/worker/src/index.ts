@@ -25,7 +25,7 @@ import {
 } from "./store";
 
 // curl transport: Node's TLS fingerprint never passes the Cloudflare wall,
-// plain curl sometimes does — that's the whole opportunistic bet.
+// plain curl sometimes does - that's the whole opportunistic bet.
 const eloHistory = new UnofficialEloHistory({ fetchImpl: curlFetch() });
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
@@ -122,7 +122,7 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
         );
       }
       // Sur tout changement d'ELO enregistré, on pose elo_after sur le dernier
-      // match du joueur (l'ELO ne bouge que sur un match) — pas besoin qu'il ait
+      // match du joueur (l'ELO ne bouge que sur un match) - pas besoin qu'il ait
       // été ingéré ce tick-ci. Le ±ELO (dérivé côté lecture, #316) suit aussitôt.
       const elo = syncRes ? eloToAttribute(syncRes) : null;
       if (elo !== null) {
@@ -139,7 +139,7 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
           `[worker] ${p.faceitId}: backfill 🎉 ${bf.matchesFilled} matchs remplis, ${bf.snapshotsInserted} points de courbe rétro`,
         );
       } else if (bf.status === "blocked") {
-        console.log(`[worker] ${p.faceitId}: backfill 403 — on repassera demain`);
+        console.log(`[worker] ${p.faceitId}: backfill 403 - on repassera demain`);
       }
     } catch (err) {
       console.error(`[worker] ${p.faceitId} backfill failed:`, err instanceof Error ? err.message : err);

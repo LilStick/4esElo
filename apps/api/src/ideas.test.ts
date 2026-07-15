@@ -9,7 +9,7 @@ import { app } from "./app";
 import { authDeps } from "./auth";
 import { ideasDeps } from "./ideas";
 
-/** Intégration boîte à idées (B17.7) — Discord (OAuth + webhook) mocké, vraie DB. */
+/** Intégration boîte à idées (B17.7) - Discord (OAuth + webhook) mocké, vraie DB. */
 
 async function dbReachable(): Promise<boolean> {
   try {
@@ -20,7 +20,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const FAKE_CONFIG = {
   clientId: "cid",

@@ -3,7 +3,7 @@ import type { MatchTeam } from "@4eselo/types";
 
 /**
  * Vue match-level (B4.3) : remplit la table `matches` à partir des matchs déjà
- * connus (faceit_match_stats) qui n'y sont pas encore — couvre d'un même geste
+ * connus (faceit_match_stats) qui n'y sont pas encore - couvre d'un même geste
  * les nouveaux matchs (à chaque sync) et le backfill des anciens. Logique pure :
  * le réseau (reader) et la DB (store) arrivent en paramètre → testable sans I/O.
  */

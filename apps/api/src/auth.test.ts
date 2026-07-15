@@ -10,7 +10,7 @@ import { app } from "./app";
 import { authDeps, requireAdmin } from "./auth";
 
 /**
- * Intégration auth (B17.1) — OAuth mocké (aucun réseau), vraie DB pour le
+ * Intégration auth (B17.1) - OAuth mocké (aucun réseau), vraie DB pour le
  * match /me ↔ players.discord_id. Skip propre si Postgres absent.
  */
 
@@ -23,7 +23,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const GUILD = "guild-4esport";
 const FAKE_CONFIG = {

@@ -58,7 +58,7 @@ test("aggregate: winrate, K/D and ADR from summed values", () => {
   assert.equal(agg.matches, 2);
   assert.equal(agg.wins, 1);
   assert.equal(agg.winRate, 50);
-  assert.equal(agg.kd, 1); // 30 kills / 30 deaths — summed, not mean of ratios
+  assert.equal(agg.kd, 1); // 30 kills / 30 deaths - summed, not mean of ratios
   assert.equal(agg.adr, 75);
   assert.equal(agg.hsPercent, 40);
 });

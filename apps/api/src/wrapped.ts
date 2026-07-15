@@ -9,7 +9,7 @@ import type {
 import { percentile } from "./stats";
 
 /**
- * Moteur d'awards du Wrapped mensuel (B7.2) — fonctions pures, zéro I/O.
+ * Moteur d'awards du Wrapped mensuel (B7.2) - fonctions pures, zéro I/O.
  * Les 9 awards votés par l'asso, calculés depuis les matchs, snapshots ELO
  * et snapshots de playtime du mois. Ex æquo : tous les gagnants sont émis.
  */
@@ -81,7 +81,7 @@ export const AWARD_META: Record<AwardKey, { emoji: string; title: string }> = {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const pct = (num: number, den: number) => (den > 0 ? round1((num / den) * 100) : 0);
 
-/** [début, fin) du mois en UTC — le décalage Paris aux bornes est négligeable à l'échelle d'un mois. */
+/** [début, fin) du mois en UTC - le décalage Paris aux bornes est négligeable à l'échelle d'un mois. */
 export function monthRange(year: number, month: number): { start: Date; end: Date } {
   return {
     start: new Date(Date.UTC(year, month - 1, 1)),
@@ -126,7 +126,7 @@ const parisHourFmt = new Intl.DateTimeFormat("fr-FR", {
   hour: "2-digit",
   hour12: false,
 });
-/** Heure locale Paris (0-23) — pour le 🌙 les games se jouent en heure française. */
+/** Heure locale Paris (0-23) - pour le 🌙 les games se jouent en heure française. */
 export function parisHour(d: Date): number {
   const hour = parisHourFmt.formatToParts(d).find((p) => p.type === "hour")!.value;
   return Number(hour) % 24; // hour12:false peut rendre "24" à minuit selon l'ICU
@@ -226,7 +226,7 @@ function pickWinners(award: AwardKey, candidates: Candidate[]): AwardWinner[] {
     }));
 }
 
-/** 🐀 Rat : beaucoup de frags, peu d'entrys — il attend son heure au fond. */
+/** 🐀 Rat : beaucoup de frags, peu d'entrys - il attend son heure au fond. */
 function rat(pool: PlayerMonth[]): AwardWinner[] {
   const eligible = pool.filter((p) => p.matches.length >= MIN_MATCHES);
   if (eligible.length === 0) return [];
@@ -241,7 +241,7 @@ function rat(pool: PlayerMonth[]): AwardWinner[] {
         player: p.player,
         value: kills,
         tiebreak: -entries,
-        punchline: `${kills} frags/game mais ${entries} entry/game — il fragge depuis les fourrés.`,
+        punchline: `${kills} frags/game mais ${entries} entry/game - il fragge depuis les fourrés.`,
       };
     });
   return pickWinners("rat", candidates);
@@ -256,14 +256,14 @@ function spammeur(pool: PlayerMonth[]): AwardWinner[] {
       return {
         player: p.player,
         value: perGame,
-        punchline: `${perGame} grenades/game — personne ne voit plus rien.`,
+        punchline: `${perGame} grenades/game - personne ne voit plus rien.`,
       };
     })
     .filter((c) => c.value > 0);
   return pickWinners("spammeur", candidates);
 }
 
-/** 🧀 Puant : one-trick qui win — presque que sa map, et il la gagne. */
+/** 🧀 Puant : one-trick qui win - presque que sa map, et il la gagne. */
 function puant(pool: PlayerMonth[]): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
@@ -286,7 +286,7 @@ function puant(pool: PlayerMonth[]): AwardWinner[] {
     candidates.push({
       player: p.player,
       value: round1(share * winRate),
-      punchline: `${Math.round(share * 100)}% de ses games sur ${topMap}, ${winRate}% de wins — ça sent le renfermé.`,
+      punchline: `${Math.round(share * 100)}% de ses games sur ${topMap}, ${winRate}% de wins - ça sent le renfermé.`,
     });
   }
   return pickWinners("puant", candidates);
@@ -308,7 +308,7 @@ function chuteLibre(
       player: p.player,
       // pickWinners prend le max → on inverse pour garder la pire chute, value réelle dans la punchline.
       value: -delta,
-      punchline: `${delta} ELO ${label} (${d.start} → ${d.end}) — pensez à lui.`,
+      punchline: `${delta} ELO ${label} (${d.start} → ${d.end}) - pensez à lui.`,
     });
   }
   return pickWinners("chute-libre", candidates).map((w) => ({ ...w, value: -w.value }));
@@ -321,7 +321,7 @@ function tryharder(pool: PlayerMonth[], label: string): AwardWinner[] {
     .map((p) => ({
       player: p.player,
       value: p.matches.length,
-      punchline: `${p.matches.length} games ${label} — le grind ne s'arrête jamais.`,
+      punchline: `${p.matches.length} games ${label} - le grind ne s'arrête jamais.`,
     }));
   return pickWinners("tryharder", candidates);
 }
@@ -339,7 +339,7 @@ function ministreDuClutch(pool: PlayerMonth[]): AwardWinner[] {
       player: p.player,
       value: rate,
       tiebreak: attempts,
-      punchline: `${wins}/${attempts} clutchs gagnés (${rate}%) — calme olympien.`,
+      punchline: `${wins}/${attempts} clutchs gagnés (${rate}%) - calme olympien.`,
     });
   }
   return pickWinners("ministre-du-clutch", candidates);
@@ -354,7 +354,7 @@ function nolife(pool: PlayerMonth[]): AwardWinner[] {
       return {
         player: p.player,
         value: lateGames,
-        punchline: `${lateGames} games après 1h du mat' — le soleil est optionnel.`,
+        punchline: `${lateGames} games après 1h du mat' - le soleil est optionnel.`,
       };
     })
     .filter((c) => c.value > 0);
@@ -372,27 +372,27 @@ function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>, label
       player: p.player,
       // Le moins de playtime gagne → inversion pour pickWinners (max), value réelle restaurée après.
       value: -minutes,
-      punchline: `${hours} h de CS2 ${label} — l'abonnement tourne à vide.`,
+      punchline: `${hours} h de CS2 ${label} - l'abonnement tourne à vide.`,
     });
   }
   return pickWinners("abonne-absent", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
-/** 👻 Fantôme : zéro game sur le mois — dispensé du minimum de games, évidemment. */
+/** 👻 Fantôme : zéro game sur le mois - dispensé du minimum de games, évidemment. */
 function fantome(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length === 0)
     .map((p) => ({
       player: p.player,
       value: 0,
-      punchline: `0 game ${label} — vu pour la dernière fois il y a longtemps.`,
+      punchline: `0 game ${label} - vu pour la dernière fois il y a longtemps.`,
     }));
   // Un fantôme n'est un fantôme que si le pôle, lui, a joué.
   if (candidates.length === pool.length) return [];
   return pickWinners("fantome", candidates);
 }
 
-// --- Prix roast (B7.10) — validés en features-talk. ---
+// --- Prix roast (B7.10) - validés en features-talk. ---
 
 /** 🦵 Tibia d'or : pire HS% moyen du mois. */
 function tibiaDor(pool: PlayerMonth[], label: string): AwardWinner[] {
@@ -401,7 +401,7 @@ function tibiaDor(pool: PlayerMonth[], label: string): AwardWinner[] {
     .map((p) => {
       const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
       // Le plus bas gagne → inversion pour pickWinners (max), value réelle restaurée après.
-      return { player: p.player, value: -hs, punchline: `${hs}% de HS ${label} — tu vises les chevilles.` };
+      return { player: p.player, value: -hs, punchline: `${hs}% de HS ${label} - tu vises les chevilles.` };
     });
   return pickWinners("tibia-dor", candidates).map((w) => ({ ...w, value: -w.value }));
 }
@@ -412,7 +412,7 @@ function chirurgien(pool: PlayerMonth[]): AwardWinner[] {
     .filter((p) => p.matches.length >= MIN_MATCHES)
     .map((p) => {
       const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
-      return { player: p.player, value: hs, punchline: `${hs}% de HS — les casques ne servent plus à rien.` };
+      return { player: p.player, value: hs, punchline: `${hs}% de HS - les casques ne servent plus à rien.` };
     })
     .filter((c) => c.value > 0);
   return pickWinners("chirurgien", candidates);
@@ -427,7 +427,7 @@ function babySitter(pool: PlayerMonth[]): AwardWinner[] {
       return {
         player: p.player,
         value: kills,
-        punchline: `${kills} kills en défaite — mal entouré, le poto.`,
+        punchline: `${kills} kills en défaite - mal entouré, le poto.`,
       };
     })
     .filter((c) => c.value > 0);
@@ -447,7 +447,7 @@ function hamster(pool: PlayerMonth[], deltas: Map<string, { start: number; end: 
       player: p.player,
       value: p.matches.length,
       tiebreak: -delta,
-      punchline: `${p.matches.length} games pour ${delta} ELO — la roue tourne dans le vide.`,
+      punchline: `${p.matches.length} games pour ${delta} ELO - la roue tourne dans le vide.`,
     });
   }
   return pickWinners("hamster", candidates);
@@ -462,7 +462,7 @@ function chatouilleur(pool: PlayerMonth[], label: string): AwardWinner[] {
       return {
         player: p.player,
         value: -adr,
-        punchline: `${adr} d'ADR ${label} — tu distribues des caresses.`,
+        punchline: `${adr} d'ADR ${label} - tu distribues des caresses.`,
       };
     })
     .filter((c) => c.value < 0); // adr > 0 (données présentes)
@@ -496,7 +496,7 @@ export function computeAwards(inputs: WrappedInputs, label: string = MONTHLY_LAB
   ];
 }
 
-/** Cœur du Wrapped perso (sans l'étiquette de période) — partagé mensuel / BIG (B7.12). */
+/** Cœur du Wrapped perso (sans l'étiquette de période) - partagé mensuel / BIG (B7.12). */
 type PlayerWrappedCore = Omit<PlayerWrappedResponse, "year" | "month">;
 
 function computePlayerWrappedCore(

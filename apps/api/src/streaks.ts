@@ -1,7 +1,7 @@
 import type { OvertakeEntry, OvertakePlayer, PlayerStreak } from "@4eselo/types";
 
 /**
- * Séries & dépassements (B5.5) — logique pure, zéro I/O : les données arrivent
+ * Séries & dépassements (B5.5) - logique pure, zéro I/O : les données arrivent
  * en paramètre, les endpoints font les requêtes.
  */
 
@@ -74,7 +74,7 @@ export function computeOvertakes(players: OvertakeInput[]): OvertakeEntry[] {
     }
   }
 
-  // Les plus hauts au classement actuel d'abord — c'est là que ça se dispute.
+  // Les plus hauts au classement actuel d'abord - c'est là que ça se dispute.
   return overtakes.sort(
     (a, b) => now.get(a.passer.id)! - now.get(b.passer.id)! || a.passed.id.localeCompare(b.passed.id),
   );
