@@ -72,16 +72,16 @@ pour ne pas dépendre de l'expansion du shell.
 
 Monorepo **pnpm** en **TypeScript** (ESM).
 
-| Workspace         | Rôle                              | Techno                                                          |
-| ----------------- | --------------------------------- | --------------------------------------------------------------- |
-| `apps/web`        | Le site                           | React 19 + Vite + Tailwind v4 + motion + zustand + lucide-react |
-| `apps/api`        | API REST                          | Hono                                                            |
-| `apps/worker`     | Sync ELO + inscription manuelle   | tsx, cron simple                                                |
-| `apps/bot`        | Bot Discord `/register` (à venir) | discord.js                                                      |
-| `packages/db`     | Schéma + client                   | Drizzle + PostgreSQL                                            |
-| `packages/faceit` | Client typé de l'API Faceit       | zod                                                             |
-| `packages/steam`  | Présence Steam (qui est en jeu)   | zod                                                             |
-| `packages/types`  | Types partagés front/back         | —                                                               |
+| Workspace         | Rôle                              | Techno                                               |
+| ----------------- | --------------------------------- | ---------------------------------------------------- |
+| `apps/web`        | Le site                           | React 19 + Vite + Tailwind v4 + motion + react-icons |
+| `apps/api`        | API REST                          | Hono                                                 |
+| `apps/worker`     | Sync ELO + inscription manuelle   | tsx, cron simple                                     |
+| `apps/bot`        | Bot Discord `/register` (à venir) | discord.js                                           |
+| `packages/db`     | Schéma + client                   | Drizzle + PostgreSQL                                 |
+| `packages/faceit` | Client typé de l'API Faceit       | zod                                                  |
+| `packages/steam`  | Présence Steam (qui est en jeu)   | zod                                                  |
+| `packages/types`  | Types partagés front/back         | —                                                    |
 
 ## Commandes utiles
 
