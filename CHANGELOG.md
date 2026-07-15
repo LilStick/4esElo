@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-15
 
+- Web : page /nouveautés refaite en patch note — hero Version 1.0 + 6 features lisibles, zéro liste technique. (#372)
 - Web : polish pré-v1 — /asso pointe vers /register (self-service), /changelog refait avec hero v1 + features + crédits, /classement/maps filtrée sur le pool Active Duty Faceit. (#367)
 - Web : badges à paliers (`badgeTiers`) sur classement (24h), home (24h) et profil (30j) — `count` émojis + tooltip `message`, badge négatif `coldstreak` teinté. (#363)
 - API : notif Discord des actions admin — ban 🔨, débannissement ♻️ et suppression de joueur 🗑️ postés dans un salon dédié (`DISCORD_ADMIN_CHANNEL_ID`), best-effort (no-op si non configuré, jamais bloquant). Fini les bans sans trace. (#368)
