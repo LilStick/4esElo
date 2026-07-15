@@ -23,8 +23,7 @@ import { Cheatsheet } from "./Cheatsheet";
 import { AuthMenu } from "./AuthMenu";
 import { AuthToast } from "./AuthToast";
 import { Footer } from "./Footer";
-import lockup from "../assets/logo/4esElo_lockup_transparent.png";
-import mark from "../assets/logo/4esElo_mark_transparent.png";
+import { Logo } from "../brand";
 
 const SIDEBAR_KEY = "4eselo:sidebar-collapsed";
 /** En dessous de cette largeur, la sidebar reste repliée (icônes) et le toggle
@@ -82,14 +81,14 @@ const NAV = [
 function Brand({ collapsed }: { collapsed?: boolean }) {
   if (collapsed) {
     return (
-      <Link to="/" className="flex size-10 shrink-0 items-center">
-        <img src={mark} alt="4esElo" className="size-7 w-auto invert" />
+      <Link to="/" aria-label="Retake - accueil" className="flex size-10 shrink-0 items-center">
+        <Logo markOnly className="h-7 w-auto text-ink" />
       </Link>
     );
   }
   return (
     <Link to="/" className="flex h-10 items-center">
-      <img src={lockup} alt="4esElo" className="h-9 w-auto invert" />
+      <Logo title="Retake" className="h-8 w-auto text-ink" />
     </Link>
   );
 }

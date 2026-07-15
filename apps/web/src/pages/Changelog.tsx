@@ -23,7 +23,7 @@ export function Changelog() {
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/8 px-4 py-1.5 text-xs font-bold tracking-[0.15em] text-brand uppercase">
           <TbRocket size={13} /> Nouveautés
         </div>
-        <h1 className="text-3xl font-black tracking-tight">4esElo</h1>
+        <h1 className="text-3xl font-black tracking-tight">Retake</h1>
         <p className="mt-2 text-sm text-ink-faint">Le classement CS2 du pôle 4eSport.</p>
       </div>
 
@@ -33,7 +33,7 @@ export function Changelog() {
         <div className="relative">
           <div className="mb-1 text-[10px] font-bold tracking-[0.2em] text-brand uppercase">Version 1.0</div>
           <h2 className="text-xl font-black tracking-tight">Le lancement 🎉</h2>
-          <p className="mt-1.5 text-sm text-ink-dim">4esElo débarque dans le pôle CS2 de 4eSport.</p>
+          <p className="mt-1.5 text-sm text-ink-dim">Retake débarque dans le pôle CS2 de 4eSport.</p>
           <ul className="mt-4 grid gap-y-2 sm:grid-cols-2">
             {V1_FEATURES.map((f) => (
               <li key={f.text} className="flex items-center gap-2.5 text-sm">

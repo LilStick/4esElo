@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { TbArrowRight } from "react-icons/tb";
 import { Card } from "../ui";
-import lockup from "../assets/logo/4esElo_lockup_transparent.png";
+import { Logo } from "../brand";
 import ancient from "../assets/hero/ancient.png";
 
 /** Hero cinématique du home : fond CS (de_Ancient), identité + punchline + CTA (variante bas-gauche épurée). */
@@ -20,7 +20,7 @@ export function HomeHero() {
 
       <div className="relative flex min-h-[300px] flex-col justify-end gap-5 p-6 sm:min-h-[380px] sm:p-10">
         <div>
-          <img src={lockup} alt="4esElo" className="h-12 w-auto invert sm:h-16" />
+          <Logo title="Retake" className="h-12 w-auto text-ink sm:h-16" />
           <p className="mt-3 max-w-lg text-sm text-ink-dim sm:text-base">
             Le classement Faceit du pôle CS2 de <b className="text-ink">4eSport</b> · Efrei Paris — en direct.
           </p>
