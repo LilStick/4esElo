@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import type { IconType } from "react-icons";
 import { TbBrandDiscord, TbInfoCircle, TbShieldCheck, TbUserPlus } from "react-icons/tb";
 import { Card } from "../ui";
@@ -44,17 +45,25 @@ export function Asso() {
 
         <Section icon={TbUserPlus} title="Rejoindre le classement">
           <p>
-            Tu joues au pôle CS2 de 4eSport et tu veux apparaître ? Donne ton pseudo Faceit à un admin sur le
-            Discord, il t'ajoute et ton ELO arrive à la prochaine synchro.
+            Tu joues au pôle CS2 de 4eSport et tu veux apparaître ? Inscris-toi directement avec ton compte
+            Discord et ton pseudo Faceit — ton ELO arrive à la prochaine synchro.
           </p>
-          <a
-            href="https://discord.gg/gEVQtdCv6N"
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-[#060a18] transition-colors hover:bg-brand-hi"
-          >
-            <TbBrandDiscord size={16} /> Rejoindre sur Discord
-          </a>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link
+              to="/register"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-[#060a18] transition-colors hover:bg-brand-hi"
+            >
+              <TbUserPlus size={16} /> S'inscrire
+            </Link>
+            <a
+              href="https://discord.gg/gEVQtdCv6N"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-white/[0.12] px-4 py-2 text-sm font-semibold text-ink-dim transition-colors hover:text-ink"
+            >
+              <TbBrandDiscord size={16} /> Le Discord
+            </a>
+          </div>
         </Section>
       </div>
     </div>

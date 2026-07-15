@@ -1,11 +1,22 @@
 import { useMemo, type ReactNode } from "react";
-import { TbSparkles } from "react-icons/tb";
+import { TbBrandDiscord, TbBrandGithub, TbRocket, TbSparkles } from "react-icons/tb";
 import raw from "../../../../CHANGELOG.md?raw";
 import { Card } from "../ui";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 
 const REPO = "https://github.com/LilStick/4esElo";
+const DISCORD = "https://discord.gg/gEVQtdCv6N";
+
+/** Ce que la V1 apporte — repères lisibles pour un membre, pas une liste technique. */
+const V1_FEATURES = [
+  "Classement ELO du pôle, mis à jour automatiquement",
+  "Profils détaillés : stats par match, courbe d'ELO, ADR, clutch, entry…",
+  "« Ta place dans l'asso » — ton percentile sur chaque stat",
+  "Comparaison 2 joueurs, duos & stats sociales",
+  "Wrapped mensuel + BIG Wrapped, heatmap d'activité",
+  "Inscription en libre-service (Discord + Faceit)",
+];
 
 /** Couleur de badge par domaine (Web/API/Worker…), neutre par défaut. */
 function domainClass(domain: string): string {
@@ -70,6 +81,28 @@ export function Changelog() {
         </div>
       </div>
 
+      {/* Hero de lancement V1 */}
+      <Card className="mb-8 p-6">
+        <div className="flex items-center gap-2 text-brand">
+          <TbRocket size={20} />
+          <span className="text-[11px] font-bold tracking-[0.2em] uppercase">La V1 est là</span>
+        </div>
+        <h2 className="mt-3 text-xl font-extrabold tracking-tight">
+          4esElo, le classement CS2 du pôle — enfin en ligne 🎉
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-ink-dim">
+          Tout ce qu'il faut pour se comparer, suivre sa progression et se charrier entre membres de 4eSport.
+        </p>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          {V1_FEATURES.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-sm text-ink-dim">
+              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
+              {f}
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       <div className="flex flex-col gap-6">
         {sections.map((s) => (
           <div key={s.date}>
@@ -96,6 +129,32 @@ export function Changelog() {
           </div>
         ))}
       </div>
+
+      {/* Crédits */}
+      <Card className="mt-8 flex flex-col items-center gap-3 p-6 text-center">
+        <p className="text-sm text-ink-dim">
+          Conçu et développé par <b className="text-ink">Noé</b> &amp; <b className="text-ink">Arthur</b> pour
+          le pôle CS2 de 4eSport.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href={REPO}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] px-4 py-2 text-sm font-semibold text-ink-dim transition-colors hover:text-ink"
+          >
+            <TbBrandGithub size={16} /> GitHub
+          </a>
+          <a
+            href={DISCORD}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] px-4 py-2 text-sm font-semibold text-ink-dim transition-colors hover:text-ink"
+          >
+            <TbBrandDiscord size={16} /> Discord
+          </a>
+        </div>
+      </Card>
     </div>
   );
 }

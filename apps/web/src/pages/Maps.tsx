@@ -13,6 +13,17 @@ import { useTitle } from "../lib/useTitle";
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
 const MEDALS = ["🥇", "🥈", "🥉"];
 
+/** Pool Active Duty Faceit CS2 (mis à jour : juillet 2025). */
+const ACTIVE_POOL = new Set([
+  "de_ancient",
+  "de_anubis",
+  "de_dust2",
+  "de_inferno",
+  "de_mirage",
+  "de_nuke",
+  "de_train",
+]);
+
 function Row({ e, index }: { e: MapLeaderboardEntry; index: number }) {
   return (
     <>
@@ -41,7 +52,7 @@ export function Maps() {
   const { data, isLoading } = useQuery({ queryKey: ["leaderboard", "maps"], queryFn: getMapsLeaderboard });
   const [selected, setSelected] = useState<string | null>(null);
 
-  const maps = data?.maps ?? [];
+  const maps = (data?.maps ?? []).filter((m) => ACTIVE_POOL.has(m.map));
   const current = maps.find((m) => m.map === selected) ?? maps[0];
 
   return (
