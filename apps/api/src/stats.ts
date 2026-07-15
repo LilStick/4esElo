@@ -9,7 +9,7 @@ import {
 } from "@4eselo/types";
 
 /**
- * Aggregation over stored matches (B2.7) — pure functions, no I/O.
+ * Aggregation over stored matches (B2.7) - pure functions, no I/O.
  * Ratios are computed from summed numerators/denominators (not averaged
  * per-match ratios) so short matches don't weigh as much as long ones.
  */
@@ -59,7 +59,7 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
   let entryWins = 0;
   let entryCount = 0;
   let utilityDamage = 0;
-  // Composants du rating HLTV 1.0 agrégé (B16.8) — rounds dérivés de kr par match.
+  // Composants du rating HLTV 1.0 agrégé (B16.8) - rounds dérivés de kr par match.
   let rounds = 0;
   let dbl = 0;
   let tpl = 0;
@@ -156,7 +156,7 @@ export interface MapLeaderboardRow {
 }
 
 /**
- * Classement du pôle par map (B13.6) — logique pure. Par map, chaque membre au-dessus
+ * Classement du pôle par map (B13.6) - logique pure. Par map, chaque membre au-dessus
  * du seuil de games est classé par winrate (puis volume, puis K-D). Maps triées par
  * activité totale.
  */

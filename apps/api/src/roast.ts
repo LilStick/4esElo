@@ -1,7 +1,7 @@
 import type { RoastForecast, RoastLine } from "@4eselo/types";
 
 /**
- * Roast niveau profil + forecast ELO (B7.6) — logique pure, zéro I/O, zéro IA.
+ * Roast niveau profil + forecast ELO (B7.6) - logique pure, zéro I/O, zéro IA.
  * Deux couches : des punchlines "extrêmes" (les plus croustillantes, conditionnelles)
  * + des lignes "toujours là" (tier de KD, map de prédilection) pour garantir qu'un
  * membre actif déclenche ≥ 2 lignes. Le roast par-match vit dans `@4eselo/types`.
@@ -41,7 +41,7 @@ interface Rule {
   line: (i: RoastProfileInput) => RoastLine;
 }
 
-/** Punchlines conditionnelles — les traits marquants (les vraies vannes). */
+/** Punchlines conditionnelles - les traits marquants (les vraies vannes). */
 const EXTREMES: Rule[] = [
   {
     prio: 100,
@@ -49,13 +49,13 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "📉",
       label: "Chute libre",
-      text: `${i.eloDelta30d} ELO ce mois — la gravité te réclame.`,
+      text: `${i.eloDelta30d} ELO ce mois - la gravité te réclame.`,
     }),
   },
   {
     prio: 90,
     when: (i) => (i.eloDelta30d ?? 0) >= 100,
-    line: (i) => ({ emoji: "🚀", label: "Ascension", text: `+${i.eloDelta30d} ELO ce mois — ça décolle.` }),
+    line: (i) => ({ emoji: "🚀", label: "Ascension", text: `+${i.eloDelta30d} ELO ce mois - ça décolle.` }),
   },
   {
     prio: 85,
@@ -63,7 +63,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🐹",
       label: "Hamster",
-      text: `${i.matches} games pour ${i.eloDelta30d ?? 0} ELO — la roue tourne dans le vide.`,
+      text: `${i.matches} games pour ${i.eloDelta30d ?? 0} ELO - la roue tourne dans le vide.`,
     }),
   },
   {
@@ -72,7 +72,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🔥",
       label: "En feu",
-      text: `${i.currentWinStreak} victoires d'affilée — laisse-en aux autres.`,
+      text: `${i.currentWinStreak} victoires d'affilée - laisse-en aux autres.`,
     }),
   },
   {
@@ -81,7 +81,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🗺️",
       label: "Map maudite",
-      text: `${i.worstMap!.winRate}% sur ${i.worstMap!.map} — bannis-la de ta vie.`,
+      text: `${i.worstMap!.winRate}% sur ${i.worstMap!.map} - bannis-la de ta vie.`,
     }),
   },
   {
@@ -90,7 +90,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🦵",
       label: "Chasseur de tibias",
-      text: `${r0(i.avgHs)}% de HS — tu vises les chevilles.`,
+      text: `${r0(i.avgHs)}% de HS - tu vises les chevilles.`,
     }),
   },
   {
@@ -99,7 +99,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🎯",
       label: "Chirurgien",
-      text: `${r0(i.avgHs)}% de HS — les casques ne servent plus.`,
+      text: `${r0(i.avgHs)}% de HS - les casques ne servent plus.`,
     }),
   },
   {
@@ -108,7 +108,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "💣",
       label: "Chair à canon",
-      text: `${r0(i.entrySuccessRate)}% de duels d'entrée — premier au cimetière.`,
+      text: `${r0(i.entrySuccessRate)}% de duels d'entrée - premier au cimetière.`,
     }),
   },
   {
@@ -117,7 +117,7 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🧊",
       label: "Sang-froid",
-      text: `${r0(i.clutchWinRate)}% de clutchs gagnés — nerfs d'acier.`,
+      text: `${r0(i.clutchWinRate)}% de clutchs gagnés - nerfs d'acier.`,
     }),
   },
   {
@@ -126,26 +126,26 @@ const EXTREMES: Rule[] = [
     line: (i) => ({
       emoji: "🪶",
       label: "Chatouilleur",
-      text: `${r0(i.adr)} d'ADR — tu distribues des caresses.`,
+      text: `${r0(i.adr)} d'ADR - tu distribues des caresses.`,
     }),
   },
   {
     prio: 55,
     when: (i) => i.matches >= MIN_MATCHES && i.adr >= 90,
-    line: (i) => ({ emoji: "💥", label: "Gros bras", text: `${r0(i.adr)} d'ADR — ça fait très mal.` }),
+    line: (i) => ({ emoji: "💥", label: "Gros bras", text: `${r0(i.adr)} d'ADR - ça fait très mal.` }),
   },
 ];
 
-/** Tier de KD — une ligne toujours émise pour un joueur actif. */
+/** Tier de KD - une ligne toujours émise pour un joueur actif. */
 function kdTierLine(i: RoastProfileInput): RoastLine {
-  if (i.kd >= 1.25) return { emoji: "🔫", label: "Boucher", text: `KD ${round1(i.kd)} — machine à frags.` };
+  if (i.kd >= 1.25) return { emoji: "🔫", label: "Boucher", text: `KD ${round1(i.kd)} - machine à frags.` };
   if (i.kd <= 0.85)
     return {
       emoji: "🧟",
       label: "Aide-soignant",
-      text: `KD ${round1(i.kd)} — surtout là pour le soutien moral.`,
+      text: `KD ${round1(i.kd)} - surtout là pour le soutien moral.`,
     };
-  return { emoji: "⚔️", label: "Soldat", text: `KD ${round1(i.kd)} — ni héros ni boulet.` };
+  return { emoji: "⚔️", label: "Soldat", text: `KD ${round1(i.kd)} - ni héros ni boulet.` };
 }
 
 function topMapLine(i: RoastProfileInput): RoastLine {
@@ -199,6 +199,6 @@ export function forecastElo(points: { elo: number; capturedAt: Date }[], now: Da
   let text: string;
   if (perDay >= 0.5) text = `à ce rythme (+${perDay}/j), ~${proj} dans 2 semaines 📈`;
   else if (perDay <= -0.5) text = `à ce rythme (${perDay}/j), ~${proj} dans 2 semaines 📉`;
-  else text = `ELO stable (${perDay >= 0 ? "+" : ""}${perDay}/j) — ça plafonne.`;
+  else text = `ELO stable (${perDay >= 0 ? "+" : ""}${perDay}/j) - ça plafonne.`;
   return { perDay, text };
 }

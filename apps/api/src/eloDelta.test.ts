@@ -17,7 +17,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 let pid = "";
 
@@ -128,7 +128,7 @@ test(
     const byId = new Map(body.items.map((m) => [m.matchId, m.eloDelta]));
     // mC : colonne backfill (999) prioritaire.
     assert.equal(byId.get("delta-mC"), 999);
-    // mB : colonne null → dérivé 1560 − 1500 = 60 (le bug : renvoyait null → « — »).
+    // mB : colonne null → dérivé 1560 − 1500 = 60 (le bug : renvoyait null → « - »).
     assert.equal(byId.get("delta-mB"), 60);
     // mA : pas de prédécesseur → null propre.
     assert.equal(byId.get("delta-mA"), null);

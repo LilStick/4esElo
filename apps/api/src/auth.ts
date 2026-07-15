@@ -38,7 +38,7 @@ export const authDeps: { config: AuthConfig | null; oauth: DiscordOAuth | null }
     : null,
 };
 
-/** Où renvoyer l'utilisateur après le flow — la première origine CORS = le front. */
+/** Où renvoyer l'utilisateur après le flow - la première origine CORS = le front. */
 const webHome = () => WEB_ORIGINS[0] ?? "http://localhost:5173";
 
 const secure = () => webHome().startsWith("https://");
@@ -114,7 +114,7 @@ authRoutes.get("/auth/callback", async (c) => {
     // Banni (B17.9) : pas de session posée, le front affiche l'écran adéquat.
     if (await isBanned(user.id)) return c.redirect(`${webHome()}/?auth=banned`);
     await writeSession(c, { discordId: user.id, displayName: user.displayName, avatar: user.avatar });
-    // Rafraîchit le snapshot DB à chaque connexion (pas seulement à l'inscription) —
+    // Rafraîchit le snapshot DB à chaque connexion (pas seulement à l'inscription) -
     // sinon le nom/avatar affichés ailleurs (classement, profil…) restent figés.
     // No-op si le membre n'est pas encore inscrit (aucune ligne à matcher).
     await db
@@ -157,7 +157,7 @@ authRoutes.get("/me", async (c) => {
     discordId: session.discordId,
     displayName: session.displayName,
     isAdmin: authDeps.config?.adminDiscordIds.includes(session.discordId) ?? false,
-    // Hash frais de la session (capturé à chaque login) — prioritaire sur le
+    // Hash frais de la session (capturé à chaque login) - prioritaire sur le
     // snapshot DB du joueur, pris une seule fois à l'inscription (register.ts).
     avatar: session.avatar ?? null,
     player: player

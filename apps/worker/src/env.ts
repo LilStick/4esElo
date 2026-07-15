@@ -8,12 +8,12 @@ import { loadEnv } from "@4eselo/env";
 const here = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(here, "../../../.env") });
 
-// Single access point for env vars — `process.env` is forbidden elsewhere
+// Single access point for env vars - `process.env` is forbidden elsewhere
 // (lint), and the worker refuses to start half-configured (B11.3).
 const env = loadEnv(
   z.object({
     DATABASE_URL: z.string().url({ message: "URL Postgres attendue (voir .env.example)" }),
-    FACEIT_API_KEY: z.string().min(1, "clé server-side requise — https://developers.faceit.com"),
+    FACEIT_API_KEY: z.string().min(1, "clé server-side requise - https://developers.faceit.com"),
     STEAM_API_KEY: z.string().optional(),
     WORKER_INTERVAL_MS: z.coerce
       .number()

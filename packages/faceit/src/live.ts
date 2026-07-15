@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FaceitError } from "./client";
 
 /**
- * UNOFFICIAL — the faceit.com frontend endpoint for a player's ongoing match,
+ * UNOFFICIAL - the faceit.com frontend endpoint for a player's ongoing match,
  * behind Cloudflare bot management: a discrete call usually passes, repeated
  * traffic gets 403'd (measured 2026-07-06). Callers MUST treat failures as
  * "unknown" and degrade, never retry-storm. Kept behind the LiveMatchReader

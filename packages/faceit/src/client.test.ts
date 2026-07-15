@@ -87,7 +87,7 @@ test("getMatchHistory normalizes items and converts timestamps", async () => {
   assert.equal(matches[1]!.finishedAt, null);
 });
 
-// ——— B11.2 : timeout, retry & backoff ———
+// --- B11.2 : timeout, retry & backoff ---
 
 function flaky(responses: (Response | Error)[]): { fetch: typeof fetch; calls: number } {
   const state = { calls: 0 };

@@ -2,7 +2,7 @@ export type EloSource = "faceit" | "premier";
 
 export interface PlayerSummary {
   id: string;
-  /** Snowflake Discord — nécessaire pour construire l'URL CDN de l'avatar. */
+  /** Snowflake Discord - nécessaire pour construire l'URL CDN de l'avatar. */
   discordId: string | null;
   discordName: string | null;
   faceitNickname: string | null;
@@ -11,15 +11,15 @@ export interface PlayerSummary {
   elo: number | null;
   /** Faceit skill level 1-10 (null for premier / unknown). */
   level: number | null;
-  /** Discord avatar hash (register) — null until the member registers on the site. */
+  /** Discord avatar hash (register) - null until the member registers on the site. */
   discordAvatar: string | null;
-  /** Formation + promo years (register) — null until the member registers. */
+  /** Formation + promo years (register) - null until the member registers. */
   formation: string | null;
   promoStart: number | null;
   promoEnd: number | null;
 }
 
-/** Badges emoji (B5.8) — flex gagné selon les stats, calculé côté API.
+/** Badges emoji (B5.8) - flex gagné selon les stats, calculé côté API.
  *  Les seuils vivent dans le code (`apps/api/src/badges.ts`). */
 export type BadgeId = "streak" | "headshot" | "entry" | "clutch" | "grind";
 
@@ -40,7 +40,7 @@ export const BADGE_CATALOG: Record<BadgeId, BadgeDef> = {
 };
 
 /**
- * Badge « à paliers » façon Calibrum (B5.13) — fenêtré (24h classement/home, 30j profil).
+ * Badge « à paliers » façon Calibrum (B5.13) - fenêtré (24h classement/home, 30j profil).
  * `count` = nb d'émojis à afficher (paliers), `message` = tooltip. Additif : coexiste
  * avec `badges: BadgeId[]` (l'ancien binaire all-time) le temps que le front migre.
  */
@@ -56,7 +56,7 @@ export interface BadgeTier {
 
 export interface LeaderboardEntry extends PlayerSummary {
   rank: number;
-  /** Last N ELO points, oldest first — only when the request asks for it. */
+  /** Last N ELO points, oldest first - only when the request asks for it. */
   sparkline?: number[];
   /** Badges décrochés (B5.8) ; liste vide si aucun. */
   badges: BadgeId[];
@@ -199,7 +199,7 @@ export interface HltvRatingInput {
 }
 
 /**
- * Rating façon HLTV 1.0 — source unique partagée front (par match) / back (agrégé).
+ * Rating façon HLTV 1.0 - source unique partagée front (par match) / back (agrégé).
  * Le nb de rounds est fourni par l'appelant (par match : `kills / kr` ; agrégé :
  * somme des rounds de chaque match). Null si non calculable. Constantes HLTV 1.0.
  */
@@ -216,7 +216,7 @@ export function hltvRating(i: HltvRatingInput): number | null {
   return (killRating + 0.7 * survival + rmk) / 2.7;
 }
 
-/** Une punchline roast (B7.6) — emoji + libellé court + texte chambré. */
+/** Une punchline roast (B7.6) - emoji + libellé court + texte chambré. */
 export interface RoastLine {
   emoji: string;
   label: string;
@@ -226,50 +226,50 @@ export interface RoastLine {
 const r0 = (n: number) => Math.round(n);
 
 /**
- * Roast d'UN match (hype ou vanne) depuis ses stats — source unique partagée
+ * Roast d'UN match (hype ou vanne) depuis ses stats - source unique partagée
  * front (récap de match #302) / back. Renvoie la punchline la plus saillante
  * (priorité décroissante), ou null si la game est banale.
  */
 export function matchRoast(s: FaceitMatchStats, result: number): RoastLine | null {
   const clutchWins = s.clutch1v1Wins + s.clutch1v2Wins;
-  if (s.pentaKills >= 1) return { emoji: "🎽", label: "Ace", text: "ACE — 5 dans une manche, gg." };
+  if (s.pentaKills >= 1) return { emoji: "🎽", label: "Ace", text: "ACE - 5 dans une manche, gg." };
   if (result === 1 && s.kills >= 25)
     return { emoji: "🔥", label: "Patron du lobby", text: `${s.kills}-${s.deaths}, t'as fait le ménage.` };
   if (result === 0 && s.kills >= 20)
     return {
       emoji: "🚑",
       label: "Mal entouré",
-      text: `${s.kills} kills pour une défaite — tes mates étaient en visite.`,
+      text: `${s.kills} kills pour une défaite - tes mates étaient en visite.`,
     };
   if (clutchWins >= 2)
-    return { emoji: "🧊", label: "Sang-froid", text: `${clutchWins} clutchs gagnés — calme olympien.` };
+    return { emoji: "🧊", label: "Sang-froid", text: `${clutchWins} clutchs gagnés - calme olympien.` };
   if (s.hsPercent >= 60)
-    return { emoji: "🎯", label: "Chirurgien", text: `${r0(s.hsPercent)}% de HS — les casques pleurent.` };
+    return { emoji: "🎯", label: "Chirurgien", text: `${r0(s.hsPercent)}% de HS - les casques pleurent.` };
   if (s.adr > 0 && s.adr < 50)
-    return { emoji: "🪶", label: "Chatouilleur", text: `${r0(s.adr)} d'ADR — t'as distribué des caresses.` };
+    return { emoji: "🪶", label: "Chatouilleur", text: `${r0(s.adr)} d'ADR - t'as distribué des caresses.` };
   if (s.deaths >= 22 && s.kills < s.deaths)
     return {
       emoji: "💀",
       label: "Charnier",
-      text: `${s.kills}-${s.deaths} — cette game restera entre nous.`,
+      text: `${s.kills}-${s.deaths} - cette game restera entre nous.`,
     };
   if (s.entryCount >= 4 && s.entryWins <= 1)
     return {
       emoji: "📦",
       label: "Livraison express",
-      text: `${s.entryWins}/${s.entryCount} entrées gagnées — t'ouvres la porte et tu livres ton corps.`,
+      text: `${s.entryWins}/${s.entryCount} entrées gagnées - t'ouvres la porte et tu livres ton corps.`,
     };
   if (result === 0 && s.kills < s.deaths)
     return {
       emoji: "🧹",
       label: "Balayé",
-      text: `${s.kills}-${s.deaths} — t'as surtout fait de la figuration.`,
+      text: `${s.kills}-${s.deaths} - t'as surtout fait de la figuration.`,
     };
   // « GG » réservé aux vraies bonnes games (K/D positif) ; sinon victoire portée.
   if (result === 1 && s.kills > s.deaths)
     return { emoji: "✅", label: "GG", text: `${s.kills}-${s.deaths}, propre.` };
   if (result === 1)
-    return { emoji: "🎟️", label: "Porté", text: `${s.kills}-${s.deaths} en gagnant — merci les mates.` };
+    return { emoji: "🎟️", label: "Porté", text: `${s.kills}-${s.deaths} en gagnant - merci les mates.` };
   return null;
 }
 
@@ -387,7 +387,7 @@ export interface PlayerStatsResponse {
   maps: MapStat[];
 }
 
-/** Stats classées dans le benchmark intra-asso (B5.11) — pour toutes, "plus haut = mieux". */
+/** Stats classées dans le benchmark intra-asso (B5.11) - pour toutes, "plus haut = mieux". */
 export type BenchmarkStatKey = "adr" | "kd" | "hsPercent" | "clutchWinRate" | "entrySuccessRate" | "winRate";
 
 /** Valeur du membre + son percentile (0-100) face au pôle ; null s'il n'est pas dans le référentiel. */
@@ -420,7 +420,7 @@ export interface RegisterLookupResponse {
 
 export interface RegisterRequest {
   faceitNickname: string;
-  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») — libre, suggéré côté front. */
+  /** Cursus EFREI (ex. « Mastère Dev », « Licence », « Bachelor ») - libre, suggéré côté front. */
   formation: string;
   /** Années de promo, ex. 2026 → 2028. */
   promoStart: number;
@@ -456,7 +456,7 @@ export interface ActivityDay {
 }
 
 /** Réponse **creuse** : seuls les jours avec ≥ 1 match sont présents (ordre chrono).
- *  Le front remplit la grille — un jour absent = 0 match. */
+ *  Le front remplit la grille - un jour absent = 0 match. */
 export interface ActivityResponse {
   /** Fenêtre demandée en jours (aujourd'hui inclus). */
   days: number;
@@ -539,7 +539,7 @@ export interface AnnouncementsResponse {
   announcements: Announcement[];
 }
 
-/** Boîte à idées (B17.7) — suggestion d'un membre pour le site. */
+/** Boîte à idées (B17.7) - suggestion d'un membre pour le site. */
 export interface IdeaItem {
   id: string;
   text: string;
@@ -607,7 +607,7 @@ export interface BansResponse {
   bans: BanEntry[];
 }
 
-/** Wrapped mensuel (B7.2) — awards du pôle, votés ✅ par l'asso. */
+/** Wrapped mensuel (B7.2) - awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"
   | "spammeur"
@@ -676,12 +676,12 @@ export interface PlayerWrappedResponse {
   awards: AwardWinner[];
 }
 
-/** BIG Wrapped (B7.12) — Wrapped longue période, `period` = "2026" | "2026-H1" | "2026-H2". */
+/** BIG Wrapped (B7.12) - Wrapped longue période, `period` = "2026" | "2026-H1" | "2026-H2". */
 export interface BigWrappedResponse {
   period: string;
   /** Vide si personne d'éligible (période sans matchs). */
   awards: AwardWinner[];
 }
 
-/** BIG Wrapped perso — mêmes stats que le mensuel, indexées sur une période longue. */
+/** BIG Wrapped perso - mêmes stats que le mensuel, indexées sur une période longue. */
 export type PlayerBigWrappedResponse = { period: string } & Omit<PlayerWrappedResponse, "year" | "month">;

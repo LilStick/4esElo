@@ -2,7 +2,7 @@ import type { z } from "zod";
 
 /**
  * Fail-fast env validation (B11.3): parse the environment against a zod
- * schema at startup; on failure, print WHICH variables are wrong and exit —
+ * schema at startup; on failure, print WHICH variables are wrong and exit -
  * an app must never run half-configured.
  */
 export function loadEnv<S extends z.ZodTypeAny>(

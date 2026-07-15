@@ -16,7 +16,7 @@ async function dbReachable(): Promise<boolean> {
   }
 }
 const DB_UP = await dbReachable();
-const skip = DB_UP ? false : "requires Postgres — run `pnpm db:up`";
+const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 let pid = "";
 
@@ -98,7 +98,7 @@ after(async () => {
 });
 
 // REGRESSION : le dernier match reçoit son elo_after sur un changement d'ELO,
-// même s'il n'a pas été ingéré ce tick-ci (avant le fix : jamais posé → « — »).
+// même s'il n'a pas été ingéré ce tick-ci (avant le fix : jamais posé → « - »).
 test("setNewestMatchEloAfter pose l'elo_after du dernier match vide", { skip }, async () => {
   const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(pid, 1560);
   assert.equal(matchId, "b213-new");

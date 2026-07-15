@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SessionStart hook (after preflight): tells the current user which of their
 // tickets the OTHER person has just unblocked, by resolving the `🔗 dépend de
-// #x` lines against live GitHub state. Stateless — nothing to store or clear.
+// #x` lines against live GitHub state. Stateless - nothing to store or clear.
 //
 // Fail-soft by design: any error (gh missing, offline, rate-limit) prints
 // nothing and exits 0. A session must never fail to start because of a brief.
@@ -77,15 +77,15 @@ try {
 
   if (unblocked.length === 0 && blocked.length === 0) process.exit(0);
 
-  const lines = [`\n  🎟️  Tickets ${me.name} — état des dépendances`];
+  const lines = [`\n  🎟️  Tickets ${me.name} - état des dépendances`];
   for (const t of unblocked) {
     const closed = t.deps
       .map((d) => `#${d.number} fermé le ${d.closedAt ? d.closedAt.slice(0, 10) : "?"}`)
       .join(", ");
-    lines.push(`  🔓 #${t.number} · ${t.title} — DÉBLOQUÉ par ${me.other} (${closed})`);
+    lines.push(`  🔓 #${t.number} · ${t.title} - DÉBLOQUÉ par ${me.other} (${closed})`);
   }
   for (const t of blocked) {
-    lines.push(`  ⛔ #${t.number} · ${t.title} — attend ${t.open.map((d) => `#${d.number}`).join(", ")}`);
+    lines.push(`  ⛔ #${t.number} · ${t.title} - attend ${t.open.map((d) => `#${d.number}`).join(", ")}`);
   }
   if (unblocked.length > 0) {
     lines.push(`  → piochable maintenant : /start-ticket sur le(s) 🔓 ci-dessus`);

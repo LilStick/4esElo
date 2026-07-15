@@ -238,7 +238,7 @@ test("member missing from the match detail → failed, no insert, run continues"
 
 test("bye/forfeit (zero duration) → never fetched, not counted failed (#244)", async () => {
   // Real case (Styl1zt): a championship bye finishes the instant it starts and
-  // has no stats page — fetching it would 404 forever, on every run.
+  // has no stats page - fetching it would 404 forever, on every run.
   const refs = makeRefs(3);
   const bye = refs[1]!;
   refs[1] = { ...bye, finishedAt: bye.startedAt };

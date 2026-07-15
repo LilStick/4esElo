@@ -2,11 +2,11 @@
  * Annonce du BIG Wrapped annuel (B7.12) : dès qu'une année se termine, une
  * annonce « Le BIG Wrapped <année> est là » est insérée pour la home. Même
  * mécanique que le Wrapped mensuel : pas de check « on est le 1er janvier », la
- * clé de dédup par année fait tout — si le worker était down, l'annonce part à la
- * relance suivante, jamais en double. Logique pure — la DB arrive en interface.
+ * clé de dédup par année fait tout - si le worker était down, l'annonce part à la
+ * relance suivante, jamais en double. Logique pure - la DB arrive en interface.
  *
  * (Les Wrapped semestriels restent consultables à la demande via l'endpoint
- *  `/wrapped/big/:period` ; seule l'annonce annuelle — le moment phare — est auto.)
+ *  `/wrapped/big/:period` ; seule l'annonce annuelle - le moment phare - est auto.)
  */
 import type { AnnouncementStore } from "./announce";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Client OAuth Discord (B17.1) — pattern provider : toute l'I/O réseau vers
+ * Client OAuth Discord (B17.1) - pattern provider : toute l'I/O réseau vers
  * Discord vit ici, validée par zod. Les apps consomment l'interface
  * `DiscordOAuth` (injectable → la logique auth se teste sans réseau).
  */
@@ -43,7 +43,7 @@ export interface DiscordUser {
   avatar: string | null;
 }
 
-/** Ce que la logique auth consomme — mockable en test. */
+/** Ce que la logique auth consomme - mockable en test. */
 export interface DiscordOAuth {
   authorizeUrl(state: string): string;
   /** Échange le `code` du callback contre un access token. */

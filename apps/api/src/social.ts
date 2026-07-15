@@ -1,7 +1,7 @@
 import type { DuoPlayer, DuoStat, LineupStat } from "@4eselo/types";
 
 /**
- * Duos (B4.1) — fonctions pures, zéro I/O. Deux membres dans le même match
+ * Duos (B4.1) - fonctions pures, zéro I/O. Deux membres dans le même match
  * avec le même résultat étaient coéquipiers (une seule équipe gagne) ; des
  * résultats opposés = adversaires, ignorés. Le head-to-head a été écarté :
  * quasi impossible en matchmaking (décision 2026-07-07, cf. #227).
