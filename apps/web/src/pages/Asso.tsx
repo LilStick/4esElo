@@ -29,7 +29,7 @@ export function Asso() {
       </p>
 
       <div className="flex flex-col gap-4">
-        <Section icon={TbInfoCircle} title="C'est quoi 4esElo ?">
+        <Section icon={TbInfoCircle} title="C'est quoi Retake ?">
           Le classement ELO du pôle CS2 de <b className="text-ink">4eSport</b>, l'association jeux vidéo de l'
           <b className="text-ink">Efrei Paris</b>. Le site agrège les stats Faceit des membres, garde
           l'historique et affiche la progression : classement, profils, courbes d'ELO et stats par match.

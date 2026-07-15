@@ -11,7 +11,7 @@ test("la home monte sans crash", async ({ page }) => {
   page.on("pageerror", (e) => errors.push(e.message));
 
   await page.goto("/");
-  await expect(page).toHaveTitle(/4esElo/);
+  await expect(page).toHaveTitle(/Retake/);
   // React a bien rendu quelque chose dans #root (pas d'écran blanc).
   await expect(page.locator("#root")).not.toBeEmpty();
   expect(errors, `erreurs JS au boot : ${errors.join(" · ")}`).toEqual([]);
