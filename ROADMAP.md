@@ -75,7 +75,15 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 
 ## To-do later (gros morceaux / plus tard)
 
-- **Premier Mode (CS Rating)** — 2ᵉ source d'ELO. Pas d'API Valve officielle → via Leetify (non officiel) ou snapshots réguliers. **Le multi-compte par personne sera introduit uniquement ici** (Faceit interdit les smurfs). Nécessitera : SteamID par membre, provider Premier, courbe/leaderboard par source, sélecteur Faceit/Premier sur le front.
+- **Premier Mode (CS Rating) — V2, après la release v1** (design tranché le 2026-07-15, à ticketer en epic une fois la v1 en ligne — ne pas commencer avant). 2ᵉ source d'ELO = le CS Rating Premier, en **classement + courbe séparés** (échelle 0–35 000, **pas comparable** au ELO Faceit).
+  - **Source** : **API Leetify** (clé `LEETIFY_API_KEY`, gratuite sur `leetify.com/app/developer`), isolée derrière une interface `PremierProvider` (source non-Valve, fragile — cf. règle d'archi #5). ⚠️ Ne renvoie de la data que pour les **membres inscrits sur Leetify** (plusieurs le sont déjà).
+  - **Données v1 Premier = zéro nouvelle table** : on réutilise `players.steamId64` + `elo_snapshots(source=premier)` (l'enum et l'index existent déjà). Courbe + leaderboard `source=premier` marchent avec l'existant.
+  - **Sync** : poll Leetify **cadence modérée + snapshot-on-change** (le rating bouge lentement). Provider + sync côté back (Noé), sélecteur Faceit/Premier côté front (Arthur).
+  - **Rollout** : **additif + feature flag `PREMIER_ENABLED`** sur `main` (pas de branche v2 longue durée — on développe dormant, on allume le flag quand c'est prêt).
+  - **Plus tard / si besoin** :
+    - **Multi-compte** (Player ↔ Account, table `accounts`) pour les smurfs Premier — Faceit reste 1 compte/personne. Introduit **uniquement** pour Premier.
+    - **Éco de quota Leetify** via un trigger Steam (auth code → `GetNextMatchSharingCode` détecte « nouveau match » → on ne poll Leetify que là). À faire **seulement si** le nombre d'inscrits fait exploser le quota / pousse au tier payant. Fragile (auth code < 24 h, known code < 1 mois, mort silencieuse) → pas dans le core.
+  - **Parké (gros projet distinct)** : pipeline démos complet (share code → **bot Steam sur le Game Coordinator** → download `.dem` → parse) pour des stats façon Leetify **self-owned, sans dépendance**. Recoupe « Stats mécaniques » ci-dessous. Énorme effort, seulement si un jour on veut ce niveau.
 - **Stats mécaniques (façon Leetify)** — placement de viseur, temps de réaction, spray, counter-strafe. **Nécessite de parser les démos** (pipeline lourd, séparé). Gros effort, à évaluer si un jour on veut ce niveau.
 - **Highlights** — clips CS2 (allstar.gg / Medal). Zone grise ToS → viser l'embed officiel `allstar.gg/iframe` ou la Partner API. Voir bloc B8.
 - **Audit de sécurité** — à faire **avant l'ouverture publique** (pendant/juste avant B12) : surfaces API, secrets, deps. Le skill natif `/security-review` de Claude Code fait le gros du travail en une session ; à ticketer au moment de B12.
