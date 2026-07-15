@@ -1,4 +1,4 @@
-import type { BadgeId } from "@4eselo/types";
+import type { BadgeId, BadgeTier } from "@4eselo/types";
 import { computeStreak } from "./streaks";
 
 /**
@@ -66,4 +66,98 @@ export function computeBadges(matches: BadgeMatch[]): BadgeId[] {
   if (maxDay >= GRIND_DAY_MATCHES) badges.push("grind");
 
   return badges;
+}
+
+/**
+ * Badges À PALIERS façon Calibrum (B5.13) — `computeBadgeTiers`.
+ * L'appelant passe les matchs DÉJÀ fenêtrés (24h pour classement/home, 30j pour profil).
+ * Chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip). Additif : ne
+ * remplace pas `computeBadges`. Seuils = premier jet, à affiner post-déploiement.
+ */
+// Paliers (tous ajustables — cf. ROADMAP « À revoir après déploiement »).
+const STREAK_STEP = 3; // 🔥/😰 : 1 émoji par tranche de 3
+const GRIND_STEP = 2; // 🚿 : 1 émoji par tranche de 2 matchs sur la journée, plafonné à 3
+const HS_BANDS: [number, number] = [50, 60]; // 🎯 %HS → 1 puis 2 émojis
+const ENTRY_BANDS: [number, number] = [55, 70]; // 💣 % duels d'entrée
+const CLUTCH_BANDS: [number, number] = [50, 65]; // 🧠 % clutchs
+// Min-samples relâchés (fenêtres courtes) — sinon jamais de badge sur 24h.
+const TIER_HS_MIN = 5;
+const TIER_ENTRY_MIN = 8;
+const TIER_CLUTCH_MIN = 4;
+
+/** Nb de paliers atteints selon des seuils croissants (1 par seuil franchi). */
+const bandCount = (v: number, bands: readonly number[]) => bands.filter((b) => v >= b).length;
+
+export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
+  const tiers: BadgeTier[] = [];
+  const n = matches.length;
+  if (n === 0) return tiers;
+
+  const byDateDesc = [...matches].sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
+  const streak = computeStreak(byDateDesc.map((m) => m.result));
+  const len = streak.current?.length ?? 0;
+  if (streak.current?.type === "win" && len >= STREAK_STEP) {
+    tiers.push({
+      id: "streak",
+      emoji: "🔥",
+      count: Math.floor(len / STREAK_STEP),
+      message: `${len} victoires d'affilée`,
+    });
+  } else if (streak.current?.type === "loss" && len >= STREAK_STEP) {
+    tiers.push({
+      id: "coldstreak",
+      emoji: "😰",
+      count: Math.floor(len / STREAK_STEP),
+      message: `${len} défaites d'affilée`,
+    });
+  }
+
+  // 🚿 grind : plus grosse journée (UTC) de la fenêtre.
+  const perDay = new Map<string, number>();
+  for (const m of matches) perDay.set(utcDayKey(m.playedAt), (perDay.get(utcDayKey(m.playedAt)) ?? 0) + 1);
+  const maxDay = Math.max(...perDay.values());
+  if (maxDay >= GRIND_STEP) {
+    tiers.push({
+      id: "grind",
+      emoji: "🚿",
+      count: Math.min(3, Math.floor(maxDay / GRIND_STEP)),
+      message: `${maxDay} matchs dans la journée`,
+    });
+  }
+
+  // 🎯 HS%, 💣 entry, 🧠 clutch : paliers par bandes de taux (min-samples relâchés).
+  const hsAvg = matches.reduce((s, m) => s + m.hsPercent, 0) / n;
+  if (n >= TIER_HS_MIN) {
+    const c = bandCount(hsAvg, HS_BANDS);
+    if (c > 0)
+      tiers.push({
+        id: "headshot",
+        emoji: "🎯",
+        count: c,
+        message: `${Math.round(hsAvg)}% de HS de moyenne`,
+      });
+  }
+  const eWins = matches.reduce((s, m) => s + m.entryWins, 0);
+  const eCount = matches.reduce((s, m) => s + m.entryCount, 0);
+  if (eCount >= TIER_ENTRY_MIN) {
+    const rate = (eWins / eCount) * 100;
+    const c = bandCount(rate, ENTRY_BANDS);
+    if (c > 0)
+      tiers.push({
+        id: "entry",
+        emoji: "💣",
+        count: c,
+        message: `${Math.round(rate)}% de duels d'entrée gagnés`,
+      });
+  }
+  const cWins = matches.reduce((s, m) => s + m.clutchWins, 0);
+  const cCount = matches.reduce((s, m) => s + m.clutchCount, 0);
+  if (cCount >= TIER_CLUTCH_MIN) {
+    const rate = (cWins / cCount) * 100;
+    const c = bandCount(rate, CLUTCH_BANDS);
+    if (c > 0)
+      tiers.push({ id: "clutch", emoji: "🧠", count: c, message: `${Math.round(rate)}% de clutchs gagnés` });
+  }
+
+  return tiers;
 }
