@@ -7,7 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-07-15
 
-- API : badges à paliers façon Calibrum (`badgeTiers`) — chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip), calculé sur une **fenêtre** : 24h sur le classement/home, 30j sur le profil. 🔥/😰 séries (win/défaite), 🚿 grind à paliers, 🎯/💣/🧠 par bandes de taux. Champ **additif** (coexiste avec `badges`), le front migrera dessus. Seuils à affiner post-déploiement. (#361)
+- Web : polish pré-v1 — /asso pointe vers /register (self-service), /changelog refait avec hero v1 + features + crédits, /classement/maps filtrée sur le pool Active Duty Faceit. (#367)
 - Web : carte « Ta place dans l'asso » sur le profil — affiche le benchmark intra-asso (percentile « top X% » par stat clé : win rate, K/D, ADR, HS %, clutch, entry), piloté par le sélecteur de période des stats. Palier coloré (top 10 % / 25 %), état « pas encore classé » soigné sous 10 matchs. Consomme l'API B5.11. (#358)
 
 ## 2026-07-13
