@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-15
+
+- Web : carte « Ta place dans l'asso » sur le profil — affiche le benchmark intra-asso (percentile « top X% » par stat clé : win rate, K/D, ADR, HS %, clutch, entry), piloté par le sélecteur de période des stats. Palier coloré (top 10 % / 25 %), état « pas encore classé » soigné sous 10 matchs. Consomme l'API B5.11. (#358)
+
 ## 2026-07-13
 
 - API : benchmark intra-asso (`GET /players/:id/benchmark?range=…`) — situe un membre face au pôle par stat clé (ADR, K/D, HS %, clutch %, entry %, winRate) avec un percentile « top X% de l'asso », sur la même fenêtre que `/stats`. Référentiel = membres actifs (≥ 10 matchs) ; en dessous → non classé (`percentile: null`). Fonction `percentile` factorisée (partagée avec le Wrapped). (#350)

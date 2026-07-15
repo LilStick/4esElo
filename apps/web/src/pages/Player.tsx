@@ -11,6 +11,7 @@ import {
   TbMap2,
   TbRadar2,
   TbSwords,
+  TbTrophy,
   TbUserQuestion,
 } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
@@ -21,6 +22,7 @@ import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { StatsBento } from "../components/StatsBento";
 import { RadarPerf } from "../components/RadarPerf";
+import { PlayerBenchmark } from "../components/PlayerBenchmark";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
@@ -196,13 +198,13 @@ export function Player() {
               <ActivityHeatmap id={id} />
             </div>
 
-            {/* 10 — avec qui il win le + */}
-            <div className="order-10">
+            {/* 11 — avec qui il win le + */}
+            <div className="order-11">
               <PlayerDuos id={id} />
             </div>
 
-            {/* 11 — roast 4esBot (déterministe, négatif + positif) */}
-            <div className="order-11">
+            {/* 12 — roast 4esBot (déterministe, négatif + positif) */}
+            <div className="order-12">
               <div className="mb-3">
                 <SectionTitle icon={TbFlame}>Roast</SectionTitle>
               </div>
@@ -256,8 +258,16 @@ export function Player() {
               <MatchesList id={id} />
             </div>
 
-            {/* 9 — succès (résumé cliquable → page dédiée) */}
+            {/* 9 — ta place dans l'asso (benchmark intra-asso, même fenêtre que les stats) */}
             <div className="order-9">
+              <div className="mb-3">
+                <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
+              </div>
+              <PlayerBenchmark id={id} range={range} />
+            </div>
+
+            {/* 10 — succès (résumé cliquable → page dédiée) */}
+            <div className="order-10">
               <AchievementsSummary id={id} />
             </div>
           </div>

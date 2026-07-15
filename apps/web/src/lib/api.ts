@@ -18,6 +18,7 @@ import type {
   MoversResponse,
   MoversWindow,
   OvertakesResponse,
+  PlayerBenchmarkResponse,
   PlayerDetail,
   PlayerDuosResponse,
   PlayerBigWrappedResponse,
@@ -153,6 +154,11 @@ export function getPlayerAchievements(id: string) {
 
 export function getPlayerStats(id: string, range: StatsRange = "all") {
   return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}`);
+}
+
+/** Benchmark intra-asso (B5.12) — ta place dans le pôle (percentile par stat clé), même fenêtre que /stats. */
+export function getPlayerBenchmark(id: string, range: StatsRange = "all") {
+  return get<PlayerBenchmarkResponse>(`/players/${id}/benchmark?range=${range}`);
 }
 
 export function getPlayerMatches(id: string, limit = 10) {
