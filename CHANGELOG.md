@@ -8,6 +8,14 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 ## 2026-07-16
 
 - 2026-07-16 · Web : inscription mobile utilisable, bouton « terminer » réparé + parcours /register empilé et CTA pleine largeur sur téléphone. (#379)
+- 2026-07-16 · Web : card « Matchs récents » lisible sur mobile (colonnes réduites, plus de texte qui wrappe). (#380)
+- 2026-07-16 · Web : ligne du classement lisible sur mobile (pseudo plus écrasé). (#381)
+- 2026-07-16 · Web : pseudo Discord en identité principale (profil, classement, Ctrl-K) pour savoir qui est qui. (#382)
+- 2026-07-16 · Web : card « Performances récentes », légende ELO qui débordait sur la card Win rate en ELO plat. (#383)
+- 2026-07-16 · Web : stats lisibles, libellés explicites + tooltip « i » d'explication. (#384)
+- 2026-07-16 · Web : page admin réorganisée en onglets (Joueurs / Admins / Modération / Annonces). (#385)
+- 2026-07-16 · Web : pagination des listes de joueurs (classement, comparaison), taille de page selon l'écran. (#386)
+- 2026-07-16 · Web : Ctrl-K à jour (recherche par pseudo Discord + Faceit, plus de pages). (#387)
 
 ## 2026-07-15
 
