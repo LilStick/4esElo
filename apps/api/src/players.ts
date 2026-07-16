@@ -97,6 +97,7 @@ playersRoutes.get("/players/:id", async (c) => {
     // Badges à paliers sur la fenêtre 30j (B5.13) - profil = forme récente.
     badgeTiers: computeBadgeTiers(
       badgeMatches.filter((m) => m.playedAt.getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000),
+      "month",
     ),
   };
 

@@ -272,7 +272,10 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     const all = matchesByPlayer.get(entry.id) ?? [];
     entry.badges = computeBadges(all);
     // Badges à paliers sur la fenêtre 24h (B5.13) - classement/home = « chaud aujourd'hui ».
-    entry.badgeTiers = computeBadgeTiers(all.filter((m) => m.playedAt.getTime() >= since24h));
+    entry.badgeTiers = computeBadgeTiers(
+      all.filter((m) => m.playedAt.getTime() >= since24h),
+      "today",
+    );
   }
 
   if (sparkline) {
