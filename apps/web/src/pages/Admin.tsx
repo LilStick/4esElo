@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   TbAlertTriangle,
@@ -7,6 +7,7 @@ import {
   TbChevronDown,
   TbConfetti,
   TbLock,
+  TbShieldCheck,
   TbSpeakerphone,
   TbTrash,
   TbUsers,
@@ -32,6 +33,7 @@ import { fullDate } from "../lib/relativeTime";
 import { Avatar, Button, Card, Modal, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { useTitle } from "../lib/useTitle";
+import { cn } from "../lib/cn";
 
 const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 
@@ -521,10 +523,47 @@ function BansSection({ players }: { players: LeaderboardEntry[] }) {
   );
 }
 
+/** Onglet Admins : visualisation seule (front). La liste complète et l'ajout/retrait
+ *  d'admins dépendent du back (rôles en base, ticket #388) — pas faisable côté front. */
+function AdminsSection() {
+  const { displayName, avatarUrl } = useMe();
+  return (
+    <div className="flex flex-col gap-4">
+      <Card className="flex items-center gap-3 p-4">
+        <Avatar name={displayName ?? "Admin"} size={40} src={avatarUrl ?? undefined} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold">{displayName ?? "Toi"}</div>
+          <div className="text-xs text-ink-faint">Connecté en tant qu'admin</div>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
+          <TbShieldCheck size={13} /> Admin
+        </span>
+      </Card>
+      <Card className="flex items-start gap-3 p-4 text-sm text-ink-dim">
+        <TbAlertTriangle size={18} className="mt-0.5 shrink-0 text-ink-faint" />
+        <p>
+          La liste complète des admins et l'ajout/retrait se feront ici une fois le back prêt (gestion des
+          rôles en base). Pour l'instant, les admins sont définis côté serveur.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+const TABS = [
+  { id: "joueurs", label: "Joueurs", icon: TbUsers },
+  { id: "admins", label: "Admins", icon: TbShieldCheck },
+  { id: "moderation", label: "Modération", icon: TbBan },
+  { id: "annonces", label: "Annonces", icon: TbSpeakerphone },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
+
 export function Admin() {
   useTitle("Admin");
   const navigate = useNavigate();
   const { isLoading: meLoading, isAdmin } = useMe();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab: TabId = TABS.find((t) => t.id === searchParams.get("tab"))?.id ?? "joueurs";
 
   const { data: board } = useQuery({
     queryKey: ["leaderboard", "faceit", "spark12"],
@@ -565,51 +604,85 @@ export function Admin() {
   const players = board?.leaderboard ?? [];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Panel admin</h1>
-        <p className="mt-1 text-sm text-ink-dim">Gestion des joueurs, de l'annonce staff et des Wrapped.</p>
+        <p className="mt-1 text-sm text-ink-dim">Joueurs, admins, modération et annonces du pôle.</p>
       </div>
 
-      <Section icon={TbUsers} title={`Joueurs (${players.length})`}>
-        <Card className="flex flex-col divide-y divide-white/[0.05] p-[var(--bezel)]">
-          {players.map((p) => (
-            <div key={p.id} className="flex items-center gap-3 px-2 py-2.5">
-              <Avatar name={nameOf(p)} size={34} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{nameOf(p)}</div>
-                <div className="truncate text-xs text-ink-faint">
-                  {p.formation ?? "-"}
-                  {promoLabel(p.promoStart, p.promoEnd) ? ` · ${promoLabel(p.promoStart, p.promoEnd)}` : ""}
+      {/* Onglets (état dans l'URL ?tab= → deep-linkable, conservé au refresh) */}
+      <div className="flex gap-1 overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+        {TABS.map((t) => {
+          const isActive = t.id === tab;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSearchParams({ tab: t.id })}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
+                isActive ? "bg-brand/15 text-brand-hi" : "text-ink-dim hover:text-ink",
+              )}
+            >
+              <t.icon size={16} /> {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "joueurs" && (
+        <Section icon={TbUsers} title={`Joueurs (${players.length})`}>
+          <Card className="flex flex-col divide-y divide-white/[0.05] p-[var(--bezel)]">
+            {players.map((p) => (
+              <div key={p.id} className="flex items-center gap-3 px-2 py-2.5">
+                <Avatar name={nameOf(p)} size={34} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{nameOf(p)}</div>
+                  <div className="truncate text-xs text-ink-faint">
+                    {p.formation ?? "-"}
+                    {promoLabel(p.promoStart, p.promoEnd) ? ` · ${promoLabel(p.promoStart, p.promoEnd)}` : ""}
+                  </div>
                 </div>
+                <Button variant="ghost" onClick={() => setEditing(p)} className="px-3 py-1.5 text-xs">
+                  Éditer
+                </Button>
+                <button
+                  onClick={() => setDeleting(p)}
+                  aria-label="Supprimer"
+                  title="Supprimer"
+                  className="grid size-8 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-loss/15 hover:text-loss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-loss/60"
+                >
+                  <TbTrash size={16} />
+                </button>
               </div>
-              <Button variant="ghost" onClick={() => setEditing(p)} className="px-3 py-1.5 text-xs">
-                Éditer
-              </Button>
-              <button
-                onClick={() => setDeleting(p)}
-                aria-label="Supprimer"
-                title="Supprimer"
-                className="grid size-8 place-items-center rounded-lg text-ink-faint transition-colors hover:bg-loss/15 hover:text-loss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-loss/60"
-              >
-                <TbTrash size={16} />
-              </button>
-            </div>
-          ))}
-        </Card>
-      </Section>
+            ))}
+          </Card>
+        </Section>
+      )}
 
-      <Section icon={TbSpeakerphone} title="Annonce staff (home)">
-        <AnnouncementEditor current={staff} />
-      </Section>
+      {tab === "admins" && (
+        <Section icon={TbShieldCheck} title="Admins">
+          <AdminsSection />
+        </Section>
+      )}
 
-      <Section icon={TbBan} title="Modération - bans">
-        <BansSection players={players} />
-      </Section>
+      {tab === "moderation" && (
+        <Section icon={TbBan} title="Modération - bans">
+          <BansSection players={players} />
+        </Section>
+      )}
 
-      <Section icon={TbConfetti} title="Régénérer un Wrapped">
-        <WrappedRegen />
-      </Section>
+      {tab === "annonces" && (
+        <div className="flex flex-col gap-8">
+          <Section icon={TbSpeakerphone} title="Annonce staff (home)">
+            <AnnouncementEditor current={staff} />
+          </Section>
+          <Section icon={TbConfetti} title="Régénérer un Wrapped">
+            <WrappedRegen />
+          </Section>
+        </div>
+      )}
 
       {editing && <EditPlayerModal entry={editing} onClose={() => setEditing(null)} />}
       {deleting && <DeletePlayerModal entry={deleting} onClose={() => setDeleting(null)} />}
