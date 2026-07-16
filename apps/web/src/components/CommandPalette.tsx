@@ -1,19 +1,35 @@
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Command } from "cmdk";
-import { TbInfoCircle, TbLayoutDashboard, TbSearch, TbSparkles, TbTrophy } from "react-icons/tb";
+import {
+  TbBulb,
+  TbConfetti,
+  TbGitCompare,
+  TbInfoCircle,
+  TbLayoutDashboard,
+  TbSearch,
+  TbSparkles,
+  TbTrophy,
+  TbUsersGroup,
+} from "react-icons/tb";
 import type { IconType } from "react-icons";
 import { useQuery } from "@tanstack/react-query";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
+import { currentPeriod } from "../lib/period";
 import { Avatar, LevelBadge } from "../ui";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
+// Identité : pseudo Discord en priorité (qui est qui), Faceit en secours.
+const nameOf = (e: LeaderboardEntry) => e.discordName ?? e.faceitNickname ?? "-";
 
 const PAGES: { to: string; label: string; icon: IconType }[] = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard },
   { to: "/classement", label: "Classement", icon: TbTrophy },
+  { to: "/compare", label: "Comparer", icon: TbGitCompare },
+  { to: "/social", label: "Social", icon: TbUsersGroup },
+  { to: "/ideas", label: "Idées", icon: TbBulb },
+  { to: `/wrapped/${currentPeriod()}`, label: "Wrapped", icon: TbConfetti },
   { to: "/asso", label: "L'asso", icon: TbInfoCircle },
   { to: "/changelog", label: "Nouveautés", icon: TbSparkles },
 ];
@@ -103,7 +119,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                     {players.map((e) => (
                       <Command.Item
                         key={e.id}
-                        value={`joueur ${nameOf(e)}`}
+                        // Cherchable par pseudo Discord ET Faceit.
+                        value={`joueur ${e.discordName ?? ""} ${e.faceitNickname ?? ""}`}
                         onSelect={() => go(`/player/${e.id}`)}
                         className={itemCls}
                       >
@@ -113,7 +130,14 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                           src={discordAvatarUrl(e.discordId, e.discordAvatar)}
                         />
                         <LevelBadge level={e.level} size={22} />
-                        <span className="flex-1 truncate text-sm font-semibold">{nameOf(e)}</span>
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate text-sm font-semibold">{nameOf(e)}</span>
+                          {e.discordName && e.faceitNickname && (
+                            <span className="truncate font-mono text-[11px] text-ink-faint">
+                              {e.faceitNickname}
+                            </span>
+                          )}
+                        </span>
                         <span className="font-mono text-sm font-bold text-brand tabular-nums">
                           {e.elo ?? "-"}
                         </span>
