@@ -8,6 +8,10 @@ FROM node:22-slim
 WORKDIR /app
 RUN corepack enable
 
+# curl : transport de secours du backfill ELO rétro (curlFetch.ts) - il passe parfois
+# le mur Cloudflare là où l'empreinte TLS de Node échoue. Absent de l'image slim.
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 COPY . .
 RUN pnpm install --frozen-lockfile
 
