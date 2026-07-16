@@ -73,6 +73,17 @@ async function writeSession(c: Context, payload: Omit<SessionPayload, "exp">): P
   });
 }
 
+/** Admin = socle env ADMIN_DISCORD_IDS (non-retirable) OU flag is_admin en base (B12.10). */
+export async function isAdmin(discordId: string): Promise<boolean> {
+  if (authDeps.config?.adminDiscordIds.includes(discordId)) return true;
+  const [p] = await db
+    .select({ isAdmin: players.isAdmin })
+    .from(players)
+    .where(eq(players.discordId, discordId))
+    .limit(1);
+  return p?.isAdmin ?? false;
+}
+
 const notConfigured = (c: Context) => c.json({ error: "auth not configured" }, 503);
 
 export const authRoutes = new Hono();
@@ -155,7 +166,7 @@ authRoutes.get("/me", async (c) => {
     authenticated: true,
     discordId: session.discordId,
     displayName: session.displayName,
-    isAdmin: authDeps.config?.adminDiscordIds.includes(session.discordId) ?? false,
+    isAdmin: await isAdmin(session.discordId),
     // Hash frais de la session, prioritaire sur le snapshot DB (figé à l'inscription).
     avatar: session.avatar ?? null,
     player: player
@@ -176,12 +187,21 @@ authRoutes.get("/me", async (c) => {
   });
 });
 
-/** Garde les endpoints admin (B17.4) : 401 sans session, 403 si pas whitelisté. */
+/** Garde les endpoints admin (B17.4) : 401 sans session, 403 si pas admin. */
 export const requireAdmin: MiddlewareHandler = async (c, next) => {
   const session = await readSession(c);
   if (!session) return c.json({ error: "authentication required" }, 401);
-  if (!authDeps.config?.adminDiscordIds.includes(session.discordId)) {
+  if (!(await isAdmin(session.discordId))) {
     return c.json({ error: "admin only" }, 403);
+  }
+  await next();
+};
+
+/** Réservé au socle root ADMIN_DISCORD_IDS (B12.10) : gérer les admins reste hors de portée des admins promus. */
+export const requireRootAdmin: MiddlewareHandler = async (c, next) => {
+  const session = await readSession(c);
+  if (!session || !authDeps.config?.adminDiscordIds.includes(session.discordId)) {
+    return c.json({ error: "réservé aux admins root (ADMIN_DISCORD_IDS)" }, 403);
   }
   await next();
 };

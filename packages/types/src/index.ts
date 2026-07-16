@@ -591,6 +591,17 @@ export interface BansResponse {
   bans: BanEntry[];
 }
 
+/** Admin listé dans le panel (B12.10). `env` = socle ADMIN_DISCORD_IDS (non-retirable). */
+export interface AdminEntry {
+  discordId: string;
+  discordName: string | null;
+  source: "env" | "db";
+}
+
+export interface AdminsResponse {
+  admins: AdminEntry[];
+}
+
 /** Wrapped mensuel (B7.2) - awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"

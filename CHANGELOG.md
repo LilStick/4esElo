@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-17
+
+- 2026-07-17 · API : rôles admin en base — le root (`ADMIN_DISCORD_IDS`) promeut/rétrograde un membre depuis le panel (endpoints `/admin/admins`), sans redéploiement ; le socle root reste non-retirable, la gestion des admins est réservée au root, et un admin ne peut pas être banni. (#388)
+
 ## 2026-07-16
 
 - 2026-07-16 · Web : inscription mobile utilisable, bouton « terminer » réparé + parcours /register empilé et CTA pleine largeur sur téléphone. (#379)

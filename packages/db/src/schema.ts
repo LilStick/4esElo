@@ -5,6 +5,7 @@ import {
   text,
   integer,
   timestamp,
+  boolean,
   index,
   primaryKey,
   jsonb,
@@ -28,6 +29,8 @@ export const players = pgTable("players", {
   /** Hash d'avatar Discord (rendu via cdn.discordapp.com), null si aucun. */
   discordAvatar: text("discord_avatar"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  /** Admin géré depuis le panel (B12.10) ; ADMIN_DISCORD_IDS = socle root non-retirable en plus. */
+  isAdmin: boolean("is_admin").notNull().default(false),
   /** Backfill ELO opportuniste (#141) : dernière tentative (1/jour max) et succès. */
   eloBackfillAttemptedAt: timestamp("elo_backfill_attempted_at", { withTimezone: true }),
   eloBackfillDoneAt: timestamp("elo_backfill_done_at", { withTimezone: true }),
