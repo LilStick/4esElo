@@ -28,7 +28,6 @@ import type {
 } from "@4eselo/types";
 import { app } from "./app";
 
-/** All-zero stats, overridable per test - matches the FaceitMatchStats shape. */
 function makeStats(over: Partial<FaceitMatchStats> = {}): FaceitMatchStats {
   return {
     kills: 0,
@@ -460,7 +459,7 @@ test("B5.8: badges gagnés visibles sur le classement et le détail joueur", { s
     assert.ok(!entry!.badges.includes("clutch")); // aucun clutch tenté
 
     const detail = (await (await app.request(`/players/${bid}`)).json()) as PlayerDetail;
-    assert.deepEqual(detail.badges, entry!.badges); // mêmes badges des deux côtés
+    assert.deepEqual(detail.badges, entry!.badges);
   } finally {
     await db.delete(players).where(eq(players.id, bid)); // cascade → supprime les matchs
   }
@@ -492,7 +491,6 @@ test(
           ["ighost_nick", null],
         ],
       );
-      // ranks strictly increasing in that order, ghost after everyone with an elo
       assert.ok(ours[0]!.rank < ours[1]!.rank && ours[1]!.rank < ours[2]!.rank);
       const lastWithElo = Math.max(...leaderboard.filter((e) => e.elo !== null).map((e) => e.rank));
       assert.ok(ours[2]!.rank > lastWithElo);
@@ -870,14 +868,13 @@ test("B7.4: GET /announcements lists newest first, honors limit, rejects bad lim
     const res = await app.request(`/announcements?limit=20`);
     assert.equal(res.status, 200);
     const body = (await res.json()) as AnnouncementsResponse;
-    // Nos 2 annonces futures sont les toutes premières, plus récente d'abord.
     assert.equal(body.announcements[0]!.linkUrl, "/itest-annonce/recente");
     assert.equal(body.announcements[1]!.linkUrl, "/itest-annonce/ancienne");
 
     const limited = await app.request(`/announcements?limit=1`);
     const one = (await limited.json()) as AnnouncementsResponse;
     assert.equal(one.announcements.length, 1);
-    assert.equal(one.announcements[0]!.linkUrl, "/itest-annonce/recente"); // la plus récente
+    assert.equal(one.announcements[0]!.linkUrl, "/itest-annonce/recente");
 
     for (const q of ["limit=0", "limit=999", "limit=abc"]) {
       const bad = await app.request(`/announcements?${q}`);
@@ -953,7 +950,6 @@ test(
       assert.equal(res.status, 200);
       const body = (await res.json()) as RecentMatchesResponse;
       assert.ok(Array.isArray(body.items));
-      // Mes 3 matchs futurs sont en tête, plus récent d'abord.
       assert.deepEqual(
         body.items.slice(0, 3).map((m) => m.matchId),
         ["ifeed-new", "ifeed-mid", "ifeed-old"],
@@ -1013,7 +1009,6 @@ test("B13.6: /leaderboard/maps classe les membres par map (seuil de games)", { s
     assert.ok(first, "le joueur a doit être classé");
     assert.equal(first!.matches, 5);
     assert.equal(first!.winRate, 80);
-    // a (80%) classé avant b (20%)
     const ia = map!.players.findIndex((p) => p.player.id === a);
     const ib = map!.players.findIndex((p) => p.player.id === b);
     assert.ok(ia >= 0 && ib >= 0 && ia < ib);

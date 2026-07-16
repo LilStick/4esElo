@@ -1,16 +1,13 @@
 /**
- * Recap hebdo du pôle (B5.7) : chaque lundi, une annonce « La semaine du pôle »
- * résume la semaine ISO qui vient de se terminer (games jouées, plus gros
- * grinder, plus belle progression et plus dure semaine côté ELO). Même mécanique
- * que le Wrapped (#156) : dédup par semaine ISO → relançable sans doublon, et si
- * le worker était down le lundi, l'annonce part à la relance suivante.
- * Logique pure - la DB arrive via `WeekActivityReader`.
+ * Recap hebdo du pôle (B5.7) : chaque lundi, une annonce résume la semaine ISO
+ * écoulée (games, grinder, meilleure prog, pire semaine). Dédup par semaine ISO
+ * → relançable sans doublon, part à la relance suivante si le worker était down.
+ * Pure logic - DB via `WeekActivityReader`.
  */
 import type { AnnouncementStore } from "./announce";
 
 const DAY_MS = 86_400_000;
 
-/** Activité d'un membre sur la fenêtre de la semaine. */
 export interface PlayerWeekActivity {
   nickname: string;
   /** Games jouées sur la semaine (> 0 : seuls les actifs sont remontés). */

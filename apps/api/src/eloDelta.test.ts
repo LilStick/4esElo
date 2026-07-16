@@ -101,8 +101,6 @@ after(async () => {
   await db.delete(players).where(eq(players.id, pid)); // cascade → matchs
 });
 
-// --- Unitaires (purs) ---
-
 test("effectiveEloDelta : colonne backfill prioritaire", () => {
   assert.equal(effectiveEloDelta(40, 1600, 1560), 40);
 });
@@ -115,8 +113,6 @@ test("effectiveEloDelta : null si eloAfter ou son prédécesseur manque", () => 
   assert.equal(effectiveEloDelta(null, null, 1500), null);
   assert.equal(effectiveEloDelta(null, null, null), null);
 });
-
-// --- Non-régression du bug (intégration) ---
 
 test(
   "REGRESSION /players/:id/matches : ±ELO dérivé des eloAfter, colonne prioritaire",

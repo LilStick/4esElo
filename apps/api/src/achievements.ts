@@ -1,10 +1,6 @@
 import type { AchievementDef } from "@4eselo/types";
 
-/**
- * Succès permanents (B7.8) - logique pure, zéro I/O. Chaque succès est un palier
- * sur une métrique cumulée du joueur ; la progression = current / target. Le
- * déblocage (current ≥ target) est figé côté DB à la première détection.
- */
+// Succès permanents (B7.8), logique pure. Déblocage (current ≥ target) figé en DB à la 1re détection.
 
 export interface AchievementInput {
   matches: number;
@@ -26,7 +22,6 @@ interface CatalogEntry extends AchievementDef {
   metric: (i: AchievementInput) => number;
 }
 
-/** Catalogue (14 succès) - paliers ancrés dans les stats stockées. */
 export const ACHIEVEMENTS: CatalogEntry[] = [
   {
     id: "games_100",
@@ -140,7 +135,6 @@ export const ACHIEVEMENTS: CatalogEntry[] = [
     target: 200,
     metric: (i) => i.bestEloGain30d,
   },
-  // --- Paliers hauts / « endgame » (B7.16) : de vrais objectifs pour les gros joueurs. ---
   {
     id: "games_1000",
     emoji: "🏛️",
@@ -264,7 +258,7 @@ export function evaluateAchievements(input: AchievementInput): EvaluatedAchievem
   });
 }
 
-/** Meilleur gain d'ELO sur une fenêtre glissante ≤ windowMs (points triés par date croissante). */
+/** Meilleur gain d'ELO sur fenêtre ≤ windowMs ; points triés par date croissante. */
 export function bestEloGainWithin(points: { elo: number; capturedAt: Date }[], windowMs: number): number {
   let best = 0;
   for (let i = 0; i < points.length; i++) {

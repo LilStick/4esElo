@@ -3,11 +3,8 @@ import { SteamClient, type PresenceReader } from "@4eselo/steam";
 import { UnofficialLiveMatch, type LiveMatchReader } from "@4eselo/faceit";
 import type { PresenceEntry, PresenceResponse } from "@4eselo/types";
 
-/**
- * Presence assembly (B15.5): Steam says who's in CS2, the unofficial Faceit
- * endpoint (fragile, best-effort) confirms "in a Faceit match" for those only.
- * The result is cached 60s in memory - presence is ephemeral, no table needed.
- */
+// Presence (B15.5): Steam says who's in CS2, the unofficial (fragile) Faceit endpoint confirms
+// "in a Faceit match" for those only. Cached 60s in memory - ephemeral, no table needed.
 
 export interface PresencePlayerRow {
   id: string;
@@ -63,7 +60,7 @@ export async function getPresence(rows: PresencePlayerRow[]): Promise<PresenceRe
       inFaceitMatch: null,
     };
     if (entry.inGameCs2 && row.faceitId) {
-      // Best-effort confirmation, one discrete call per in-game member.
+      // Best-effort, one discreet call per in-game member.
       try {
         entry.inFaceitMatch = (await presenceDeps.live.getOngoingMatch(row.faceitId)).inMatch;
       } catch {

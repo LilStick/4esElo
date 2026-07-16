@@ -1,10 +1,6 @@
 import { DiscordError } from "./oauth";
 
-/**
- * Webhook Discord (B17.7) - pattern provider : l'I/O réseau vit ici. Sert à
- * relayer les idées des membres dans un salon. Sécurité : `allowed_mentions`
- * vide → un texte utilisateur contenant @everyone/@here/pings ne ping personne.
- */
+/** Webhook Discord (B17.7) - relaie les idées des membres. allowed_mentions vide → pas de ping même si le texte contient @everyone/@here. */
 
 export interface DiscordWebhookMessage {
   title?: string;
@@ -13,15 +9,12 @@ export interface DiscordWebhookMessage {
   footer?: string;
 }
 
-/** Ce que l'app consomme - mockable en test. */
 export interface DiscordWebhook {
   send(msg: DiscordWebhookMessage): Promise<void>;
 }
 
 export interface DiscordWebhookOptions {
-  /** Injectable for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
-  /** Per-request timeout (AbortController). */
   timeoutMs?: number;
 }
 
@@ -51,7 +44,7 @@ export class DiscordWebhookClient implements DiscordWebhook {
             ...(msg.footer ? { footer: { text: msg.footer } } : {}),
           },
         ],
-        // Neutralise tout ping (@everyone/@here/rôles/membres) injecté dans le texte.
+        // neutralise tout ping injecté dans le texte
         allowed_mentions: { parse: [] },
       }),
       signal: AbortSignal.timeout(this.timeoutMs),

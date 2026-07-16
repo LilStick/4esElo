@@ -142,7 +142,6 @@ test("register de bout en bout : insert complet, puis doublons refusés propreme
   assert.equal(row.steamId64, "765_ireg");
   assert.equal(row.formation, "Mastère Dev");
 
-  // le lookup le voit maintenant comme réclamé
   const claimed = (await (
     await app.request("/register/lookup?nickname=iRegNick", { headers: { cookie } })
   ).json()) as RegisterLookupResponse;

@@ -2,9 +2,8 @@ import type { EloSource } from "@4eselo/types";
 import { FaceitNotFoundError, type FaceitPlayer } from "@4eselo/faceit";
 
 /**
- * Everything sync needs from the outside world, expressed as narrow interfaces.
- * Real implementations wrap the Faceit client and the DB; tests pass fakes.
- * This keeps syncPlayer() pure logic with no direct I/O.
+ * Ce dont sync a besoin du monde extérieur, en interfaces étroites (impl réelle =
+ * client Faceit + DB, tests = fakes) → syncPlayer() reste pure logic, zéro I/O.
  */
 export interface FaceitReader {
   getPlayerById(faceitId: string): Promise<FaceitPlayer>;
@@ -32,8 +31,8 @@ export type SyncResult =
   | { status: "not-found" };
 
 /**
- * Sync one player's Faceit ELO. Inserts a snapshot ONLY when the ELO changed
- * (Calibrum pattern) so the curve stays clean instead of one point per tick.
+ * Sync l'ELO Faceit d'un joueur. Insère un snapshot UNIQUEMENT si l'ELO a changé
+ * (pattern Calibrum) → courbe propre, pas un point par tick.
  */
 export async function syncPlayer(
   faceit: FaceitReader,

@@ -9,9 +9,9 @@ import {
 } from "@4eselo/types";
 
 /**
- * Aggregation over stored matches (B2.7) - pure functions, no I/O.
- * Ratios are computed from summed numerators/denominators (not averaged
- * per-match ratios) so short matches don't weigh as much as long ones.
+ * Aggregation over stored matches (B2.7), pure functions. Ratios = summed
+ * numerators/denominators (not averaged per-match ratios) so short matches
+ * weigh less.
  */
 
 export interface MatchForStats {
@@ -38,10 +38,7 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const pct = (num: number, den: number) => (den > 0 ? round1((num / den) * 100) : 0);
 const ratio = (num: number, den: number) => (den > 0 ? round1(num / den) : num > 0 ? num : 0);
 
-/**
- * Percentile 0-100 : part de l'échantillon dont la valeur est ≤ `value` (ta place, incluse).
- * Partagé Wrapped (percentiles perso) ↔ benchmark asso (B5.11). Échantillon vide → 0.
- */
+/** Percentile 0-100 : part de l'échantillon ≤ `value` (incluse). Vide → 0. */
 export function percentile(value: number, all: number[]): number {
   if (all.length === 0) return 0;
   return Math.round((all.filter((v) => v <= value).length / all.length) * 100);
@@ -59,7 +56,7 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
   let entryWins = 0;
   let entryCount = 0;
   let utilityDamage = 0;
-  // Composants du rating HLTV 1.0 agrégé (B16.8) - rounds dérivés de kr par match.
+  // Rating HLTV 1.0 agrégé (B16.8) : rounds dérivés de kr/match.
   let rounds = 0;
   let dbl = 0;
   let tpl = 0;
@@ -70,7 +67,7 @@ export function computeAggregate(range: StatsRange, matches: MatchForStats[]): S
     wins += m.result;
     kills += m.stats.kills;
     deaths += m.stats.deaths;
-    damage += m.stats.adr; // per-match ADR, averaged below
+    damage += m.stats.adr; // ADR/match, moyenné plus bas
     hsSum += m.stats.hsPercent;
     clutchWins += m.stats.clutch1v1Wins + m.stats.clutch1v2Wins;
     clutchCount += m.stats.clutch1v1Count + m.stats.clutch1v2Count;
@@ -133,11 +130,11 @@ export function computeMapStats(matches: MatchForStats[]): MapStat[] {
     });
   }
 
-  // Most played first, then alphabetical for stable output.
+  // Plus joué d'abord, puis alpha (ordre stable).
   return out.sort((a, b) => b.matches - a.matches || a.map.localeCompare(b.map));
 }
 
-/** Games ensemble minimum pour qu'un joueur apparaisse au classement d'une map (B13.6). */
+/** Games min. pour figurer au classement d'une map (B13.6). */
 export const MIN_MAP_MATCHES = 5;
 
 export interface MapLeaderboardPlayer {
@@ -156,9 +153,8 @@ export interface MapLeaderboardRow {
 }
 
 /**
- * Classement du pôle par map (B13.6) - logique pure. Par map, chaque membre au-dessus
- * du seuil de games est classé par winrate (puis volume, puis K-D). Maps triées par
- * activité totale.
+ * Classement du pôle par map (B13.6), pur. Par map : membres ≥ seuil classés par
+ * winrate (puis volume, puis K-D). Maps triées par activité.
  */
 export function computeMapLeaderboard(
   players: MapLeaderboardPlayer[],

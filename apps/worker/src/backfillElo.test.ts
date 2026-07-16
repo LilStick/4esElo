@@ -57,7 +57,7 @@ test("success: fills matches, rebuilds the retro curve before the live one, mark
   const res = await backfillPlayerElo(provider(points), store, player, NOW);
 
   assert.deepEqual(res, { status: "ok", matchesFilled: 4, snapshotsInserted: 3 });
-  assert.equal(store.calls.matchElos.length, 4); // every matchId gets its real elo
+  assert.equal(store.calls.matchElos.length, 4);
   assert.deepEqual(store.calls.matchElos[0], { matchId: "m3", elo: 1364, delta: -25 });
   // retro curve: only the 3 points before 2026-07-02, chronological
   assert.deepEqual(

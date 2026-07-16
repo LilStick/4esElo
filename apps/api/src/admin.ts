@@ -10,9 +10,8 @@ import { computeAwards } from "./wrapped";
 import { loadWrappedInputs } from "./wrappedData";
 
 /**
- * Endpoints admin (B17.4) - tous derrière requireAdmin (session + whitelist).
- * L'annonce staff vit dans `announcements` (type "staff", dedupeKey fixe →
- * une seule active, PUT = upsert). La lecture publique = GET /announcements.
+ * Endpoints admin (B17.4), tous derrière requireAdmin. Annonce staff = 1 seule
+ * active (dedupeKey fixe, PUT = upsert). Lecture publique : GET /announcements.
  */
 
 const patchPlayerSchema = z
@@ -39,7 +38,7 @@ const wrappedParamsSchema = z.object({
   month: z.coerce.number().int().min(1).max(12),
 });
 
-/** Une seule annonce staff active : l'unicité de dedupeKey fait l'upsert. */
+/** 1 seule annonce staff active (dedupeKey unique → upsert). */
 const STAFF_DEDUPE_KEY = "staff";
 
 export const adminRoutes = new Hono();
@@ -71,7 +70,7 @@ adminRoutes.patch("/admin/players/:id", async (c) => {
 adminRoutes.delete("/admin/players/:id", async (c) => {
   const id = uuidSchema.safeParse(c.req.param("id"));
   if (!id.success) return c.json({ error: "invalid player id (uuid)" }, 400);
-  // Garde-fou : la suppression cascade sur tout l'historique (snapshots, matchs…).
+  // cascade sur tout l'historique (snapshots, matchs…)
   if (c.req.query("confirm") !== "true") {
     return c.json({ error: "destructive - add ?confirm=true" }, 400);
   }
@@ -132,7 +131,7 @@ adminRoutes.post("/admin/wrapped/:year/:month/regenerate", async (c) => {
   const awards = computeAwards(inputs);
   if (awards.length === 0) return c.json({ error: "mois sans données - rien à annoncer" }, 409);
 
-  // Re-publie l'annonce du mois (recréée si supprimée, re-datée sinon).
+  // re-publie l'annonce (recréée si supprimée, re-datée sinon)
   const MONTHS = "janvier février mars avril mai juin juillet août septembre octobre novembre décembre".split(
     " ",
   );
@@ -152,7 +151,7 @@ adminRoutes.post("/admin/wrapped/:year/:month/regenerate", async (c) => {
   return c.json<WrappedResponse>({ year, month, awards });
 });
 
-// --- Bans (B17.9) : couper l'accès au site à un compte Discord. ---
+// Bans (B17.9) : coupent l'accès au site à un compte Discord.
 const discordIdSchema = z.string().regex(/^\d{5,32}$/, "snowflake Discord attendu");
 const banBodySchema = z.object({ reason: z.string().trim().max(300).optional() }).strict();
 
@@ -170,7 +169,7 @@ adminRoutes.get("/admin/bans", async (c) => {
 adminRoutes.put("/admin/bans/:discordId", async (c) => {
   const id = discordIdSchema.safeParse(c.req.param("discordId"));
   if (!id.success) return c.json({ error: "invalid discord id" }, 400);
-  // Filet anti-lockout : on ne bannit pas un admin whitelisté.
+  // anti-lockout : pas de ban d'un admin whitelisté
   if (authDeps.config?.adminDiscordIds.includes(id.data)) {
     return c.json({ error: "impossible de bannir un admin" }, 400);
   }
@@ -183,14 +182,14 @@ adminRoutes.put("/admin/bans/:discordId", async (c) => {
   const parsed = banBodySchema.safeParse(body ?? {});
   if (!parsed.success) return c.json({ error: "invalid body" }, 400);
 
-  const session = await readSession(c); // requireAdmin garantit une session admin
+  const session = await readSession(c); // requireAdmin garantit la session
   const reason = parsed.data.reason ?? null;
   const bannedBy = session?.discordId ?? null;
   await db
     .insert(bannedDiscordIds)
     .values({ discordId: id.data, reason, bannedBy })
     .onConflictDoUpdate({ target: bannedDiscordIds.discordId, set: { reason, bannedBy } });
-  invalidateBanCache(); // effet immédiat : coupe aussi les sessions déjà ouvertes
+  invalidateBanCache(); // effet immédiat : coupe les sessions ouvertes
   await notifyAdminAction(
     "🔨 Ban",
     `Discord \`${id.data}\` banni${bannedBy ? ` par \`${bannedBy}\`` : ""}${reason ? ` (raison : ${reason})` : ""}`,

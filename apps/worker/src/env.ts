@@ -4,12 +4,11 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { loadEnv } from "@4eselo/env";
 
-// Load the monorepo-root .env regardless of the process cwd.
 const here = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(here, "../../../.env") });
 
-// Single access point for env vars - `process.env` is forbidden elsewhere
-// (lint), and the worker refuses to start half-configured (B11.3).
+// Point d'accès unique aux env vars (process.env interdit ailleurs par lint) ;
+// le worker refuse de démarrer mal configuré (B11.3).
 const env = loadEnv(
   z.object({
     DATABASE_URL: z.string().url({ message: "URL Postgres attendue (voir .env.example)" }),

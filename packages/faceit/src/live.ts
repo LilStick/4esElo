@@ -2,11 +2,10 @@ import { z } from "zod";
 import { FaceitError } from "./client";
 
 /**
- * UNOFFICIAL - the faceit.com frontend endpoint for a player's ongoing match,
- * behind Cloudflare bot management: a discrete call usually passes, repeated
- * traffic gets 403'd (measured 2026-07-06). Callers MUST treat failures as
- * "unknown" and degrade, never retry-storm. Kept behind the LiveMatchReader
- * interface so the source can be swapped without touching consumers.
+ * NON OFFICIEL - endpoint frontend faceit.com du match en cours d'un joueur.
+ * Derrière Cloudflare : un appel isolé passe souvent, le trafic répété se prend un 403.
+ * Traiter un échec comme "inconnu" et dégrader, jamais de retry-storm.
+ * Isolé derrière LiveMatchReader pour pouvoir changer de source sans toucher aux consommateurs.
  */
 
 const LIVE_API = "https://api.faceit.com/match/v1/matches/groupByState";

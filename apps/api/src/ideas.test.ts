@@ -173,7 +173,6 @@ test(
     assert.equal(res.status, 201);
 
     assert.deepEqual(posts, [{ channelId: "chan-ideas", description: "vote pls" }]);
-    // ✅ puis ❌ amorcés sur le message posté
     assert.deepEqual(reactions, [
       { messageId: "msg-42", emoji: "✅" },
       { messageId: "msg-42", emoji: "❌" },

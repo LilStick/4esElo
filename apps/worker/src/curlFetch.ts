@@ -1,21 +1,17 @@
 import { execFile } from "node:child_process";
 
 /**
- * curl renvoie `000` (→ 0 ici) quand il n'obtient aucune réponse HTTP :
- * Cloudflare coupe la connexion, timeout, reset TLS. Or `Response` rejette tout
- * status hors 200-599 → on ramène ce cas à 503 pour que le consommateur le
- * traite comme un échec géré (FaceitError → "blocked"), pas comme un throw.
+ * curl renvoie `000` (→ 0) sans réponse HTTP (Cloudflare coupe, timeout, reset TLS).
+ * `Response` rejette tout status hors 200-599 → on ramène à 503 (échec géré, pas throw).
  */
 export function toResponseStatus(curlHttpCode: number): number {
   return curlHttpCode >= 200 && curlHttpCode <= 599 ? curlHttpCode : 503;
 }
 
 /**
- * fetch-compatible transport backed by the system curl (HTTP/1.1).
- * Node's TLS fingerprint (undici) is the most-blocked client on the
- * Cloudflare-guarded unofficial endpoints (0 pass measured), while plain curl
- * does pass when the scoring allows. curl ships with macOS, Linux and
- * Windows 10+; when unavailable we fall back to the global fetch.
+ * Transport fetch-compatible via le curl système (HTTP/1.1) : le fingerprint TLS de
+ * Node (undici) est bloqué par Cloudflare là où curl passe parfois. curl est présent
+ * sur macOS/Linux/Windows 10+ ; sinon on retombe sur le fetch global.
  */
 export function curlFetch(): typeof fetch {
   const impl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {

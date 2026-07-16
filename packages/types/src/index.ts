@@ -26,11 +26,9 @@ export type BadgeId = "streak" | "headshot" | "entry" | "clutch" | "grind";
 export interface BadgeDef {
   emoji: string;
   label: string;
-  /** Ce qu'il faut faire pour le décrocher (tooltip front). */
   description: string;
 }
 
-/** Catalogue partagé front/back : emoji + libellé de chaque badge. */
 export const BADGE_CATALOG: Record<BadgeId, BadgeDef> = {
   streak: { emoji: "🔥", label: "En feu", description: "Série de victoires en cours" },
   headshot: { emoji: "🎯", label: "Machine à HS", description: "Gros pourcentage de headshots" },
@@ -39,18 +37,13 @@ export const BADGE_CATALOG: Record<BadgeId, BadgeDef> = {
   grind: { emoji: "🚿", label: "Grind-day", description: "Grosse journée de matchs" },
 };
 
-/**
- * Badge « à paliers » façon Calibrum (B5.13) - fenêtré (24h classement/home, 30j profil).
- * `count` = nb d'émojis à afficher (paliers), `message` = tooltip. Additif : coexiste
- * avec `badges: BadgeId[]` (l'ancien binaire all-time) le temps que le front migre.
- */
+/** Badge à paliers (B5.13) - fenêtré (24h classement, 30j profil). Coexiste avec badges[] le temps que le front migre. */
 export interface BadgeTier {
-  /** clé du badge (les `BadgeId` + le négatif « coldstreak »). */
+  /** BadgeId + le négatif « coldstreak ». */
   id: BadgeId | "coldstreak";
   emoji: string;
-  /** Nombre de paliers atteints (≥ 1) → autant d'émojis côté front. */
+  /** Paliers atteints (≥ 1) = nb d'émojis. */
   count: number;
-  /** Tooltip prêt à afficher (« 8 matchs en 24 h », « 4 victoires d'affilée »…). */
   message: string;
 }
 
@@ -198,11 +191,7 @@ export interface HltvRatingInput {
   pentaKills: number;
 }
 
-/**
- * Rating façon HLTV 1.0 - source unique partagée front (par match) / back (agrégé).
- * Le nb de rounds est fourni par l'appelant (par match : `kills / kr` ; agrégé :
- * somme des rounds de chaque match). Null si non calculable. Constantes HLTV 1.0.
- */
+/** Rating HLTV 1.0 (partagé front/back). rounds fourni par l'appelant (par match : kills/kr ; agrégé : somme). Null si non calculable. */
 export function hltvRating(i: HltvRatingInput): number | null {
   if (i.rounds <= 0) return null;
   const k2 = i.doubleKills;
@@ -216,7 +205,7 @@ export function hltvRating(i: HltvRatingInput): number | null {
   return (killRating + 0.7 * survival + rmk) / 2.7;
 }
 
-/** Une punchline roast (B7.6) - emoji + libellé court + texte chambré. */
+/** Une punchline roast (B7.6). */
 export interface RoastLine {
   emoji: string;
   label: string;
@@ -225,11 +214,7 @@ export interface RoastLine {
 
 const r0 = (n: number) => Math.round(n);
 
-/**
- * Roast d'UN match (hype ou vanne) depuis ses stats - source unique partagée
- * front (récap de match #302) / back. Renvoie la punchline la plus saillante
- * (priorité décroissante), ou null si la game est banale.
- */
+/** Roast d'un match (#302) - punchline la plus saillante (priorité décroissante), null si banale. Partagé front/back. */
 export function matchRoast(s: FaceitMatchStats, result: number): RoastLine | null {
   const clutchWins = s.clutch1v1Wins + s.clutch1v2Wins;
   if (s.pentaKills >= 1) return { emoji: "🎽", label: "Ace", text: "ACE - 5 dans une manche, gg." };
@@ -265,7 +250,7 @@ export function matchRoast(s: FaceitMatchStats, result: number): RoastLine | nul
       label: "Balayé",
       text: `${s.kills}-${s.deaths} - t'as surtout fait de la figuration.`,
     };
-  // « GG » réservé aux vraies bonnes games (K/D positif) ; sinon victoire portée.
+  // GG réservé aux K/D positifs ; sinon « porté ».
   if (result === 1 && s.kills > s.deaths)
     return { emoji: "✅", label: "GG", text: `${s.kills}-${s.deaths}, propre.` };
   if (result === 1)
@@ -281,13 +266,12 @@ export interface RoastForecast {
 }
 
 export interface RoastResponse {
-  /** Punchlines profil, les plus croustillantes d'abord (2-3). */
+  /** Profil, meilleures d'abord (2-3). */
   lines: RoastLine[];
   /** Prévision d'ELO, null si pas assez de snapshots. */
   forecast: RoastForecast | null;
 }
 
-/** One stored match for a player (API shape). */
 export interface MatchSummary {
   matchId: string;
   map: string;
@@ -618,7 +602,6 @@ export type AwardKey =
   | "nolife"
   | "abonne-absent"
   | "fantome"
-  // Prix roast (B7.10)
   | "tibia-dor"
   | "chirurgien"
   | "baby-sitter"

@@ -1,10 +1,6 @@
 /**
- * ±ELO effectif d'un match (B2.12). La colonne `elo_delta` n'est remplie que par
- * le backfill (#141, endpoint non officiel souvent 403). En attendant, on dérive
- * le delta des `elo_after` consécutifs qu'on possède déjà : l'ELO ne bouge que
- * sur un match → `eloDelta(i) = eloAfter(i) − eloAfter(i−1)`. Le backfill reste
- * prioritaire (vraie valeur) ; on ne dérive que si les deux `elo_after` sont
- * connus, sinon null (« missing beats wrong »).
+ * ±ELO effectif (B2.12). `elo_delta` (backfill, #141, souvent 403) prime ; sinon on
+ * dérive de eloAfter(i) − eloAfter(i−1), et null si l'un manque (« missing beats wrong »).
  */
 export function effectiveEloDelta(
   eloDelta: number | null,

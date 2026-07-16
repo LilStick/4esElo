@@ -2,14 +2,13 @@ import { and, eq, gte, lt } from "drizzle-orm";
 import { db, eloSnapshots, faceitMatchStats, players, playtimeSnapshots } from "@4eselo/db";
 import { monthRange, type WrappedInputs } from "./wrapped";
 
-/** Tout ce que le moteur d'awards consomme pour un mois donné (B7.2) -
- *  partagé entre /wrapped et l'admin regenerate (B17.4). */
+/** Inputs du moteur d'awards pour un mois (B7.2) ; partagé /wrapped ↔ admin regenerate (B17.4). */
 export async function loadWrappedInputs(year: number, month: number): Promise<WrappedInputs> {
   const { start, end } = monthRange(year, month);
   return loadWrappedInputsForRange(start, end);
 }
 
-/** Idem sur une fenêtre [start, end) arbitraire (BIG Wrapped semestre/année, B7.12). */
+/** Idem sur fenêtre [start, end) arbitraire (BIG Wrapped, B7.12). */
 export async function loadWrappedInputsForRange(start: Date, end: Date): Promise<WrappedInputs> {
   const playerRows = await db
     .select({

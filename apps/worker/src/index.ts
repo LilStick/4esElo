@@ -24,8 +24,7 @@ import {
   dbAnnouncementStore,
 } from "./store";
 
-// curl transport: Node's TLS fingerprint never passes the Cloudflare wall,
-// plain curl sometimes does - that's the whole opportunistic bet.
+// curl passe parfois le mur Cloudflare que Node non - pari opportuniste.
 const eloHistory = new UnofficialEloHistory({ fetchImpl: curlFetch() });
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
@@ -121,9 +120,8 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
           `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
         );
       }
-      // Sur tout changement d'ELO enregistré, on pose elo_after sur le dernier
-      // match du joueur (l'ELO ne bouge que sur un match) - pas besoin qu'il ait
-      // été ingéré ce tick-ci. Le ±ELO (dérivé côté lecture, #316) suit aussitôt.
+      // Sur tout changement d'ELO enregistré, elo_after va sur le dernier match
+      // (l'ELO ne bouge que sur un match), sans exiger un ingest ce tick-ci.
       const elo = syncRes ? eloToAttribute(syncRes) : null;
       if (elo !== null) {
         const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(p.id, elo);
@@ -147,8 +145,7 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
     await sleep(DELAY_BETWEEN_PLAYERS_MS);
   }
 
-  // Deep-ingest (B17.11) : un membre non encore deep-ingéré (nouvel inscrit ou
-  // roster à rattraper) → pull profond de son historique, une fois. 1/run (lourd).
+  // Deep-ingest (B17.11) : un membre pas encore deep-ingéré → pull profond, 1/run (lourd).
   try {
     const deep = await deepIngestPlayers(faceit, dbMatchStatsStore, dbDeepIngestStore);
     if (deep.players > 0) {
@@ -158,8 +155,7 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
     console.error("[worker] deep-ingest failed:", err instanceof Error ? err.message : err);
   }
 
-  // Vue match-level (B4.3) : remplit `matches` (nouveaux + backfill des anciens)
-  // après la passe joueurs, une fois par run.
+  // Vue match-level (B4.3) : remplit `matches` (nouveaux + backfill), 1/run.
   try {
     const mi = await ingestMatches(faceit, dbMatchStore);
     if (mi.inserted > 0 || mi.failed > 0) {

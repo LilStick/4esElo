@@ -7,9 +7,9 @@ import {
 } from "@4eselo/faceit";
 
 /**
- * Match ingestion (B2.3): for one member, walk their bounded match history
- * (newest first), skip what's already stored, fetch per-match stats and store
- * this member's row. Pure logic - network and DB come in as interfaces.
+ * Ingestion des matchs (B2.3) : pour un membre, on parcourt son historique borné
+ * (récent d'abord), on saute le déjà-stocké, on récupère les stats par match.
+ * Pure logic - réseau et DB en interfaces.
  */
 
 export interface MatchReader {
@@ -18,7 +18,6 @@ export interface MatchReader {
 }
 
 export interface MatchStatsStore {
-  /** Which of these match ids are already stored for this player. */
   getStoredMatchIds(playerId: string, matchIds: string[]): Promise<Set<string>>;
   insertMatchStats(row: {
     matchId: string;
@@ -39,38 +38,35 @@ export interface PlayerToIngest {
 }
 
 export interface IngestOptions {
-  /** How far back the backfill window reaches. */
   windowDays?: number;
-  /** Hard cap on matches considered per run. */
+  /** Cap dur de matchs par run. */
   maxMatches?: number;
-  /** History page size (Faceit accepts up to 100). */
+  /** Taille de page (Faceit : max 100). */
   pageSize?: number;
-  /** Delay between two Faceit calls - keeps us under the rate limit. */
+  /** Délai entre appels Faceit (rate limit). */
   throttleMs?: number;
-  /** Injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
   now?: () => Date;
 }
 
 export interface IngestResult {
-  /** Matches seen inside the window. */
+  /** Matchs vus dans la fenêtre. */
   scanned: number;
   inserted: number;
-  /** Already stored (dedup) or bye/forfeit - nothing to fetch. */
+  /** Déjà stocké (dedup) ou bye/forfait - rien à fetch. */
   skipped: number;
-  /** Stats fetch failed or member missing from the match - retried next run. */
+  /** Fetch échoué ou membre absent du match - retenté au prochain run. */
   failed: number;
-  /** Ids of the matches inserted by THIS run (feeds the eloAfter heuristic). */
+  /** Ids insérés par CE run (alimente l'heuristique eloAfter). */
   insertedMatchIds: string[];
 }
 
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
- * One code path covers both modes: the first run backfills the whole window,
- * later runs stop paging as soon as a full page is already stored. Inserts go
- * oldest-first so an interrupted run leaves a contiguous stored prefix and the
- * early-stop stays sound.
+ * Un seul chemin pour les deux modes : le 1er run backfill toute la fenêtre, les
+ * suivants s'arrêtent dès qu'une page entière est déjà stockée. Inserts oldest-first
+ * → un run interrompu laisse un préfixe stocké contigu, l'early-stop reste correct.
  */
 export async function ingestPlayerMatches(
   reader: MatchReader,
@@ -95,7 +91,6 @@ export async function ingestPlayerMatches(
   };
   const toFetch: FaceitMatchRef[] = [];
 
-  // 1. Walk the history newest-first, page by page, inside the window.
   let offset = 0;
   while (result.scanned < maxMatches) {
     if (offset > 0) await sleep(throttleMs);
@@ -108,30 +103,27 @@ export async function ingestPlayerMatches(
         player.id,
         inWindow.map((m) => m.matchId),
       );
-      // Zero-duration match = championship bye / forfeit: Faceit never has a
-      // stats page for it (permanent 404), so don't even try (#244).
+      // Match de durée nulle = bye/forfait : jamais de page stats (404 permanent),
+      // on ne tente même pas (#244).
       const fresh = inWindow.filter(
         (m) => !stored.has(m.matchId) && (m.finishedAt === null || m.finishedAt > m.startedAt),
       );
       result.skipped += inWindow.length - fresh.length;
       toFetch.push(...fresh);
 
-      // Full page already stored → everything older is stored too (contiguous
-      // prefix, see above). Typical incremental run stops here, on one call.
+      // Page entière déjà stockée → tout ce qui est plus vieux l'est aussi (préfixe
+      // contigu) : l'incrémental s'arrête ici, en un appel.
       if (fresh.length === 0 && page.length === pageSize) break;
     }
 
-    // Short page or window edge reached → no older matches to look at.
+    // Page courte ou bord de fenêtre → plus rien de plus vieux.
     if (page.length < pageSize || inWindow.length < page.length) break;
     offset += pageSize;
   }
 
-  // 2. Fetch stats and insert, oldest first.
-  //    Stats permanently absent (404, cancelled match, member missing) → skip
-  //    and move on: the gap reflects reality, it must not block newer matches.
-  //    Transient failure (5xx/429/network) → stop here; the stored prefix stays
-  //    contiguous so the early-stop above remains sound and the next run
-  //    retries this match and everything newer.
+  // Fetch + insert, oldest-first. Stats absentes en permanence (404, match annulé,
+  // membre absent) → skip, le trou reflète la réalité. Échec transitoire (5xx/429/
+  // réseau) → stop : le préfixe stocké reste contigu, le prochain run reprend ici.
   toFetch.reverse();
   for (const ref of toFetch) {
     await sleep(throttleMs);
@@ -148,7 +140,7 @@ export async function ingestPlayerMatches(
         map: detail.map,
         playedAt: ref.finishedAt ?? ref.startedAt,
         result: me.result,
-        eloAfter: null, // backfilled by the ELO-history worker (B2.4/B2.5)
+        eloAfter: null, // backfill par le worker d'historique ELO (B2.4/B2.5)
         stats: me.stats,
       });
       result.inserted += 1;
@@ -162,7 +154,7 @@ export async function ingestPlayerMatches(
         result.failed += 1;
         break;
       }
-      throw err; // DB/programming errors must not be silently absorbed
+      throw err; // erreur DB/programmation : ne pas avaler
     }
   }
 

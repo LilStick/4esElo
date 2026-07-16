@@ -13,7 +13,6 @@ function makeProfile(elo: number | null): FaceitPlayer {
   };
 }
 
-/** In-memory store that records inserts, so we can assert on them. */
 function makeStore(latest: number | null): SnapshotStore & { inserts: unknown[] } {
   const inserts: unknown[] = [];
   return {

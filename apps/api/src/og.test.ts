@@ -45,8 +45,6 @@ after(async () => {
   await db.delete(players).where(eq(players.id, playerId)); // cascade → snapshots
 });
 
-// --- Unitaires (purs, aucune I/O) ---
-
 test("isCrawler : Discord/Twitter/WhatsApp détectés, navigateur non, vide non", () => {
   assert.equal(isCrawler("Mozilla/5.0 (compatible; Discordbot/2.0; +https://discord.com)"), true);
   assert.equal(isCrawler("Twitterbot/1.0"), true);
@@ -110,8 +108,6 @@ test("renderCrawlerHtml : balises OG/Twitter par joueur, image absolue, échappe
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
   assert.match(html, /2644 ELO · Niveau 10/);
 });
-
-// --- Intégration (vraie DB, skip si Postgres absent) ---
 
 test("GET /players/:id/og.png → PNG", { skip }, async () => {
   const res = await app.request(`/players/${playerId}/og.png`);

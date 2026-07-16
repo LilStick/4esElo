@@ -1,16 +1,12 @@
 /**
- * Annonce mensuelle du Wrapped (B7.4) : dès qu'un mois se termine, une annonce
- * « Le Wrapped de <mois> est là » est insérée pour la home. Pas de check
- * « on est le 1er » : la clé de dédup par mois fait tout - si le worker était
- * down le 1er, l'annonce part à la relance suivante, jamais en double.
- * Logique pure - la DB arrive en interface.
+ * Annonce mensuelle du Wrapped (B7.4) : dédup par mois → idempotent même si le
+ * worker était down le 1er. Pure logic, DB en interface.
  */
 import type { AnnouncementStore } from "./announce";
 
 export type { AnnouncementStore, AnnouncementToInsert } from "./announce";
 
 export interface MonthActivityReader {
-  /** Le pôle a-t-il au moins un match stocké sur ce mois ? */
   monthHasMatches(year: number, month: number): Promise<boolean>;
 }
 
@@ -19,7 +15,7 @@ export type AnnounceResult =
   | { status: "already-announced"; year: number; month: number }
   | { status: "empty-month"; year: number; month: number };
 
-/** Slug d'URL du front (cf. apps/web/src/lib/period.ts) : « juin-2026 ». */
+/** Slug d'URL front (cf. apps/web/src/lib/period.ts) : « juin-2026 ». */
 const MONTHS = [
   "janvier",
   "février",
@@ -35,7 +31,7 @@ const MONTHS = [
   "décembre",
 ] as const;
 
-/** Le mois écoulé (UTC, comme les bornes de /wrapped) : en juillet → juin. */
+/** Le mois écoulé (UTC, comme /wrapped) : juillet → juin. */
 export function previousMonth(now: Date): { year: number; month: number } {
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1; // 1-12

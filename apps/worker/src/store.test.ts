@@ -6,7 +6,7 @@ import { db, players, faceitMatchStats } from "@4eselo/db";
 import type { FaceitMatchStats } from "@4eselo/types";
 import { dbMatchStatsStore } from "./store";
 
-// Intégration = vraie DB, skip propre si Postgres absent (calculé avant tout test).
+// Intégration = vraie DB, skip propre si Postgres absent.
 async function dbReachable(): Promise<boolean> {
   try {
     await db.execute(sql`select 1`);
@@ -68,8 +68,8 @@ before(async () => {
     .values({ discordName: "store_itest", faceitNickname: "store_nick" })
     .returning({ id: players.id });
   pid = p!.id;
-  // Match ancien avec elo_after connu ; match le plus récent SANS elo_after
-  // (le cas du bug : ingéré à un tick, l'ELO n'a bougé qu'ensuite).
+  // Match ancien avec elo_after connu ; le plus récent SANS elo_after
+  // (le bug : ingéré à un tick, l'ELO n'a bougé qu'ensuite).
   await db.insert(faceitMatchStats).values([
     {
       matchId: "b213-old",
@@ -98,7 +98,7 @@ after(async () => {
 });
 
 // REGRESSION : le dernier match reçoit son elo_after sur un changement d'ELO,
-// même s'il n'a pas été ingéré ce tick-ci (avant le fix : jamais posé → « - »).
+// même s'il n'a pas été ingéré ce tick-ci (avant le fix : jamais posé).
 test("setNewestMatchEloAfter pose l'elo_after du dernier match vide", { skip }, async () => {
   const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(pid, 1560);
   assert.equal(matchId, "b213-new");

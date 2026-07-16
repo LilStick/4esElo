@@ -188,7 +188,6 @@ test(
     const staffRows = await db.select().from(announcements).where(eq(announcements.type, "staff"));
     assert.equal(staffRows.length, 1); // upsert, pas d'empilement
 
-    // lecture publique (sans session)
     const pub = (await (await app.request("/announcements")).json()) as AnnouncementsResponse;
     assert.ok(pub.announcements.some((a) => a.type === "staff" && a.title === "Tournoi reporté"));
 

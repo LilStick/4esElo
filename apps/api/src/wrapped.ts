@@ -8,11 +8,7 @@ import type {
 } from "@4eselo/types";
 import { percentile } from "./stats";
 
-/**
- * Moteur d'awards du Wrapped mensuel (B7.2) - fonctions pures, zéro I/O.
- * Les 9 awards votés par l'asso, calculés depuis les matchs, snapshots ELO
- * et snapshots de playtime du mois. Ex æquo : tous les gagnants sont émis.
- */
+/** Awards du Wrapped (B7.2), fonctions pures. Ex æquo : tous les gagnants émis. */
 
 export interface WrappedPlayer {
   id: string;
@@ -44,19 +40,17 @@ export interface WrappedPlaytimeSnapshot {
 
 export interface WrappedInputs {
   players: WrappedPlayer[];
-  /** Matchs du mois uniquement (filtrés en amont). */
+  /** Mois uniquement (filtré en amont). */
   matches: WrappedMatch[];
-  /** Snapshots ELO du mois uniquement. */
   eloSnapshots: WrappedEloSnapshot[];
-  /** Snapshots de playtime du mois uniquement. */
   playtimeSnapshots: WrappedPlaytimeSnapshot[];
 }
 
-/** Minimum de games sur le mois pour être éligible (sauf 👻 Fantôme). */
+/** Games min. pour être éligible (sauf 👻). */
 export const MIN_MATCHES = 5;
-/** Minimum de situations de clutch (1v1+1v2) pour le 🧠. */
+/** Clutchs min. (1v1+1v2) pour le 🧠. */
 export const MIN_CLUTCH_ATTEMPTS = 5;
-/** 🧀 Puant : part minimale des games sur sa top map + winrate minimal dessus. */
+/** 🧀 : part min. de games sur top map + winrate min. dessus. */
 export const ONE_TRICK_MIN_SHARE = 0.4;
 export const ONE_TRICK_MIN_WINRATE = 50;
 
@@ -70,7 +64,6 @@ export const AWARD_META: Record<AwardKey, { emoji: string; title: string }> = {
   nolife: { emoji: "🌙", title: "Nolife" },
   "abonne-absent": { emoji: "⏰", title: "Abonné absent" },
   fantome: { emoji: "👻", title: "Fantôme" },
-  // Prix roast (B7.10)
   "tibia-dor": { emoji: "🦵", title: "Tibia d'or" },
   chirurgien: { emoji: "🎯", title: "Chirurgien" },
   "baby-sitter": { emoji: "🚑", title: "Baby-sitter" },
@@ -81,7 +74,7 @@ export const AWARD_META: Record<AwardKey, { emoji: string; title: string }> = {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const pct = (num: number, den: number) => (den > 0 ? round1((num / den) * 100) : 0);
 
-/** [début, fin) du mois en UTC - le décalage Paris aux bornes est négligeable à l'échelle d'un mois. */
+/** [début, fin) du mois en UTC (décalage Paris négligeable). */
 export function monthRange(year: number, month: number): { start: Date; end: Date } {
   return {
     start: new Date(Date.UTC(year, month - 1, 1)),
@@ -89,10 +82,7 @@ export function monthRange(year: number, month: number): { start: Date; end: Dat
   };
 }
 
-/**
- * [début, fin) UTC d'une période longue (B7.12) : `"2026"` (année entière) ou
- * `"2026-H1"` / `"2026-H2"` (semestre). Renvoie null si le format est invalide.
- */
+/** [début, fin) UTC d'une période (B7.12) : "2026" ou "2026-H1"/"H2". null si format invalide. */
 export function periodRange(period: string): { start: Date; end: Date } | null {
   const year = /^(\d{4})$/.exec(period);
   if (year) {
@@ -105,17 +95,13 @@ export function periodRange(period: string): { start: Date; end: Date } | null {
     const startMonth = semester[2] === "1" ? 0 : 6;
     return {
       start: new Date(Date.UTC(y, startMonth, 1)),
-      end: new Date(Date.UTC(y, startMonth + 6, 1)), // H2 : mois 12 → 1er janvier N+1
+      end: new Date(Date.UTC(y, startMonth + 6, 1)), // H2 : mois 12 → 1er janv. N+1
     };
   }
   return null;
 }
 
-/**
- * Libellé de fenêtre injecté dans les punchlines des awards.
- * Mensuel → "ce mois-ci" ; BIG Wrapped → "cette année" (YYYY) ou "ce semestre" (YYYY-H1/H2).
- * `period` est déjà validé par `periodRange` en amont.
- */
+/** Libellé de période pour les punchlines (déjà validé par periodRange). */
 export const MONTHLY_LABEL = "ce mois-ci";
 export function periodLabel(period: string): string {
   return /^\d{4}$/.test(period) ? "cette année" : "ce semestre";
@@ -126,12 +112,12 @@ const parisHourFmt = new Intl.DateTimeFormat("fr-FR", {
   hour: "2-digit",
   hour12: false,
 });
-/** Heure locale Paris (0-23) - pour le 🌙 les games se jouent en heure française. */
+/** Heure Paris (0-23), pour le 🌙. */
 export function parisHour(d: Date): number {
   const hour = parisHourFmt.formatToParts(d).find((p) => p.type === "hour")!.value;
   return Number(hour) % 24; // hour12:false peut rendre "24" à minuit selon l'ICU
 }
-/** Game de nolife : commencée entre 1h et 7h du matin, heure de Paris. */
+/** Nolife : jouée entre 1h et 7h (Paris). */
 const isLateNight = (d: Date) => {
   const h = parisHour(d);
   return h >= 1 && h < 7;
@@ -160,7 +146,7 @@ function median(values: number[]): number {
   return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
-/** Évolution d'ELO du mois par joueur : dernier snapshot − premier (≥ 2 requis). */
+/** ΔELO du mois : dernier − premier snapshot (≥ 2 requis). */
 function eloDeltas(snapshots: WrappedEloSnapshot[]): Map<string, { start: number; end: number }> {
   const byPlayer = new Map<string, WrappedEloSnapshot[]>();
   for (const s of snapshots) {
@@ -177,7 +163,7 @@ function eloDeltas(snapshots: WrappedEloSnapshot[]): Map<string, { start: number
   return out;
 }
 
-/** Minutes jouées sur le mois : dernier échantillon lisible − premier (≥ 2 requis). */
+/** Minutes du mois : dernier − premier échantillon (≥ 2 requis). */
 function monthlyPlaytime(snapshots: WrappedPlaytimeSnapshot[]): Map<string, number> {
   const byPlayer = new Map<string, WrappedPlaytimeSnapshot[]>();
   for (const s of snapshots) {
@@ -199,11 +185,11 @@ interface Candidate {
   player: WrappedPlayer;
   value: number;
   punchline: string;
-  /** Départage avant l'ex æquo (plus grand = mieux placé). */
+  /** Départage avant ex æquo (plus grand = mieux). */
   tiebreak?: number;
 }
 
-/** Garde les meilleurs candidats (score max, départage, ex æquo conservés) et fabrique les AwardWinner. */
+/** Meilleurs candidats (ex æquo conservés) → AwardWinner. */
 function pickWinners(award: AwardKey, candidates: Candidate[]): AwardWinner[] {
   if (candidates.length === 0) return [];
   const best = Math.max(...candidates.map((c) => c.value));
@@ -226,7 +212,7 @@ function pickWinners(award: AwardKey, candidates: Candidate[]): AwardWinner[] {
     }));
 }
 
-/** 🐀 Rat : beaucoup de frags, peu d'entrys - il attend son heure au fond. */
+/** 🐀 Rat : beaucoup de frags, peu d'entrys. */
 function rat(pool: PlayerMonth[]): AwardWinner[] {
   const eligible = pool.filter((p) => p.matches.length >= MIN_MATCHES);
   if (eligible.length === 0) return [];
@@ -263,7 +249,7 @@ function spammeur(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("spammeur", candidates);
 }
 
-/** 🧀 Puant : one-trick qui win - presque que sa map, et il la gagne. */
+/** 🧀 Puant : one-trick qui win. */
 function puant(pool: PlayerMonth[]): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
@@ -306,7 +292,7 @@ function chuteLibre(
     if (delta >= 0) continue;
     candidates.push({
       player: p.player,
-      // pickWinners prend le max → on inverse pour garder la pire chute, value réelle dans la punchline.
+      // pickWinners prend le max → on inverse (pire chute).
       value: -delta,
       punchline: `${delta} ELO ${label} (${d.start} → ${d.end}) - pensez à lui.`,
     });
@@ -326,7 +312,7 @@ function tryharder(pool: PlayerMonth[], label: string): AwardWinner[] {
   return pickWinners("tryharder", candidates);
 }
 
-/** 🧠 Ministre du Clutch : meilleur winrate de clutch (1v1+1v2), min. d'occasions requis. */
+/** 🧠 Ministre du Clutch : meilleur winrate clutch (1v1+1v2), min. requis. */
 function ministreDuClutch(pool: PlayerMonth[]): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
@@ -345,7 +331,7 @@ function ministreDuClutch(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("ministre-du-clutch", candidates);
 }
 
-/** 🌙 Nolife : le plus de games lancées entre 1h et 7h du matin (heure de Paris). */
+/** 🌙 Nolife : le plus de games 1h-7h (Paris). */
 function nolife(pool: PlayerMonth[]): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
@@ -361,7 +347,7 @@ function nolife(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("nolife", candidates);
 }
 
-/** ⏰ Abonné absent : le moins de minutes CS2 jouées sur le mois (playtime Steam lisible requis). */
+/** ⏰ Abonné absent : le moins de minutes CS2 (playtime Steam requis). */
 function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>, label: string): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
@@ -370,7 +356,7 @@ function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>, label
     const hours = round1(minutes / 60);
     candidates.push({
       player: p.player,
-      // Le moins de playtime gagne → inversion pour pickWinners (max), value réelle restaurée après.
+      // Le moins gagne → inversion pour pickWinners (max).
       value: -minutes,
       punchline: `${hours} h de CS2 ${label} - l'abonnement tourne à vide.`,
     });
@@ -378,7 +364,7 @@ function abonneAbsent(pool: PlayerMonth[], playtimes: Map<string, number>, label
   return pickWinners("abonne-absent", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
-/** 👻 Fantôme : zéro game sur le mois - dispensé du minimum de games, évidemment. */
+/** 👻 Fantôme : zéro game du mois (dispensé du min.). */
 function fantome(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length === 0)
@@ -392,15 +378,13 @@ function fantome(pool: PlayerMonth[], label: string): AwardWinner[] {
   return pickWinners("fantome", candidates);
 }
 
-// --- Prix roast (B7.10) - validés en features-talk. ---
-
 /** 🦵 Tibia d'or : pire HS% moyen du mois. */
 function tibiaDor(pool: PlayerMonth[], label: string): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
     .map((p) => {
       const hs = round1(avg(p.matches.map((m) => m.stats.hsPercent)));
-      // Le plus bas gagne → inversion pour pickWinners (max), value réelle restaurée après.
+      // Le plus bas gagne → inversion pour pickWinners (max).
       return { player: p.player, value: -hs, punchline: `${hs}% de HS ${label} - tu vises les chevilles.` };
     });
   return pickWinners("tibia-dor", candidates).map((w) => ({ ...w, value: -w.value }));
@@ -418,7 +402,7 @@ function chirurgien(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("chirurgien", candidates);
 }
 
-/** 🚑 Baby-sitter : le plus de kills cumulés en défaite (gros carry, équipe aux abonnés absents). */
+/** 🚑 Baby-sitter : le plus de kills cumulés en défaite. */
 function babySitter(pool: PlayerMonth[]): AwardWinner[] {
   const candidates = pool
     .filter((p) => p.matches.length >= MIN_MATCHES)
@@ -434,7 +418,7 @@ function babySitter(pool: PlayerMonth[]): AwardWinner[] {
   return pickWinners("baby-sitter", candidates);
 }
 
-/** 🐹 Hamster : le plus de games pour un ΔELO ≤ 0 (le grind qui ne rapporte rien). */
+/** 🐹 Hamster : le plus de games pour ΔELO ≤ 0. */
 function hamster(pool: PlayerMonth[], deltas: Map<string, { start: number; end: number }>): AwardWinner[] {
   const candidates: Candidate[] = [];
   for (const p of pool) {
@@ -442,7 +426,7 @@ function hamster(pool: PlayerMonth[], deltas: Map<string, { start: number; end: 
     const d = deltas.get(p.player.id);
     if (!d) continue;
     const delta = d.end - d.start;
-    if (delta > 0) continue; // il faut que le grind n'ait rien rapporté
+    if (delta > 0) continue;
     candidates.push({
       player: p.player,
       value: p.matches.length,
@@ -469,11 +453,7 @@ function chatouilleur(pool: PlayerMonth[], label: string): AwardWinner[] {
   return pickWinners("chatouilleur", candidates).map((w) => ({ ...w, value: -w.value }));
 }
 
-/**
- * Calcule les 14 awards de la fenêtre (9 originaux + 5 roast B7.10). Liste vide si personne d'éligible.
- * `label` = libellé de période inséré dans les punchlines ("ce mois-ci" par défaut ;
- * "cette année"/"ce semestre" pour un BIG Wrapped, cf. `periodLabel`).
- */
+/** Les 14 awards (9 + 5 roast). label = période insérée dans les punchlines. */
 export function computeAwards(inputs: WrappedInputs, label: string = MONTHLY_LABEL): AwardWinner[] {
   const pool = groupByPlayer(inputs);
   const deltas = eloDeltas(inputs.eloSnapshots);
@@ -496,7 +476,7 @@ export function computeAwards(inputs: WrappedInputs, label: string = MONTHLY_LAB
   ];
 }
 
-/** Cœur du Wrapped perso (sans l'étiquette de période) - partagé mensuel / BIG (B7.12). */
+/** Cœur du Wrapped perso (sans étiquette période), partagé mensuel/BIG (B7.12). */
 type PlayerWrappedCore = Omit<PlayerWrappedResponse, "year" | "month">;
 
 function computePlayerWrappedCore(
@@ -536,7 +516,7 @@ function computePlayerWrappedCore(
   const d = eloDeltas(inputs.eloSnapshots).get(playerId);
   const playtime = monthlyPlaytime(inputs.playtimeSnapshots).get(playerId);
 
-  // Percentiles vs les joueurs actifs du mois (au moins 1 game), joueur inclus.
+  // Percentiles vs joueurs actifs (≥ 1 game), joueur inclus.
   let percentiles: WrappedPercentiles | null = null;
   const active = pool.filter((p) => p.matches.length > 0);
   if (matches.length > 0) {
@@ -576,7 +556,7 @@ function computePlayerWrappedCore(
   };
 }
 
-/** Wrapped perso d'un mois (B7.2) : le cœur + l'étiquette année/mois. */
+/** Wrapped perso d'un mois (B7.2). */
 export function computePlayerWrapped(
   playerId: string,
   year: number,
@@ -587,7 +567,7 @@ export function computePlayerWrapped(
   return core ? { year, month, ...core } : null;
 }
 
-/** Wrapped perso d'une période longue (B7.12) : le cœur + l'étiquette de période. */
+/** Wrapped perso d'une période longue (B7.12). */
 export function computePlayerBigWrapped(
   playerId: string,
   period: string,
