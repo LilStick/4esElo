@@ -16,11 +16,15 @@ export function Button({ variant = "primary", icon: Icon, className, children, .
   return (
     <button
       className={cn(
-        "group inline-flex cursor-pointer items-center gap-3 rounded-full text-sm font-semibold",
+        "group inline-flex cursor-pointer items-center justify-center gap-3 rounded-full text-sm font-semibold",
         "transition-[transform,background-color,border-color,color] duration-150 ease-[var(--ease-out)] active:scale-[0.97]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60",
         variant === "primary"
-          ? "bg-brand py-[9px] pr-[9px] pl-[18px] text-[#060a18] shadow-[0_8px_24px_-10px_rgba(94,139,255,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:bg-brand-hi"
+          ? cn(
+              "bg-brand py-[9px] text-[#060a18] shadow-[0_8px_24px_-10px_rgba(94,139,255,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:bg-brand-hi",
+              // Sans icône, padding symétrique ; avec icône, la pastille de droite prend le relais.
+              Icon ? "pr-[9px] pl-[18px]" : "px-[18px]",
+            )
           : "border border-white/[0.16] bg-white/[0.045] px-[18px] py-[9px] text-ink hover:border-brand hover:text-brand-hi",
         className,
       )}
