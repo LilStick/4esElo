@@ -155,7 +155,7 @@ export function Register() {
           <label className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
             Ton pseudo Faceit
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <TbSearch
                 className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint"
@@ -173,7 +173,7 @@ export function Register() {
                 className="w-full rounded-xl border border-white/[0.09] bg-white/[0.02] py-2.5 pr-3 pl-9 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand/60"
               />
             </div>
-            <Button type="submit" disabled={busy || !nickname.trim()}>
+            <Button type="submit" disabled={busy || !nickname.trim()} className="w-full sm:w-auto">
               {busy && !lookup ? "…" : "Vérifier"}
             </Button>
           </div>
@@ -268,7 +268,7 @@ export function Register() {
             icon={TbArrowRight}
             onClick={doRegister}
             disabled={busy || promoEnd < promoStart}
-            className="self-start"
+            className="w-full sm:w-auto sm:self-start"
           >
             {busy ? "Inscription…" : "Confirmer mon inscription"}
           </Button>

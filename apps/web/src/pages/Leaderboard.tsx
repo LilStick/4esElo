@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbMap2, TbSearch, TbUsersGroup } from "react-icons/tb";
@@ -7,7 +7,9 @@ import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
-import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { clampPage, pageCountOf } from "../lib/pagination";
+import { usePageSize } from "../lib/usePageSize";
+import { Avatar, Card, HoverBarList, LevelBadge, Pagination, Skeleton } from "../ui";
 import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -16,7 +18,8 @@ import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 import backdrop from "../assets/maps/screens/de_mirage.png";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
+// Pseudo Discord en priorité (identifier qui est qui), Faceit en secours.
+const nameOf = (e: LeaderboardEntry) => e.discordName ?? e.faceitNickname ?? "-";
 
 /** Delta d'ELO sur 7 j (±points), entre le rang et l'avatar - « - » si nul / non suivi. */
 function EloDelta({ delta }: { delta: number | null | undefined }) {
@@ -104,9 +107,18 @@ export function Leaderboard() {
   const searching = q.trim() !== "";
   const listItems = searching ? board.filter((e) => norm(nameOf(e)).includes(norm(q.trim()))) : board;
 
+  // Pagination (numérotée). Taille de page selon la hauteur d'écran ; les paliers
+  // de niveau sont re-groupés à l'intérieur de la page courante (grouping conservé).
+  const pageSize = usePageSize({ rowHeight: 56, reserved: 430, min: 8 });
+  const pageCount = pageCountOf(listItems.length, pageSize);
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [q]); // nouvelle recherche → page 1
+  const safePage = clampPage(page, pageCount);
+  const pageItems = listItems.slice(safePage * pageSize, safePage * pageSize + pageSize);
+
   // Paliers de niveau dès qu'on ne cherche pas ; liste plate en recherche.
   const grouped = !searching;
-  const groups = useMemo(() => (grouped ? groupByLevel(listItems) : []), [grouped, listItems]);
+  const groups = useMemo(() => (grouped ? groupByLevel(pageItems) : []), [grouped, pageItems]);
 
   const renderRow = (e: LeaderboardEntry) => {
     const isMe = myId != null && e.id === myId;
@@ -125,9 +137,15 @@ export function Leaderboard() {
             e.rank
           )}
         </span>
-        <EloDelta delta={eloMove.get(e.id)} />
+        {/* Δ7j + badge de niveau : masqués sur mobile (place au pseudo ; le niveau
+            est déjà porté par le bandeau de palier). display:none retire aussi le gap. */}
+        <span className="hidden sm:contents">
+          <EloDelta delta={eloMove.get(e.id)} />
+        </span>
         <Avatar name={nameOf(e)} size={34} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
-        <LevelBadge level={e.level} size={24} />
+        <span className="hidden sm:contents">
+          <LevelBadge level={e.level} size={24} />
+        </span>
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className={cn("truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
             {nameOf(e)}
@@ -150,7 +168,7 @@ export function Leaderboard() {
         <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
           {e.elo ?? "-"}
         </span>
-        <TbArrowRight className="text-ink-faint" size={17} />
+        <TbArrowRight className="hidden text-ink-faint sm:block" size={17} />
       </>
     );
   };
@@ -214,7 +232,7 @@ export function Leaderboard() {
         ) : (
           <Card className="p-[var(--bezel)]">
             <HoverBarList
-              items={listItems}
+              items={pageItems}
               rowHeight={56}
               keyOf={(e) => e.id}
               onSelect={(e) => navigate(`/player/${e.id}`)}
@@ -222,6 +240,10 @@ export function Leaderboard() {
             />
           </Card>
         ))}
+
+      {listItems.length > 0 && (
+        <Pagination page={safePage} pageCount={pageCount} onPage={setPage} className="mt-6" />
+      )}
 
       {searching && board.length > 0 && listItems.length === 0 && (
         <EmptyState icon={TbSearch} title="Aucun membre trouvé">

@@ -195,7 +195,7 @@ export function AuthMenu({ onNavigate, collapsed }: { onNavigate?: () => void; c
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1, transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
             exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1, ease: "easeOut" } }}
-            className="absolute bottom-0 left-full z-50 ml-3 w-56 origin-bottom-left rounded-xl border border-white/[0.1] bg-surface-2 p-1.5 shadow-2xl"
+            className="absolute bottom-full left-0 z-50 mb-2 w-full origin-bottom rounded-xl border border-white/[0.1] bg-surface-2 p-1.5 shadow-2xl lg:bottom-0 lg:left-full lg:mb-0 lg:ml-3 lg:w-56 lg:origin-bottom-left"
           >
             <div className="flex items-center gap-2 px-2.5 py-2">
               <Avatar name={name} size={28} src={avatarUrl} />
