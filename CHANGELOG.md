@@ -16,6 +16,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 - 2026-07-16 · Web : page admin réorganisée en onglets (Joueurs / Admins / Modération / Annonces). (#385)
 - 2026-07-16 · Web : pagination des listes de joueurs (classement, comparaison), taille de page selon l'écran. (#386)
 - 2026-07-16 · Web : Ctrl-K à jour (recherche par pseudo Discord + Faceit, plus de pages). (#387)
+- 2026-07-16 · Web : classement en scroll infini (révélation progressive) au lieu de pages numérotées, moins d'effort côté user. (#389)
 
 ## 2026-07-15
 
