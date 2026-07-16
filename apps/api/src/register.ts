@@ -7,18 +7,13 @@ import type { RegisterLookupResponse, RegisterResponse } from "@4eselo/types";
 import { FACEIT_API_KEY } from "./env";
 import { readSession } from "./auth";
 
-/**
- * Register sur le site (B17.2) : OAuth prouve l'identité Discord (session B17.1),
- * le pseudo Faceit est validé en live, la promo EFREI est stockée.
- * Deux temps côté front : lookup (préviusalisation à confirmer) puis POST.
- */
+// Register (B17.2) : lookup (preview) puis POST ; identité Discord via session OAuth.
 
-/** Ce que le register consomme de Faceit - mockable en test. */
 export interface FaceitLookup {
   getPlayerByNickname(nickname: string): Promise<FaceitPlayer>;
 }
 
-/** Swappable for tests (même pattern que authDeps/presenceDeps). */
+/** Injectable pour les tests. */
 export const registerDeps: { faceit: FaceitLookup | null } = {
   faceit: FACEIT_API_KEY ? new FaceitClient(FACEIT_API_KEY) : null,
 };
@@ -34,7 +29,7 @@ const registerBodySchema = z
   })
   .refine((b) => b.promoEnd >= b.promoStart, { message: "promoEnd < promoStart" });
 
-/** Alumni 🎓 : fin de promo passée (2026-2028 devient alumni en 2029). */
+/** Alumni : fin de promo passée (promo 2026-2028 → alumni en 2029). */
 export const isAlumni = (promoEnd: number, now: Date): boolean => promoEnd < now.getUTCFullYear();
 
 export const registerRoutes = new Hono();
@@ -99,8 +94,7 @@ registerRoutes.post("/register", async (c) => {
     throw err;
   }
 
-  // 1 Discord = 1 compte, 1 Faceit = 1 personne - vérifié avant insert pour des
-  // messages clairs ; les contraintes uniques restent le filet anti-course.
+  // Pré-check pour des messages clairs ; les contraintes uniques restent le filet anti-course.
   const [conflict] = await db
     .select({ discordId: players.discordId, faceitId: players.faceitId })
     .from(players)

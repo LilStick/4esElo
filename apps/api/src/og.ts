@@ -1,16 +1,9 @@
 /**
- * Cartes de partage OG par joueur (B5.4). Coller un lien de profil dans Discord
- * affiche la carte du joueur (avatar, pseudo, niveau, ELO, stats) au lieu de
- * l'aperçu générique - chaque partage devient une pub perso.
- *
- * - `GET /players/:id/og.png` : carte rendue en PNG (SVG → resvg, aucun navigateur
- *   headless), cachée quelques minutes.
- * - `GET /player/:id` : aux crawlers (Discord/Twitter/WhatsApp, détectés par
- *   User-Agent) on sert un HTML minimal avec les balises OG par joueur ; un
- *   navigateur normal est redirigé vers la SPA (les humains gardent l'app).
- *
- * Rendu et détection = fonctions pures (testables sans I/O) ; l'I/O (DB, fetch
- * avatar) vit dans les handlers.
+ * Cartes de partage OG par joueur (B5.4) : un lien de profil dans Discord affiche
+ * la carte du joueur au lieu de l'aperçu générique.
+ *  - GET /players/:id/og.png : PNG rendu via resvg (pas de navigateur headless).
+ *  - GET /player/:id : crawlers (détectés par User-Agent) → HTML OG ; navigateur → SPA.
+ * Rendu/détection = purs ; l'I/O (DB, fetch avatar) vit dans les handlers.
  */
 import { Hono } from "hono";
 import { Resvg } from "@resvg/resvg-js";
@@ -28,8 +21,7 @@ export const ogRoutes = new Hono();
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
-// Police embarquée (Inter, la même que le site) → rendu déterministe dev/CI/prod,
-// sans dépendre des polices système.
+// Police embarquée → rendu déterministe (pas de polices système).
 const here = dirname(fileURLToPath(import.meta.url));
 const FONT_PATH = resolve(here, "../assets/fonts/Inter-variable.ttf");
 
@@ -43,8 +35,7 @@ const COLORS = {
   brandHi: "#86a6ff",
 } as const;
 
-// Crawlers d'aperçu de lien courants. On ne sert le HTML OG qu'à eux ; tout le
-// reste (vrais navigateurs) est redirigé vers la SPA.
+// Crawlers d'aperçu : eux seuls reçoivent le HTML OG, le reste → SPA.
 const CRAWLER_RE =
   /(bot|crawler|spider|facebookexternalhit|whatsapp|telegram|slack|discord|twitter|linkedin|embedly|pinterest|redditbot|applebot|vkshare|skypeuripreview|iframely|preview)/i;
 
@@ -61,7 +52,6 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-/** Coupe un pseudo trop long pour qu'il tienne sur la carte. */
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
 }
@@ -70,13 +60,12 @@ export interface OgCardData {
   nickname: string;
   level: number | null;
   elo: number | null;
-  /** Avatar embarqué en data URI, ou null → initiale sur pastille. */
+  /** Data URI, ou null → initiale sur pastille. */
   avatarDataUri: string | null;
-  /** 0 à 3 stats (label court + valeur formatée). Vide = carte dégradée. */
+  /** 0-3 stats ; vide = carte dégradée. */
   stats: { label: string; value: string }[];
 }
 
-/** Construit le SVG de la carte (pur). */
 export function buildCardSvg(data: OgCardData): string {
   const name = escapeXml(truncate(data.nickname, 16));
   const initial = escapeXml((data.nickname.trim()[0] ?? "?").toUpperCase());
@@ -104,7 +93,7 @@ export function buildCardSvg(data: OgCardData): string {
       ? `<text x="${col}" y="380" font-size="130" font-weight="800" fill="${COLORS.ink}">${data.elo}<tspan font-size="48" font-weight="600" fill="${COLORS.inkDim}" dx="18">ELO</tspan></text>`
       : `<text x="${col}" y="360" font-size="72" font-weight="700" fill="${COLORS.inkDim}">ELO inconnu</text>`;
 
-  // Rangée de stats en bas : colonnes réparties, valeur au-dessus du label.
+  // Rangée de stats : valeur au-dessus du label.
   const statCols = data.stats
     .map((s, i) => {
       const x = col + i * 268;
@@ -134,7 +123,6 @@ export function buildCardSvg(data: OgCardData): string {
 </svg>`;
 }
 
-/** Rasterise le SVG en PNG (resvg + Inter embarqué). */
 export function renderCardPng(svg: string): Uint8Array {
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: OG_WIDTH },
@@ -151,7 +139,6 @@ export interface CrawlerHtmlData {
   pageUrl: string;
 }
 
-/** HTML minimal servi aux crawlers : balises OG/Twitter par joueur (pur). */
 export function renderCrawlerHtml(d: CrawlerHtmlData): string {
   const title = `${escapeXml(d.nickname)} · 4esElo`;
   const bits = [d.elo !== null ? `${d.elo} ELO` : null, d.level !== null ? `Niveau ${d.level}` : null].filter(
@@ -185,7 +172,7 @@ export function renderCrawlerHtml(d: CrawlerHtmlData): string {
 </html>`;
 }
 
-/** Données de la carte depuis la DB (source faceit) ; null si joueur inconnu. */
+/** Carte depuis la DB (source faceit) ; null si joueur inconnu. */
 async function loadCardData(id: string): Promise<OgCardData | null> {
   const [player] = await db.select().from(players).where(eq(players.id, id)).limit(1);
   if (!player) return null;
@@ -208,7 +195,7 @@ async function loadCardData(id: string): Promise<OgCardData | null> {
       ? await fetchAvatarDataUri(player.discordId, player.discordAvatar)
       : null;
 
-  // Carte dégradée (pseudo + ELO seulement) si aucun match stocké.
+  // Carte dégradée (pseudo + ELO) si aucun match.
   let stats: OgCardData["stats"] = [];
   if (matchRows.length > 0) {
     const agg = computeAggregate("all", matchRows as MatchForStats[]);
@@ -239,7 +226,7 @@ ogRoutes.get("/players/:id/og.png", async (c) => {
 
 ogRoutes.get("/player/:id", async (c) => {
   const id = c.req.param("id");
-  // Humains → la SPA. On ne construit la carte que pour les crawlers d'aperçu.
+  // Humains → SPA ; carte réservée aux crawlers.
   if (!isCrawler(c.req.header("user-agent"))) {
     return c.redirect(`${WEB_ORIGINS[0]}/player/${id}`, 302);
   }

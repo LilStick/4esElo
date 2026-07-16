@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { db, players } from "@4eselo/db";
 import { getPresence } from "./presence";
 
-/** Présence live des membres (Steam + confirmation Faceit). */
 export const presenceRoutes = new Hono();
 
 presenceRoutes.get("/presence", async (c) => {

@@ -20,7 +20,6 @@ import type { WeekActivityReader } from "./weeklyRecap";
 import type { PeriodActivityReader } from "./announceBigWrapped";
 import { utcDay } from "./playtime";
 
-/** Real SnapshotStore backed by Postgres via Drizzle. */
 export const dbStore: SnapshotStore = {
   async getLatestElo(playerId, source) {
     const rows = await db
@@ -37,7 +36,6 @@ export const dbStore: SnapshotStore = {
   },
 };
 
-/** Real BackfillStore backed by Postgres via Drizzle. */
 export const dbBackfillStore: BackfillStore = {
   async getBackfillState(playerId) {
     const [row] = await db
@@ -81,7 +79,6 @@ export const dbBackfillStore: BackfillStore = {
   },
 };
 
-/** Real PlaytimeStore backed by Postgres via Drizzle. */
 export const dbPlaytimeStore: PlaytimeStore = {
   async getLastCapturedDay(playerId) {
     const rows = await db
@@ -98,7 +95,6 @@ export const dbPlaytimeStore: PlaytimeStore = {
   },
 };
 
-/** Real AnnouncementStore + activity readers backed by Postgres via Drizzle. */
 export const dbAnnouncementStore: AnnouncementStore &
   MonthActivityReader &
   WeekActivityReader &
@@ -134,11 +130,10 @@ export const dbAnnouncementStore: AnnouncementStore &
   },
 
   async weekActivity(start, end) {
-    // Un membre par ligne pour ceux qui ont joué sur [start, end) : nb de games +
-    // ±ELO (dernier snapshot faceit avant `end` moins celui avant `start`). Les
-    // sous-requêtes de bornes ELO renvoient null si on n'a pas de point avant la
-    // fenêtre (nouvel inscrit) → eloDelta null, exclu des classements gain/perte.
-    // Bornes en ISO (le driver postgres.js ne bind pas les objets Date en SQL brut).
+    // Un membre/ligne pour les actifs sur [start, end) : nb de games + ±ELO (dernier
+    // snapshot faceit avant `end` moins avant `start`). Bornes ELO null si pas de point
+    // avant la fenêtre (nouvel inscrit) → eloDelta null, exclu des classements.
+    // Bornes en ISO : le driver postgres.js ne bind pas les objets Date en SQL brut.
     const startIso = start.toISOString();
     const endIso = end.toISOString();
     const rows = await db.execute<{
@@ -173,7 +168,6 @@ export const dbAnnouncementStore: AnnouncementStore &
   },
 };
 
-/** Real MatchStatsStore backed by Postgres via Drizzle. */
 export const dbMatchStatsStore: MatchStatsStore & EloAfterStore = {
   async setNewestMatchEloAfter(playerId, elo) {
     // Match le plus récent du joueur (match_id départage les ex æquo → stable).
@@ -207,17 +201,16 @@ export const dbMatchStatsStore: MatchStatsStore & EloAfterStore = {
   },
 
   async insertMatchStats(row) {
-    // The (matchId, playerId) PK already dedups; onConflictDoNothing makes a
-    // concurrent or re-run insert a no-op instead of an error.
+    // La PK (matchId, playerId) dédupe déjà ; onConflictDoNothing rend un insert
+    // concurrent/re-run no-op au lieu d'une erreur.
     await db.insert(faceitMatchStats).values(row).onConflictDoNothing();
   },
 };
 
-/** Real MatchLevelStore (B4.3) backed by Postgres via Drizzle. */
 export const dbMatchStore: MatchLevelStore = {
   async getMatchesToBackfill(limit) {
-    // Matchs connus (faceit_match_stats) pas encore dans `matches`, une ligne
-    // par matchId (played_at identique entre membres d'un même match).
+    // Matchs connus pas encore dans `matches`, une ligne/matchId
+    // (played_at identique entre membres d'un même match).
     const rows = await db.execute<{ match_id: string; played_at: string }>(sql`
       select distinct on (fms.match_id) fms.match_id, fms.played_at
       from faceit_match_stats fms
@@ -234,7 +227,6 @@ export const dbMatchStore: MatchLevelStore = {
   },
 };
 
-/** Real DeepIngestStore (B17.11) backed by Postgres via Drizzle. */
 export const dbDeepIngestStore: DeepIngestStore = {
   async getPlayersNeedingDeepIngest(limit) {
     const rows = await db

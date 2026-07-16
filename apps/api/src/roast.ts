@@ -1,10 +1,9 @@
 import type { RoastForecast, RoastLine } from "@4eselo/types";
 
 /**
- * Roast niveau profil + forecast ELO (B7.6) - logique pure, zéro I/O, zéro IA.
- * Deux couches : des punchlines "extrêmes" (les plus croustillantes, conditionnelles)
- * + des lignes "toujours là" (tier de KD, map de prédilection) pour garantir qu'un
- * membre actif déclenche ≥ 2 lignes. Le roast par-match vit dans `@4eselo/types`.
+ * Roast profil + forecast ELO (B7.6), pur, sans IA. Deux couches : punchlines
+ * "extrêmes" conditionnelles + lignes "toujours là" → ≥ 2 lignes pour un membre
+ * actif. Roast par-match : `@4eselo/types`.
  */
 
 export interface RoastProfileInput {
@@ -16,7 +15,7 @@ export interface RoastProfileInput {
   clutchWinRate: number; // 0-100
   entryAttempts: number;
   entrySuccessRate: number; // 0-100
-  /** Longueur de la série de victoires en cours (0 si la dernière est une défaite). */
+  /** Série de victoires en cours (0 si dernière = défaite). */
   currentWinStreak: number;
   /** ΔELO sur ~30 j, null si inconnu. */
   eloDelta30d: number | null;
@@ -26,9 +25,9 @@ export interface RoastProfileInput {
   topMap: { map: string; winRate: number; matches: number } | null;
 }
 
-/** Assez de games pour que les tendances veuillent dire quelque chose. */
+/** Games min. pour que les tendances comptent. */
 const MIN_MATCHES = 10;
-/** Actif : en dessous, on ne force pas les lignes "toujours là". */
+/** Actif : en dessous, pas de lignes "toujours là". */
 const MIN_ACTIVE = 5;
 
 const r0 = (n: number) => Math.round(n);
@@ -41,7 +40,7 @@ interface Rule {
   line: (i: RoastProfileInput) => RoastLine;
 }
 
-/** Punchlines conditionnelles - les traits marquants (les vraies vannes). */
+/** Punchlines conditionnelles (traits marquants). */
 const EXTREMES: Rule[] = [
   {
     prio: 100,
@@ -136,7 +135,7 @@ const EXTREMES: Rule[] = [
   },
 ];
 
-/** Tier de KD - une ligne toujours émise pour un joueur actif. */
+/** Tier de KD, toujours émis pour un joueur actif. */
 function kdTierLine(i: RoastProfileInput): RoastLine {
   if (i.kd >= 1.25) return { emoji: "🔫", label: "Boucher", text: `KD ${round1(i.kd)} - machine à frags.` };
   if (i.kd <= 0.85)
@@ -158,7 +157,7 @@ function topMapLine(i: RoastProfileInput): RoastLine {
   };
 }
 
-/** Les meilleures punchlines profil (croustillantes d'abord). Actif → ≥ 2 lignes garanties. */
+/** Meilleures punchlines profil ; actif → ≥ 2 lignes. */
 export function profileRoast(input: RoastProfileInput, limit = 3): RoastLine[] {
   const scored = EXTREMES.filter((r) => r.when(input)).map((r) => ({ prio: r.prio, line: r.line(input) }));
   if (input.matches >= MIN_ACTIVE) {
@@ -195,7 +194,7 @@ export function forecastElo(points: { elo: number; capturedAt: Date }[], now: Da
 
   const slope = num / den; // ELO/jour
   const perDay = Math.round(slope * 10) / 10;
-  const proj = Math.round(ys[ys.length - 1]! + slope * 14); // projection à 2 semaines
+  const proj = Math.round(ys[ys.length - 1]! + slope * 14); // à 2 semaines
   let text: string;
   if (perDay >= 0.5) text = `à ce rythme (+${perDay}/j), ~${proj} dans 2 semaines 📈`;
   else if (perDay <= -0.5) text = `à ce rythme (${perDay}/j), ~${proj} dans 2 semaines 📉`;

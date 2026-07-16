@@ -94,7 +94,7 @@ playersRoutes.get("/players/:id", async (c) => {
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,
     streak: computeStreak(matchRows.map((r) => r.result)),
     badges: computeBadges(badgeMatches),
-    // Badges à paliers sur la fenêtre 30j (B5.13) - profil = forme récente.
+    // Fenêtre 30j (B5.13) : le profil montre la forme récente.
     badgeTiers: computeBadgeTiers(
       badgeMatches.filter((m) => m.playedAt.getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000),
       "month",
@@ -144,9 +144,8 @@ playersRoutes.get("/players/:id/matches", async (c) => {
       eloAfter: faceitMatchStats.eloAfter,
       eloDelta: faceitMatchStats.eloDelta,
       stats: faceitMatchStats.stats,
-      // ELO du match précédent (chronologique) → dérive le ±ELO quand la colonne
-      // elo_delta n'est pas encore remplie (B2.12). Fenêtre sur tout l'historique
-      // du joueur (WHERE filtre avant), donc correcte malgré limit/offset.
+      // ±ELO dérivé quand elo_delta est vide (B2.12). Window sur tout l'historique
+      // (WHERE filtre avant), donc correct malgré limit/offset.
       prevEloAfter: sql<
         number | null
       >`lag(${faceitMatchStats.eloAfter}) over (partition by ${faceitMatchStats.playerId} order by ${faceitMatchStats.playedAt} asc, ${faceitMatchStats.matchId} asc)`,
@@ -203,7 +202,7 @@ playersRoutes.get("/players/:id/stats", async (c) => {
   });
 });
 
-// Ta place dans l'asso (B5.11) : percentile intra-asso par stat clé, sur la même fenêtre que /stats.
+// Percentile intra-asso par stat clé (B5.11), même fenêtre que /stats.
 playersRoutes.get("/players/:id/benchmark", async (c) => {
   const id = readPlayerId(c);
   if (!id) return badRequest(c, "invalid player id (uuid)");
@@ -214,7 +213,7 @@ playersRoutes.get("/players/:id/benchmark", async (c) => {
   const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
 
-  // Tous les matchs de la fenêtre, tous membres confondus (le référentiel = l'asso).
+  // Tous membres confondus : le référentiel du percentile, c'est l'asso.
   const cutoff = rangeCutoff(range, new Date());
   const base = db
     .select({
@@ -250,7 +249,6 @@ playersRoutes.get("/players/:id/achievements", async (c) => {
   const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
 
-  // Métriques cumulées depuis les matchs stockés (champs scalaires du JSONB).
   const [agg] = await db
     .select({
       matches: sql<number>`count(*)::int`,
@@ -285,7 +283,7 @@ playersRoutes.get("/players/:id/achievements", async (c) => {
     bestEloGain30d: bestEloGainWithin(snaps, 30 * 24 * 60 * 60 * 1000),
   });
 
-  // Persiste les nouveaux déblocages (date figée à la 1re détection), idempotent.
+  // Persiste les nouveaux déblocages (date figée à la 1re détection) ; idempotent.
   const unlocked = evaluated.filter((e) => e.unlocked);
   if (unlocked.length > 0) {
     await db

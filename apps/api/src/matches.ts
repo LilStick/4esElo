@@ -6,9 +6,7 @@ import type { RecentMatchEntry, RecentMatchesResponse } from "@4eselo/types";
 import { badRequest } from "./http";
 import { effectiveEloDelta } from "./eloDelta";
 
-/** ELO du match précédent (même joueur, chronologique) - pour dériver le ±ELO
- *  quand la colonne elo_delta n'est pas encore remplie (B2.12). Calculé sur tout
- *  l'historique du joueur (avant le LIMIT). */
+/** ±ELO dérivé quand elo_delta est vide (B2.12) ; window sur tout l'historique, avant le LIMIT. */
 const prevEloAfterExpr = sql<
   number | null
 >`lag(${faceitMatchStats.eloAfter}) over (partition by ${faceitMatchStats.playerId} order by ${faceitMatchStats.playedAt} asc, ${faceitMatchStats.matchId} asc)`;
@@ -17,8 +15,7 @@ export const matchesRoutes = new Hono();
 
 const recentLimitSchema = z.coerce.number().int().min(1).max(100).default(20);
 
-/** Flux de matchs récents, tous joueurs confondus (B15.11) - alimente la home.
- *  Une ligne par membre par match (chacun son propre eloDelta). */
+/** Matchs récents, tous joueurs (B15.11) : une ligne par membre par match (eloDelta propre). */
 matchesRoutes.get("/matches/recent", async (c) => {
   const parsed = recentLimitSchema.safeParse(c.req.query("limit"));
   if (!parsed.success) return badRequest(c, "invalid limit (1-100)");
@@ -41,7 +38,7 @@ matchesRoutes.get("/matches/recent", async (c) => {
     })
     .from(faceitMatchStats)
     .innerJoin(players, eq(faceitMatchStats.playerId, players.id))
-    // matchId/playerId départagent les ex æquo → ordre stable (tests déterministes).
+    // matchId/playerId départagent les ex æquo → ordre stable (déterministe).
     .orderBy(desc(faceitMatchStats.playedAt), asc(faceitMatchStats.matchId), asc(players.id))
     .limit(limit);
 

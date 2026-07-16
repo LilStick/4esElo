@@ -1,11 +1,10 @@
 import { FaceitError, eloToLevel, type EloHistoryProvider } from "@4eselo/faceit";
 
 /**
- * Opportunistic ELO backfill (B2.10, voted 2026-07-06): one polite attempt per
- * player per UTC day against the unofficial history endpoint. A 200 fills the
- * player's past in one go (per-match eloAfter/eloDelta + the retro curve);
- * a 403 means "not today" - silent, retried tomorrow. Never a dependency:
- * the forward pipeline (#93) keeps working either way.
+ * Backfill ELO opportuniste (B2.10) : une tentative polie/joueur/jour UTC contre
+ * l'endpoint d'historique NON OFFICIEL (fragile). 200 = tout l'historique d'un coup
+ * (eloAfter/eloDelta par match + courbe rétro) ; 403 = "pas aujourd'hui", silencieux,
+ * retenté demain. Jamais bloquant : le pipeline forward (#93) tourne quoi qu'il arrive.
  */
 
 export interface BackfillStore {
@@ -15,7 +14,7 @@ export interface BackfillStore {
   markDone(playerId: string, at: Date): Promise<void>;
   /** Real data overwrites the tick heuristic. */
   setMatchElo(playerId: string, matchId: string, elo: number, delta: number | null): Promise<void>;
-  /** capturedAt of the OLDEST stored snapshot, or null when the curve is empty. */
+  /** capturedAt du snapshot le PLUS ANCIEN, null si courbe vide. */
   getEarliestSnapshotAt(playerId: string): Promise<Date | null>;
   insertSnapshots(rows: { playerId: string; elo: number; level: number; capturedAt: Date }[]): Promise<void>;
 }
@@ -54,7 +53,6 @@ export async function backfillPlayerElo(
     throw err; // programming/DB errors must not be absorbed
   }
 
-  // 1. Real per-match ELO onto stored matches (overwrites the heuristic).
   let matchesFilled = 0;
   for (const p of points) {
     if (!p.matchId) continue;
@@ -62,9 +60,8 @@ export async function backfillPlayerElo(
     matchesFilled += 1;
   }
 
-  // 2. Retro curve: only BEFORE the live curve starts, so re-runs and the
-  //    live snapshots can never collide. Chronological + change-only, same
-  //    convention as the live snapshot-on-change.
+  // Courbe rétro : seulement AVANT le début de la courbe live (jamais de collision
+  // avec les snapshots live ni entre re-runs). Chronologique + change-only.
   const earliest = await store.getEarliestSnapshotAt(player.id);
   const retro = points
     .filter((p) => earliest === null || p.date < earliest)

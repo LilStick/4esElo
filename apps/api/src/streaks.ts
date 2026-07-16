@@ -1,9 +1,6 @@
 import type { OvertakeEntry, OvertakePlayer, PlayerStreak } from "@4eselo/types";
 
-/**
- * Séries & dépassements (B5.5) - logique pure, zéro I/O : les données arrivent
- * en paramètre, les endpoints font les requêtes.
- */
+/** Séries & dépassements (B5.5), logique pure. */
 
 /** Résultats du plus récent au plus ancien (1 = win, 0 = loss). */
 export function computeStreak(resultsNewestFirst: number[]): PlayerStreak {
@@ -39,11 +36,11 @@ export function computeStreak(resultsNewestFirst: number[]): PlayerStreak {
 }
 
 export interface OvertakeInput extends OvertakePlayer {
-  /** ELO au début de la fenêtre ; null = pas suivi à ce moment-là (exclu du calcul). */
+  /** ELO début de fenêtre ; null = non suivi alors (exclu). */
   baselineElo: number | null;
 }
 
-/** Rang de chaque joueur pour une clé d'ELO donnée (tri desc, égalité départagée par id). */
+/** Rang par clé d'ELO (tri desc, égalité par id). */
 function ranks(players: OvertakeInput[], key: "elo" | "baselineElo"): Map<string, number> {
   const sorted = players
     .filter((p) => p[key] !== null)
@@ -51,10 +48,7 @@ function ranks(players: OvertakeInput[], key: "elo" | "baselineElo"): Map<string
   return new Map(sorted.map((p, i) => [p.id, i]));
 }
 
-/**
- * Qui est passé devant qui entre le début de fenêtre et maintenant.
- * Un joueur sans baseline (arrivé en cours de fenêtre) ne génère aucun dépassement.
- */
+/** Qui est passé devant qui sur la fenêtre. Sans baseline (arrivé en cours) = aucun dépassement. */
 export function computeOvertakes(players: OvertakeInput[]): OvertakeEntry[] {
   const before = ranks(players, "baselineElo");
   const now = ranks(players, "elo");
@@ -74,7 +68,7 @@ export function computeOvertakes(players: OvertakeInput[]): OvertakeEntry[] {
     }
   }
 
-  // Les plus hauts au classement actuel d'abord - c'est là que ça se dispute.
+  // Les plus hauts au classement actuel d'abord.
   return overtakes.sort(
     (a, b) => now.get(a.passer.id)! - now.get(b.passer.id)! || a.passed.id.localeCompare(b.passed.id),
   );

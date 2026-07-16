@@ -1,15 +1,13 @@
 import { ingestPlayerMatches, type MatchReader, type MatchStatsStore, type PlayerToIngest } from "./ingest";
 
 /**
- * Deep-ingest à l'inscription (B17.11) : à l'arrivée d'un membre (et en rattrapage
- * du roster), on tire tout l'historique Faceit dispo une bonne fois (fenêtre large,
- * cap élevé), au lieu de la fenêtre glissante de 90 j de l'ingest incrémental.
- * Best-effort : on marque le joueur fait après la passe ; l'incrémental entretient
- * ensuite. Réutilise ingestPlayerMatches (déjà testé) - le réseau/DB sont injectés.
+ * Deep-ingest à l'inscription (B17.11) : à l'arrivée d'un membre, on tire tout
+ * l'historique Faceit d'un coup (fenêtre large, cap élevé) au lieu des 90 j de
+ * l'incrémental. Best-effort, réutilise ingestPlayerMatches ; réseau/DB injectés.
  */
 
 export interface DeepIngestStore {
-  /** Joueurs jamais deep-ingérés (deep_ingested_at null), avec un faceitId. */
+  /** Joueurs jamais deep-ingérés (deep_ingested_at null) + faceitId. */
   getPlayersNeedingDeepIngest(limit: number): Promise<PlayerToIngest[]>;
   markDeepIngested(playerId: string, at: Date): Promise<void>;
 }
@@ -50,8 +48,8 @@ export async function deepIngestPlayers(
       sleep: opts.sleep,
       now: opts.now,
     });
-    // Marqué fait même si la passe a été partielle : l'incrémental (90 j) prend le
-    // relais, et re-deep-ingérer ne rapporterait que du très vieux (cap 2000).
+    // Marqué fait même si partiel : l'incrémental (90 j) prend le relais, et
+    // re-deep-ingérer ne rapporterait que du très vieux (cap 2000).
     await deepStore.markDeepIngested(p.id, now());
     result.players += 1;
     result.inserted += res.inserted;

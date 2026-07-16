@@ -35,7 +35,7 @@ export const players = pgTable("players", {
   deepIngestedAt: timestamp("deep_ingested_at", { withTimezone: true }),
 });
 
-/** Time series of ELO values, one row per capture. Feeds the ELO curves. */
+/** Série temporelle d'ELO (une ligne par capture) → la courbe. */
 export const eloSnapshots = pgTable(
   "elo_snapshots",
   {
@@ -51,8 +51,7 @@ export const eloSnapshots = pgTable(
   (t) => [index("elo_snapshots_player_source_idx").on(t.playerId, t.source, t.capturedAt)],
 );
 
-/** Per-match player stats (one row per match per member). Key columns indexed,
- *  the full stat set kept in JSONB so new Faceit fields don't need a migration. */
+/** Stats par match (une ligne par match/membre). Colonnes clés indexées, set complet en JSONB (pas de migration si nouveau champ Faceit). */
 export const faceitMatchStats = pgTable(
   "faceit_match_stats",
   {
@@ -72,13 +71,12 @@ export const faceitMatchStats = pgTable(
     primaryKey({ columns: [t.matchId, t.playerId] }),
     index("faceit_match_stats_player_played_idx").on(t.playerId, t.playedAt),
     index("faceit_match_stats_player_map_idx").on(t.playerId, t.map),
-    // Flux de matchs récents tous joueurs confondus (B15.11) : tri global par date.
+    // tri global par date (flux récents B15.11)
     index("faceit_match_stats_played_idx").on(t.playedAt),
   ],
 );
 
-/** Daily samples of lifetime CS2 playtime (Steam). Monthly playtime = diff
- *  between two samples - feeds the Wrapped ⏰ award (B7.1). */
+/** Échantillons quotidiens du temps de jeu CS2 lifetime (Steam). Mensuel = diff entre 2 échantillons → award Wrapped ⏰ (B7.1). */
 export const playtimeSnapshots = pgTable(
   "playtime_snapshots",
   {
@@ -93,9 +91,7 @@ export const playtimeSnapshots = pgTable(
   (t) => [index("playtime_snapshots_player_idx").on(t.playerId, t.capturedAt)],
 );
 
-/** Site announcements: the Wrapped monthly banner (B7.4), later the staff
- *  announce from the admin panel (B17.4). `type` stays text (not enum) so new
- *  kinds don't need a migration. */
+/** Annonces du site : bannière Wrapped (B7.4), annonce staff (B17.4). type reste text (pas enum) → nouveaux types sans migration. */
 export const announcements = pgTable(
   "announcements",
   {
@@ -113,8 +109,7 @@ export const announcements = pgTable(
   (t) => [index("announcements_published_idx").on(t.publishedAt)],
 );
 
-/** Boîte à idées (B17.7) : suggestions des membres connectés, relayées sur Discord.
- *  `discord_id` = auteur (issu de la session signée, non spoofable). */
+/** Boîte à idées (B17.7), relayée sur Discord. discord_id = auteur (session signée, non spoofable). */
 export const ideas = pgTable(
   "ideas",
   {
@@ -126,15 +121,13 @@ export const ideas = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
-    // rate-limit (idées d'un membre sur 24 h) + fil récent global.
+    // rate-limit par membre (24 h) + fil récent global
     index("ideas_author_created_idx").on(t.discordId, t.createdAt),
     index("ideas_created_idx").on(t.createdAt),
   ],
 );
 
-/** Comptes Discord bannis du site (B17.9). Le check en cache court dans
- *  `readSession` coupe même les sessions déjà ouvertes ; le callback OAuth
- *  refuse le login. Clé = discord_id (pas de FK : on peut bannir un non-inscrit). */
+/** Comptes Discord bannis (B17.9). readSession coupe même les sessions ouvertes ; le callback OAuth refuse le login. Clé = discord_id (pas de FK : on peut bannir un non-inscrit). */
 export const bannedDiscordIds = pgTable("banned_discord_ids", {
   discordId: text("discord_id").primaryKey(),
   reason: text("reason"),
@@ -143,9 +136,7 @@ export const bannedDiscordIds = pgTable("banned_discord_ids", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-/** Vue match-level (B4.3) : une ligne par match (clé `matchId` seule), pour la
- *  composition des équipes et le score - brique des lineups (B4.4). Complète
- *  `faceit_match_stats` (une ligne par match ET par membre). */
+/** Vue match-level (B4.3) : une ligne par match (clé matchId), compo + score → lineups (B4.4). Complète faceit_match_stats (une ligne par match ET membre). */
 export const matches = pgTable(
   "matches",
   {
@@ -160,8 +151,7 @@ export const matches = pgTable(
   (t) => [index("matches_played_idx").on(t.playedAt)],
 );
 
-/** Succès permanents débloqués (B7.8) : une ligne par (joueur, succès). La date
- *  de déblocage est figée à la première détection (insert onConflictDoNothing). */
+/** Succès permanents débloqués (B7.8) : une ligne par (joueur, succès). Date figée à la 1re détection (onConflictDoNothing). */
 export const achievements = pgTable(
   "achievements",
   {

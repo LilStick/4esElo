@@ -419,8 +419,6 @@ test("B7.10 chatouilleur : pire ADR moyen", () => {
   assert.equal(chat[0]!.value, 45);
 });
 
-// --- B7.15 : les punchlines s'adaptent à la période (mensuel vs BIG Wrapped). ---
-
 test("periodLabel : année → « cette année », semestre → « ce semestre »", () => {
   assert.equal(periodLabel("2026"), "cette année");
   assert.equal(periodLabel("2026-H1"), "ce semestre");

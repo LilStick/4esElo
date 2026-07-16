@@ -104,8 +104,6 @@ test("badges cumulables (streak + headshot + grind)", () => {
   assert.ok(out.includes("grind"));
 });
 
-// --- B5.13 : badges à paliers (computeBadgeTiers) ---
-
 const tier = (ts: ReturnType<typeof computeBadgeTiers>, id: string) => ts.find((t) => t.id === id);
 
 test("tiers : aucun match → aucun badge", () => {

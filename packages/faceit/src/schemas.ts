@@ -1,10 +1,7 @@
 import { z } from "zod";
 import type { FaceitMatchStats } from "@4eselo/types";
 
-/**
- * Raw shapes from the Faceit Data API v4 (https://open.faceit.com/data/v4).
- * We only validate the fields we actually consume; unknown fields are ignored.
- */
+/** Formes brutes de l'API Data v4 Faceit. On ne valide que les champs consommés ; le reste est ignoré. */
 
 const cs2GameSchema = z.object({
   region: z.string().optional(),
@@ -39,8 +36,6 @@ export const rawHistorySchema = z.object({
   start: z.number().optional(),
   end: z.number().optional(),
 });
-
-/** Normalized shapes we expose to the rest of the app. */
 
 export interface FaceitCs2Profile {
   elo: number;
@@ -88,7 +83,7 @@ export function normalizeHistory(raw: z.infer<typeof rawHistorySchema>): FaceitM
   }));
 }
 
-/** Match stats: values come as strings; player_stats keys vary, so we keep them loose. */
+/** Stats de match : valeurs en strings, clés player_stats variables → parsing loose. */
 export const rawMatchStatsSchema = z.object({
   rounds: z.array(
     z.object({
@@ -117,13 +112,12 @@ export interface FaceitMatchPlayer {
   stats: FaceitMatchStats;
 }
 
-/** Une équipe d'un match (faction) - pour la vue match-level (B4.3, lineups). */
+/** Une équipe (faction) d'un match - vue match-level (B4.3, lineups). */
 export interface FaceitMatchTeam {
   /** faction id Faceit (faction1/faction2), sinon fallback stable. */
   teamId: string;
   /** Score final de l'équipe (manches gagnées), 0 si indisponible. */
   score: number;
-  /** Faceit player_id des joueurs de cette équipe. */
   playerIds: string[];
 }
 
@@ -131,7 +125,6 @@ export interface FaceitMatchDetail {
   matchId: string;
   map: string;
   players: FaceitMatchPlayer[];
-  /** Composition + score par équipe (B4.3). */
   teams: FaceitMatchTeam[];
   /** team_id gagnant (round_stats "Winner"), null si indéterminé. */
   winnerTeamId: string | null;
@@ -174,7 +167,7 @@ function toStats(s: Record<string, string>): FaceitMatchStats {
   };
 }
 
-/** Normalize a match's stats. A CS2 match = one map (rounds[0]). */
+/** Un match CS2 = une map (rounds[0]). */
 export function normalizeMatchStats(
   matchId: string,
   raw: z.infer<typeof rawMatchStatsSchema>,

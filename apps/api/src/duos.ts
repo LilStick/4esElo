@@ -13,7 +13,6 @@ import { readPlayerId, badRequest } from "./http";
 
 export const duosRoutes = new Hono();
 
-/** Membres (id + pseudo affichable) + lignes de matchs - l'entrée du calcul de duos. */
 async function loadSocialInputs() {
   const playerRows = await db
     .select({

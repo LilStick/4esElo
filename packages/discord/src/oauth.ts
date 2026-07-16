@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-/**
- * Client OAuth Discord (B17.1) - pattern provider : toute l'I/O réseau vers
- * Discord vit ici, validée par zod. Les apps consomment l'interface
- * `DiscordOAuth` (injectable → la logique auth se teste sans réseau).
- */
+/** Client OAuth Discord (B17.1). Toute l'I/O vers Discord vit ici, validée par zod ; les apps consomment l'interface DiscordOAuth. */
 
 const API = "https://discord.com/api/v10";
 const AUTHORIZE_URL = "https://discord.com/oauth2/authorize";
@@ -43,13 +39,10 @@ export interface DiscordUser {
   avatar: string | null;
 }
 
-/** Ce que la logique auth consomme - mockable en test. */
 export interface DiscordOAuth {
   authorizeUrl(state: string): string;
-  /** Échange le `code` du callback contre un access token. */
   exchangeCode(code: string): Promise<string>;
   getUser(accessToken: string): Promise<DiscordUser>;
-  /** L'utilisateur est-il membre du serveur (guild) donné ? */
   isGuildMember(accessToken: string, guildId: string): Promise<boolean>;
 }
 
@@ -57,9 +50,7 @@ export interface DiscordOAuthOptions {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
-  /** Injectable for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
-  /** Per-request timeout (AbortController). */
   timeoutMs?: number;
 }
 

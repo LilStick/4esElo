@@ -21,7 +21,7 @@ import { ogRoutes } from "./og";
 export const app = new Hono();
 app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
 
-// Une erreur imprévue (DB down…) → 500 structuré, jamais de stack trace au client.
+// 500 structuré, jamais de stack trace au client.
 app.onError((err, c) => {
   console.error(`[api] ${c.req.method} ${c.req.path} failed:`, err.message);
   return c.json({ error: "internal error" }, 500);
@@ -36,8 +36,7 @@ app.get("/health", async (c) => {
   }
 });
 
-// Chaque domaine = un routeur monté à la racine (validation + I/O fins ;
-// la logique métier vit dans les modules purs stats/streaks/badges/social/wrapped).
+// Un routeur par domaine (validation + I/O fins) ; la logique métier vit dans les modules purs.
 app.route("/", authRoutes);
 app.route("/", registerRoutes);
 app.route("/", adminRoutes);

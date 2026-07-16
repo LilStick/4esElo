@@ -1,10 +1,9 @@
 import type { DuoPlayer, DuoStat, LineupStat } from "@4eselo/types";
 
 /**
- * Duos (B4.1) - fonctions pures, zéro I/O. Deux membres dans le même match
- * avec le même résultat étaient coéquipiers (une seule équipe gagne) ; des
- * résultats opposés = adversaires, ignorés. Le head-to-head a été écarté :
- * quasi impossible en matchmaking (décision 2026-07-07, cf. #227).
+ * Duos (B4.1), fonctions pures. Même match + même résultat = coéquipiers ;
+ * résultats opposés = adversaires (ignorés). Head-to-head écarté : quasi
+ * impossible en matchmaking (#227).
  */
 
 export interface SocialMatchRow {
@@ -13,7 +12,7 @@ export interface SocialMatchRow {
   result: number; // 1 win, 0 loss
 }
 
-/** Games ensemble minimum pour qu'un duo apparaisse (anti « 100% sur 1 game »). */
+/** Games min. pour qu'un duo apparaisse (anti « 100% sur 1 game »). */
 export const MIN_DUO_MATCHES = 5;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -28,7 +27,7 @@ export function computeDuos(
 ): DuoStat[] {
   const byId = new Map(players.map((p) => [p.id, p]));
 
-  // matchId → joueurs présents, groupés par résultat (même résultat = même équipe).
+  // matchId → joueurs ; même résultat = même équipe.
   const byMatch = new Map<string, SocialMatchRow[]>();
   for (const m of matches) {
     if (!byId.has(m.playerId)) continue;
@@ -71,7 +70,7 @@ export function computeDuos(
     });
   }
 
-  // Meilleur duo d'abord ; à winrate égal, celui qui a le plus joué ensemble.
+  // Meilleur winrate d'abord, puis le plus de games.
   return out.sort(
     (x, y) =>
       y.winRate - x.winRate ||
@@ -80,7 +79,7 @@ export function computeDuos(
   );
 }
 
-/** Les duos d'un joueur donné, mêmes règles, meilleurs coéquipiers d'abord. */
+/** Duos d'un joueur, mêmes règles. */
 export function computePlayerDuos(
   playerId: string,
   players: DuoPlayer[],
@@ -94,7 +93,7 @@ export function computePlayerDuos(
 export const MIN_LINEUP_MATCHES = 3;
 const MAX_LINEUP_SIZE = 5;
 
-/** Toutes les k-combinaisons (indices croissants → pas de doublon ni de permutation). */
+/** k-combinaisons (indices croissants → sans doublon). */
 function combinations<T>(arr: T[], k: number): T[][] {
   const res: T[][] = [];
   const combo: T[] = [];
@@ -114,10 +113,8 @@ function combinations<T>(arr: T[], k: number): T[][] {
 }
 
 /**
- * Lineups (B4.4) : groupes de 3 à 5 membres coéquipiers (même match + même
- * résultat), prolongement des duos. Comme les duos, on compte tous les
- * sous-ensembles (un 5-stack alimente aussi ses trios/quatuors). Sous 3 membres
- * = territoire des duos, ignoré.
+ * Lineups (B4.4) : groupes de 3 à 5 coéquipiers. On compte tous les
+ * sous-ensembles (un 5-stack alimente ses trios/quatuors). < 3 = duos, ignoré.
  */
 export function computeLineups(
   players: DuoPlayer[],
@@ -136,7 +133,7 @@ export function computeLineups(
 
   const groups = new Map<string, { members: string[]; matches: number; wins: number }>();
   for (const rows of byMatch.values()) {
-    // Regroupe par résultat : même résultat = même équipe (une seule gagne).
+    // même résultat = même équipe
     const byResult = new Map<number, string[]>();
     for (const r of rows) {
       const list = byResult.get(r.result) ?? [];
@@ -170,7 +167,7 @@ export function computeLineups(
     });
   }
 
-  // Meilleur lineup d'abord ; égalités départagées par games puis taille puis pseudo.
+  // Meilleur winrate d'abord.
   return out.sort(
     (x, y) =>
       y.winRate - x.winRate ||

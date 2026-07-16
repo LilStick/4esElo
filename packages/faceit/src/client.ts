@@ -23,19 +23,16 @@ export class FaceitError extends Error {
   }
 }
 
-/** Thrown when a nickname/id resolves to no player (HTTP 404). */
+/** Nickname/id introuvable (HTTP 404). */
 export class FaceitNotFoundError extends FaceitError {}
 
 export interface FaceitClientOptions {
-  /** Injectable for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
   /** Retries on 429/5xx/network errors (B11.2). Default 3 attempts total. */
   maxAttempts?: number;
   /** First backoff delay; doubles each attempt, with jitter. */
   baseDelayMs?: number;
-  /** Per-request timeout (AbortController). */
   timeoutMs?: number;
-  /** Injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
 }
 
@@ -76,7 +73,7 @@ export class FaceitClient {
           signal: AbortSignal.timeout(this.timeoutMs),
         });
       } catch (err) {
-        // Network error or timeout - transient by nature.
+        // réseau/timeout = transitoire
         lastError = new FaceitError(0, path, err instanceof Error ? err.message : String(err));
         await this.backoff(attempt);
         continue;
@@ -103,19 +100,17 @@ export class FaceitClient {
     await this.sleep(base * (0.5 + Math.random() * 0.5));
   }
 
-  /** Resolve a CS2 player by their Faceit nickname. */
   async getPlayerByNickname(nickname: string): Promise<FaceitPlayer> {
     const json = await this.get("/players", { nickname, game: "cs2" });
     return normalizePlayer(rawPlayerSchema.parse(json));
   }
 
-  /** Fetch a player by their Faceit player_id. */
   async getPlayerById(playerId: string): Promise<FaceitPlayer> {
     const json = await this.get(`/players/${playerId}`);
     return normalizePlayer(rawPlayerSchema.parse(json));
   }
 
-  /** Recent CS2 matches for a player (most recent first). */
+  /** Matchs CS2 récents (plus récent d'abord). */
   async getMatchHistory(
     playerId: string,
     { limit = 20, offset = 0 }: { limit?: number; offset?: number } = {},
@@ -128,7 +123,7 @@ export class FaceitClient {
     return normalizeHistory(rawHistorySchema.parse(json));
   }
 
-  /** Detailed per-player stats for a match (all players, both teams). */
+  /** Stats par joueur d'un match (tous joueurs, deux équipes). */
   async getMatchStats(matchId: string): Promise<FaceitMatchDetail | null> {
     const json = await this.get(`/matches/${matchId}/stats`);
     return normalizeMatchStats(matchId, rawMatchStatsSchema.parse(json));

@@ -1,14 +1,10 @@
 import { z } from "zod";
 
 /**
- * Steam presence provider - who's online / in CS2 right now.
- * Two paths, same output:
- *  - With STEAM_API_KEY: official GetPlayerSummaries (one batched call for up
- *    to 100 ids, exposes `gameserverip` → community-server detection ≈ Faceit).
- *  - Without key: the public community XML profile, one fetch per id. Works,
- *    but no server info. Good enough for dev / before the key exists.
- * Both depend on the member's Steam privacy: "game details" must be public,
- * otherwise the player just reads as not-in-game.
+ * Présence Steam - qui est en ligne / en CS2. Deux chemins, même sortie :
+ *  - Avec STEAM_API_KEY : GetPlayerSummaries (batch ≤ 100 ids ; gameserverip → serveur communautaire ≈ Faceit).
+ *  - Sans clé : profil XML public, un fetch par id (pas d'info serveur). OK pour le dev.
+ * Les deux dépendent de la vie privée Steam (« détails du jeu » public), sinon = pas-en-jeu.
  */
 
 const CS2_APP_ID = "730";
@@ -70,7 +66,6 @@ const summariesSchema = z.object({
 
 export interface SteamClientOptions {
   apiKey?: string;
-  /** Injectable for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
 }
 
@@ -88,7 +83,7 @@ export class SteamClient implements PresenceReader {
     return this.apiKey ? this.viaApi(steamIds, this.apiKey) : this.viaXml(steamIds);
   }
 
-  /** Lifetime CS2 playtime, one call per id (no batch on this endpoint). Requires a key. */
+  /** Temps de jeu CS2 lifetime, un appel par id (pas de batch ici). Requiert une clé. */
   async getPlaytime(steamIds: string[]): Promise<SteamPlaytime[]> {
     if (!this.apiKey) throw new SteamError(401, "getPlaytime requires STEAM_API_KEY");
     const out: SteamPlaytime[] = [];
@@ -124,7 +119,7 @@ export class SteamClient implements PresenceReader {
       for (const id of batch) {
         const p = byId.get(id);
         if (!p) {
-          // Steam omits players it can't show (private profile) - unknown, not offline.
+          // Steam masque les profils privés → inconnu, pas hors-ligne.
           out.push({ steamId64: id, online: null, inGameCs2: false, onCommunityServer: null });
           continue;
         }

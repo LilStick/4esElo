@@ -2,16 +2,14 @@ import type { BenchmarkStatKey, PlayerBenchmarkResponse, StatsAggregate, StatsRa
 import { percentile } from "./stats";
 
 /**
- * Benchmark intra-asso (B5.11) - fonction pure, zéro I/O. Situe un membre face au pôle
- * sur ses stats clés (percentile « top X% de l'asso »). Le percentile se calcule sur les
- * membres actifs de la fenêtre (≥ seuil de matchs) ; un membre sous le seuil est renvoyé
- * mais sans percentile (`null`), car un échantillon d'1-2 games ne veut rien dire.
+ * Benchmark intra-asso (B5.11), pure. Percentile « top X% » calculé sur les
+ * membres actifs (≥ seuil de matchs) ; sous le seuil → renvoyé sans percentile (null).
  */
 
-/** Nb de matchs minimum sur la fenêtre pour entrer dans le référentiel + être classé. */
+/** Matchs min. pour entrer au référentiel + être classé. */
 export const MIN_BENCHMARK_MATCHES = 10;
 
-/** Les stats classées - pour toutes, « plus haut = mieux » (le percentile se lit tel quel). */
+/** Stats classées ; pour toutes « plus haut = mieux ». */
 export const BENCHMARK_KEYS = [
   "adr",
   "kd",
@@ -26,10 +24,7 @@ export interface PlayerAggregate {
   aggregate: StatsAggregate;
 }
 
-/**
- * `null` si le joueur cible n'est pas dans `all` (inconnu). Sinon, par stat :
- * la valeur du membre + son percentile face aux membres au-dessus du seuil.
- */
+/** null si cible inconnue. Sinon par stat : valeur + percentile vs membres ≥ seuil. */
 export function computeBenchmark(
   range: StatsRange,
   targetId: string,

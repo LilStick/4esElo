@@ -1,10 +1,6 @@
 import type { z } from "zod";
 
-/**
- * Fail-fast env validation (B11.3): parse the environment against a zod
- * schema at startup; on failure, print WHICH variables are wrong and exit -
- * an app must never run half-configured.
- */
+/** Validation env fail-fast (B11.3) : parse au démarrage, affiche les variables fautives et exit - jamais à moitié configuré. */
 export function loadEnv<S extends z.ZodTypeAny>(
   schema: S,
   source: Record<string, string | undefined> = process.env,

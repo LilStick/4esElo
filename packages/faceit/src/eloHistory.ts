@@ -2,12 +2,10 @@ import { z } from "zod";
 import { FaceitError } from "./client";
 
 /**
- * UNOFFICIAL - per-match ELO history from the faceit.com frontend API
- * (`/stats/v1/...`, found by Arthur, #141). Behind Cloudflare bot management:
- * a discrete request usually passes, bursts get 403'd (measured 2026-07-04/06).
- * Consumers MUST be opportunistic - one polite attempt, treat 403 as "not
- * today", never retry-storm. Kept behind EloHistoryProvider so the source can
- * be swapped without touching the backfill logic.
+ * NON OFFICIEL - historique d'ELO par match (frontend faceit.com `/stats/v1/...`, #141).
+ * Derrière Cloudflare : une requête isolée passe souvent, les bursts se prennent un 403.
+ * Consommer de façon opportuniste (1 tentative polie, 403 = tant pis, jamais de retry-storm).
+ * Isolé derrière EloHistoryProvider pour pouvoir changer de source sans toucher au backfill.
  */
 
 const STATS_API = "https://api.faceit.com/stats/v1/stats/time/users";
@@ -42,7 +40,6 @@ export interface EloHistoryProvider {
 
 export interface UnofficialEloHistoryOptions {
   fetchImpl?: typeof fetch;
-  /** Injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
   pageSize?: number;
   throttleMs?: number;

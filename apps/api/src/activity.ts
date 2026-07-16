@@ -9,11 +9,10 @@ export const activityRoutes = new Hono();
 
 const activityDaysSchema = z.coerce.number().int().min(1).max(730).default(365);
 
-/** Nb de matchs par jour UTC depuis la fenêtre. Pôle entier (playerId null) : un match
- *  joué par plusieurs membres compte une fois (distinct matchId). */
+/** Matchs par jour UTC. playerId null = pôle entier : un match multi-membres compté une fois (distinct matchId). */
 async function loadActivity(days: number, playerId: string | null): Promise<ActivityDay[]> {
   const cutoff = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000);
-  cutoff.setUTCHours(0, 0, 0, 0); // fenêtre alignée sur des jours UTC pleins, aujourd'hui inclus
+  cutoff.setUTCHours(0, 0, 0, 0); // jours UTC pleins, aujourd'hui inclus
   const rows = await db.execute<{ day: string; matches: number }>(sql`
     select to_char(played_at at time zone 'UTC', 'YYYY-MM-DD') as day,
            count(distinct match_id)::int as matches

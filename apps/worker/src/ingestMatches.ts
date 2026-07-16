@@ -2,10 +2,9 @@ import { FaceitError, FaceitNotFoundError, type FaceitMatchDetail } from "@4esel
 import type { MatchTeam } from "@4eselo/types";
 
 /**
- * Vue match-level (B4.3) : remplit la table `matches` à partir des matchs déjà
- * connus (faceit_match_stats) qui n'y sont pas encore - couvre d'un même geste
- * les nouveaux matchs (à chaque sync) et le backfill des anciens. Logique pure :
- * le réseau (reader) et la DB (store) arrivent en paramètre → testable sans I/O.
+ * Vue match-level (B4.3) : remplit `matches` depuis les matchs connus
+ * (faceit_match_stats) pas encore présents - couvre nouveaux et anciens d'un geste.
+ * Pure logic : reader + store en paramètre.
  */
 
 export interface MatchToBackfill {
@@ -30,7 +29,7 @@ export interface MatchLevelStore {
 }
 
 export interface IngestMatchesOptions {
-  /** Cap de matchs traités par run (le reste passe au run suivant). */
+  /** Cap de matchs par run (le reste au run suivant). */
   maxMatches?: number;
   throttleMs?: number;
   sleep?: (ms: number) => Promise<void>;

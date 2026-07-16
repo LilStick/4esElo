@@ -6,12 +6,8 @@ import type { RefreshEloResponse } from "@4eselo/types";
 import { FACEIT_API_KEY } from "./env";
 import { readPlayerId, badRequest } from "./http";
 
-/**
- * Refresh ELO à la demande (B16.6). Sans worker 24/7, l'ELO du profil peut être
- * figé jusqu'au prochain sync ; ici on resync UN joueur depuis Faceit à la volée
- * (même règle snapshot-on-change que `syncPlayer` côté worker). Faceit injectable
- * (mockable en test) ; rate-limit mémoire pour ne pas marteler l'API Faceit.
- */
+// Refresh ELO à la demande (B16.6) : resync UN joueur, snapshot-on-change comme le worker.
+// Rate-limit mémoire pour ne pas marteler Faceit.
 
 export interface RefreshFaceit {
   getPlayerById(faceitId: string): Promise<FaceitPlayer>;
@@ -24,7 +20,6 @@ export const refreshDeps: { faceit: RefreshFaceit | null } = {
 const COOLDOWN_MS = 60_000;
 const lastRefresh = new Map<string, number>();
 
-/** Réinitialise le cooldown (tests). */
 export function resetRefreshCooldown(): void {
   lastRefresh.clear();
 }
@@ -44,7 +39,7 @@ refreshRoutes.post("/players/:id/refresh", async (c) => {
   if (!player) return c.json({ error: "player not found" }, 404);
   if (!player.faceitId) return c.json({ error: "player has no Faceit account" }, 409);
 
-  // Rate-limit : on borne les tentatives (même échec) pour ne pas taper Faceit en boucle.
+  // Rate-limit : l'échec compte aussi, pour ne pas taper Faceit en boucle.
   const now = Date.now();
   const last = lastRefresh.get(id);
   if (last !== undefined && now - last < COOLDOWN_MS) {
@@ -69,7 +64,7 @@ refreshRoutes.post("/players/:id/refresh", async (c) => {
     .orderBy(desc(eloSnapshots.capturedAt))
     .limit(1);
 
-  // Snapshot-on-change (jumelle de syncPlayer) : on n'insère un point que si l'ELO a bougé.
+  // Snapshot-on-change : on n'insère un point que si l'ELO a bougé.
   const changed = (latest?.elo ?? null) !== elo;
   if (changed) {
     await db.insert(eloSnapshots).values({ playerId: id, source: "faceit", elo, level: skillLevel });

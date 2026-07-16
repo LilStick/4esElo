@@ -45,7 +45,7 @@ function makeDetail(matchId: string, extra: Partial<FaceitMatchDetail> = {}): Fa
   };
 }
 
-/** Reader over a fixed history; records calls, supports per-match failures. */
+/** Reader sur un historique fixe ; enregistre les appels, échecs par match. */
 function makeReader(
   refs: FaceitMatchRef[],
   opts: { failStats?: Record<string, Error>; detailFor?: (id: string) => FaceitMatchDetail | null } = {},
@@ -237,8 +237,8 @@ test("member missing from the match detail → failed, no insert, run continues"
 });
 
 test("bye/forfeit (zero duration) → never fetched, not counted failed (#244)", async () => {
-  // Real case (Styl1zt): a championship bye finishes the instant it starts and
-  // has no stats page - fetching it would 404 forever, on every run.
+  // Cas réel (Styl1zt) : un bye finit à l'instant où il commence, sans page stats
+  // - le fetch 404 pour toujours, à chaque run.
   const refs = makeRefs(3);
   const bye = refs[1]!;
   refs[1] = { ...bye, finishedAt: bye.startedAt };

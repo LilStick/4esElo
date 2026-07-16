@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FaceitClient, FaceitError, FaceitNotFoundError } from "./client";
 
-// A fake fetch that returns a canned Response and records the last request.
 function fakeFetch(response: Response) {
   const calls: { url: string; headers: Record<string, string> }[] = [];
   const impl = (async (input: string | URL | Request, init?: RequestInit) => {
@@ -44,7 +43,6 @@ test("getPlayerByNickname normalizes the CS2 profile", async () => {
     steamId64: "76561198000000000",
   });
 
-  // sends the API key and the right query params
   assert.equal(calls[0]!.headers.Authorization, "Bearer key-xyz");
   assert.match(calls[0]!.url, /nickname=s1mple_wannabe/);
   assert.match(calls[0]!.url, /game=cs2/);
@@ -86,8 +84,6 @@ test("getMatchHistory normalizes items and converts timestamps", async () => {
   assert.equal(matches[0]!.finishedAt?.getTime(), 1_700_003_600 * 1000);
   assert.equal(matches[1]!.finishedAt, null);
 });
-
-// --- B11.2 : timeout, retry & backoff ---
 
 function flaky(responses: (Response | Error)[]): { fetch: typeof fetch; calls: number } {
   const state = { calls: 0 };

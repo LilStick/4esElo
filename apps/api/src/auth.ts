@@ -9,9 +9,9 @@ import { AUTH_CONFIG, WEB_ORIGINS, type AuthConfig } from "./env";
 import { isBanned } from "./banCache";
 
 /**
- * Auth Discord (B17.1) : OAuth → session en cookie httpOnly signé (HMAC via
- * hono/cookie), 7 jours. Pas de table sessions : le cookie signé porte tout,
- * la révocation = expiration. Le provider Discord est injectable (tests sans réseau).
+ * Auth Discord (B17.1) : OAuth → cookie httpOnly signé (HMAC), 7 j. Pas de table
+ * sessions : le cookie porte tout, révocation = expiration. Provider injectable
+ * (tests sans réseau).
  */
 
 const SESSION_COOKIE = "4eselo_session";
@@ -21,12 +21,12 @@ const SESSION_TTL_S = 7 * 24 * 60 * 60;
 export interface SessionPayload {
   discordId: string;
   displayName: string;
-  /** Hash d'avatar Discord, null si aucun (absent sur les vieux cookies → null). */
+  /** Hash avatar, null si aucun (absent sur vieux cookies → null). */
   avatar?: string | null;
   exp: number; // epoch seconds
 }
 
-/** Swappable for tests (même pattern que presenceDeps). */
+/** Injectable pour les tests (cf. presenceDeps). */
 export const authDeps: { config: AuthConfig | null; oauth: DiscordOAuth | null } = {
   config: AUTH_CONFIG,
   oauth: AUTH_CONFIG
@@ -38,7 +38,7 @@ export const authDeps: { config: AuthConfig | null; oauth: DiscordOAuth | null }
     : null,
 };
 
-/** Où renvoyer l'utilisateur après le flow - la première origine CORS = le front. */
+/** Retour après le flow : 1re origine CORS = le front. */
 const webHome = () => WEB_ORIGINS[0] ?? "http://localhost:5173";
 
 const secure = () => webHome().startsWith("https://");
@@ -52,7 +52,7 @@ export async function readSession(c: Context): Promise<SessionPayload | null> {
     const parsed = JSON.parse(raw) as SessionPayload;
     if (typeof parsed.discordId !== "string" || typeof parsed.exp !== "number") return null;
     if (parsed.exp * 1000 < Date.now()) return null;
-    // Ban (B17.9) : coupe une session déjà ouverte, même si le cookie est valide.
+    // Ban (B17.9) : coupe une session valide déjà ouverte.
     if (await isBanned(parsed.discordId)) return null;
     return parsed;
   } catch {
@@ -106,17 +106,16 @@ authRoutes.get("/auth/callback", async (c) => {
   try {
     const token = await oauth.exchangeCode(code);
     if (!(await oauth.isGuildMember(token, config.guildId))) {
-      // Refus propre : pas membre du serveur 4esport → le front affiche l'invite.
+      // Pas membre → le front affiche l'invite.
       const invite = config.guildInviteUrl ? `&invite=${encodeURIComponent(config.guildInviteUrl)}` : "";
       return c.redirect(`${webHome()}/?auth=not-member${invite}`);
     }
     const user = await oauth.getUser(token);
-    // Banni (B17.9) : pas de session posée, le front affiche l'écran adéquat.
+    // Banni : pas de session, le front gère l'écran.
     if (await isBanned(user.id)) return c.redirect(`${webHome()}/?auth=banned`);
     await writeSession(c, { discordId: user.id, displayName: user.displayName, avatar: user.avatar });
-    // Rafraîchit le snapshot DB à chaque connexion (pas seulement à l'inscription) -
-    // sinon le nom/avatar affichés ailleurs (classement, profil…) restent figés.
-    // No-op si le membre n'est pas encore inscrit (aucune ligne à matcher).
+    // Rafraîchit le snapshot (nom/avatar) à chaque login, sinon il reste figé
+    // ailleurs. No-op si pas encore inscrit.
     await db
       .update(players)
       .set({ discordName: user.displayName, discordAvatar: user.avatar ?? null })
@@ -157,17 +156,16 @@ authRoutes.get("/me", async (c) => {
     discordId: session.discordId,
     displayName: session.displayName,
     isAdmin: authDeps.config?.adminDiscordIds.includes(session.discordId) ?? false,
-    // Hash frais de la session (capturé à chaque login) - prioritaire sur le
-    // snapshot DB du joueur, pris une seule fois à l'inscription (register.ts).
+    // Hash frais de la session, prioritaire sur le snapshot DB (figé à l'inscription).
     avatar: session.avatar ?? null,
     player: player
       ? {
           id: player.id,
-          discordId: session.discordId, // matché via discord_id, donc identique
+          discordId: session.discordId, // matché via discord_id
           discordName: player.discordName,
           faceitNickname: player.faceitNickname,
           steamId64: player.steamId64,
-          elo: null, // le front a déjà l'ELO par le leaderboard ; ici on identifie, c'est tout
+          elo: null, // le front a déjà l'ELO via le leaderboard
           level: null,
           discordAvatar: player.discordAvatar,
           formation: player.formation,

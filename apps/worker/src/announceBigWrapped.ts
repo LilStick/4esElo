@@ -1,17 +1,11 @@
 /**
- * Annonce du BIG Wrapped annuel (B7.12) : dès qu'une année se termine, une
- * annonce « Le BIG Wrapped <année> est là » est insérée pour la home. Même
- * mécanique que le Wrapped mensuel : pas de check « on est le 1er janvier », la
- * clé de dédup par année fait tout - si le worker était down, l'annonce part à la
- * relance suivante, jamais en double. Logique pure - la DB arrive en interface.
- *
- * (Les Wrapped semestriels restent consultables à la demande via l'endpoint
- *  `/wrapped/big/:period` ; seule l'annonce annuelle - le moment phare - est auto.)
+ * Annonce annuelle du BIG Wrapped (B7.12) : dédup par année → idempotent même si
+ * le worker était down. Pure logic, DB en interface. (Les Wrapped semestriels
+ * restent consultables via `/wrapped/big/:period` ; seule l'annonce annuelle est auto.)
  */
 import type { AnnouncementStore } from "./announce";
 
 export interface PeriodActivityReader {
-  /** Le pôle a-t-il au moins un match stocké sur [start, end) ? */
   hasMatchesInRange(start: Date, end: Date): Promise<boolean>;
 }
 

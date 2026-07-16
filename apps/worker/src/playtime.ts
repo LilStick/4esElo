@@ -1,15 +1,15 @@
 import type { PlaytimeReader } from "@4eselo/steam";
 
 /**
- * Daily playtime sampling (B7.1): one snapshot of lifetime CS2 minutes per
- * player per UTC day. Monthly playtime for the Wrapped ⏰ award = the diff
- * between two samples. Pure logic - Steam and the DB come in as interfaces.
+ * Échantillon quotidien de temps de jeu (B7.1) : un snapshot des minutes CS2
+ * lifetime par joueur/jour UTC. Le temps mensuel (award Wrapped ⏰) = diff entre
+ * deux échantillons. Pure logic - Steam et DB en interfaces.
  */
 
 export interface PlaytimeStore {
-  /** UTC day (YYYY-MM-DD) of the player's most recent snapshot, or null. */
+  /** Jour UTC (YYYY-MM-DD) du snapshot le plus récent, ou null. */
   getLastCapturedDay(playerId: string): Promise<string | null>;
-  /** minutesForever null = sampled but private - the front shows a hint. */
+  /** minutesForever null = échantillonné mais privé - le front affiche un hint. */
   insertPlaytime(playerId: string, minutesForever: number | null): Promise<void>;
 }
 
@@ -20,9 +20,9 @@ export interface PlayerToSample {
 
 export interface PlaytimeResult {
   sampled: number;
-  /** Already sampled today. */
+  /** Déjà échantillonné aujourd'hui. */
   skipped: number;
-  /** Playtime unreadable (private profile, Steam error). */
+  /** Temps illisible (profil privé, erreur Steam). */
   failed: number;
 }
 
@@ -49,7 +49,7 @@ export async function samplePlaytime(
   );
   for (const p of due) {
     const minutes = playtimes.get(p.steamId64);
-    // null is stored too: "sampled today, but private" - one row per day either way.
+    // null aussi stocké : "échantillonné aujourd'hui mais privé" - une ligne/jour.
     await store.insertPlaytime(p.id, minutes ?? null);
     if (minutes === null || minutes === undefined) result.failed += 1;
     else result.sampled += 1;

@@ -14,12 +14,9 @@ import { readSession } from "./auth";
 import { badRequest } from "./http";
 
 /**
- * Boîte à idées (B17.7 / vote B17.12) : les membres connectés déposent des
- * suggestions, relayées dans un salon Discord. Deux relais possibles, injectables
- * (pattern authDeps) → testables sans réseau :
- *  - **bot** (préféré) : poste l'idée PUIS amorce ✅/❌ → on peut voter (B17.12) ;
- *  - **webhook** (fallback) : poste le texte, mais ne peut pas réagir ;
- *  - aucun des deux → l'idée est stockée quand même (jamais d'erreur bloquante).
+ * Boîte à idées (B17.7 / vote B17.12) : membres connectés → suggestions relayées
+ * sur Discord. Relais injectables (cf. authDeps) : bot (poste + amorce ✅/❌,
+ * votable), sinon webhook (poste sans réagir), sinon rien (idée stockée quand même).
  */
 export const ideasDeps: {
   bot: DiscordBot | null;
@@ -31,12 +28,12 @@ export const ideasDeps: {
   webhook: DISCORD_IDEAS_WEBHOOK_URL ? new DiscordWebhookClient(DISCORD_IDEAS_WEBHOOK_URL) : null,
 };
 
-/** Relaie une idée sur Discord : bot (+ vote ✅/❌) si dispo, sinon webhook, sinon rien. */
+/** Relais Discord : bot (+ vote) si dispo, sinon webhook, sinon rien. */
 async function relayIdea(text: string, author: string): Promise<void> {
   const msg = { title: "💡 Nouvelle idée", description: text, footer: `par ${author}` };
   if (ideasDeps.bot && ideasDeps.ideasChannelId) {
     const messageId = await ideasDeps.bot.postMessage(ideasDeps.ideasChannelId, msg);
-    // Amorce le vote (séquentiel pour garder l'ordre ✅ puis ❌).
+    // séquentiel pour garder l'ordre ✅ puis ❌
     await ideasDeps.bot.react(ideasDeps.ideasChannelId, messageId, "✅");
     await ideasDeps.bot.react(ideasDeps.ideasChannelId, messageId, "❌");
     return;
@@ -46,8 +43,7 @@ async function relayIdea(text: string, author: string): Promise<void> {
 
 const MAX_PER_DAY = 3;
 const RECENT_LIMIT = 50;
-// trim + bornes = seule contrainte ; le texte est stocké brut (paramétré, pas de SQLi)
-// et échappé au rendu côté front (pas de HTML serveur).
+// texte stocké brut (paramétré, pas de SQLi) ; échappé côté front.
 const bodySchema = z.object({ text: z.string().trim().min(1).max(500) });
 
 export const ideasRoutes = new Hono();
@@ -65,7 +61,7 @@ ideasRoutes.post("/ideas", async (c) => {
   const parsed = bodySchema.safeParse(raw);
   if (!parsed.success) return badRequest(c, "texte requis, 500 caractères max");
 
-  // Rate-limit : 3 idées / membre / 24 h. Clé = discordId de la session signée.
+  // Rate-limit : 3 idées / membre / 24h (clé = discordId session).
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const [recent] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -80,8 +76,7 @@ ideasRoutes.post("/ideas", async (c) => {
     .values({ discordId: session.discordId, discordName: session.displayName, text: parsed.data.text })
     .returning();
 
-  // Relais Discord best-effort : bot/webhook absent ou mort → l'idée est déjà
-  // stockée, on logge et on répond 201 (jamais de 500 à cause du relais).
+  // best-effort : idée déjà stockée → on logge, jamais de 500.
   try {
     await relayIdea(parsed.data.text, session.displayName);
   } catch (err) {

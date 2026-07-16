@@ -26,8 +26,7 @@ const sparklineSchema = z.coerce.number().int().min(1).max(50).optional();
 const WINDOW_HOURS = { "24h": 24, "7d": 24 * 7 } as const;
 const windowSchema = z.enum(["24h", "7d"]).default("24h");
 
-// NOTE: /movers et /overtakes déclarés avant /leaderboard pour que Hono matche
-// le chemin statique en premier.
+// Hono : /movers et /overtakes AVANT /leaderboard (le chemin statique doit matcher en premier).
 leaderboardRoutes.get("/leaderboard/movers", async (c) => {
   const source = readSource(c);
   if (!source) return badRequest(c, "invalid source (faceit|premier)");
@@ -142,7 +141,7 @@ leaderboardRoutes.get("/leaderboard/overtakes", async (c) => {
   return c.json<OvertakesResponse>({ source, window, overtakes });
 });
 
-// Static path déclaré avant /leaderboard (comme movers/overtakes).
+// Chemin statique avant /leaderboard (cf. movers/overtakes).
 leaderboardRoutes.get("/leaderboard/maps", async (c) => {
   const playerRows = await db.execute<{
     id: string;
@@ -233,11 +232,10 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     badgeTiers: [],
   }));
 
-  // Badges (B5.8) : une passe de stats par joueur, champs scalaires extraits du
-  // JSONB (pas de payload lourd), agrégés en mémoire par la logique pure.
+  // Badges (B5.8) : que les champs scalaires du JSONB (pas de payload lourd), agrégés en mémoire.
   const badgeRows = await db.execute<{
     player_id: string;
-    played_at: string; // SQL brut → string ISO (à convertir), pas un Date typé Drizzle
+    played_at: string; // SQL brut → string ISO, pas un Date typé Drizzle
     result: number;
     hs: number;
     entry_count: number;
@@ -271,7 +269,7 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
   for (const entry of leaderboard) {
     const all = matchesByPlayer.get(entry.id) ?? [];
     entry.badges = computeBadges(all);
-    // Badges à paliers sur la fenêtre 24h (B5.13) - classement/home = « chaud aujourd'hui ».
+    // Fenêtre 24h (B5.13) : le classement montre le « chaud aujourd'hui ».
     entry.badgeTiers = computeBadgeTiers(
       all.filter((m) => m.playedAt.getTime() >= since24h),
       "today",

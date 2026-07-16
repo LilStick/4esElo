@@ -1,13 +1,9 @@
 import type { BadgeId, BadgeTier } from "@4eselo/types";
 import { computeStreak } from "./streaks";
 
-/**
- * Badges emoji (B5.8) - logique pure, zéro I/O : les matchs arrivent en
- * paramètre, l'endpoint fait la requête. Chaque règle a un seuil documenté et
- * une taille d'échantillon minimale pour éviter le « 100 % sur 1 game ».
- */
+/** Badges emoji (B5.8), logique pure. Chaque règle a un seuil + une taille d'échantillon min. (évite le « 100% sur 1 game »). */
 
-/** Un match réduit à ce dont les règles ont besoin (clutchs déjà sommés 1v1+1v2). */
+/** Match réduit aux besoins des règles (clutchs déjà sommés 1v1+1v2). */
 export interface BadgeMatch {
   playedAt: Date;
   result: number; // 1 win, 0 loss
@@ -18,19 +14,19 @@ export interface BadgeMatch {
   clutchWins: number;
 }
 
-// Seuils - ajustables ; documentés ici volontairement (source de vérité unique).
-const STREAK_MIN = 3; // 🔥 victoires consécutives en cours
-const HS_MIN_MATCHES = 10; // 🎯 assez de matchs pour que la moyenne veuille dire qqch
+// Seuils ajustables (source de vérité unique).
+const STREAK_MIN = 3; // 🔥 victoires consécutives
+const HS_MIN_MATCHES = 10; // 🎯 matchs min. pour une moyenne fiable
 const HS_RATE = 50; // % HS moyen
 const ENTRY_MIN_DUELS = 20; // 💣 duels d'entrée tentés
 const ENTRY_RATE = 0.55; // part d'entrées gagnées
-const CLUTCH_MIN = 10; // 🧠 clutchs tentés (1v1 + 1v2)
+const CLUTCH_MIN = 10; // 🧠 clutchs tentés (1v1+1v2)
 const CLUTCH_RATE = 0.5; // part de clutchs gagnés
-const GRIND_DAY_MATCHES = 6; // 🚿 matchs sur une même journée (UTC)
+const GRIND_DAY_MATCHES = 6; // 🚿 matchs / journée (UTC)
 
 const utcDayKey = (d: Date) => d.toISOString().slice(0, 10); // YYYY-MM-DD
 
-/** Renvoie les badges décrochés, dans un ordre stable (ordre du catalogue). */
+/** Badges décrochés, ordre stable (catalogue). */
 export function computeBadges(matches: BadgeMatch[]): BadgeId[] {
   const badges: BadgeId[] = [];
   const n = matches.length;
@@ -38,25 +34,21 @@ export function computeBadges(matches: BadgeMatch[]): BadgeId[] {
 
   const byDateDesc = [...matches].sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
 
-  // 🔥 série de victoires en cours (réutilise la logique de streaks B5.5).
+  // 🔥 réutilise la logique de streaks (B5.5).
   const streak = computeStreak(byDateDesc.map((m) => m.result));
   if (streak.current?.type === "win" && streak.current.length >= STREAK_MIN) badges.push("streak");
 
-  // 🎯 moyenne de HS% sur assez de matchs.
   const hsAvg = matches.reduce((s, m) => s + m.hsPercent, 0) / n;
   if (n >= HS_MIN_MATCHES && hsAvg >= HS_RATE) badges.push("headshot");
 
-  // 💣 taux de duels d'entrée gagnés sur assez de tentatives.
   const entryWins = matches.reduce((s, m) => s + m.entryWins, 0);
   const entryCount = matches.reduce((s, m) => s + m.entryCount, 0);
   if (entryCount >= ENTRY_MIN_DUELS && entryWins / entryCount >= ENTRY_RATE) badges.push("entry");
 
-  // 🧠 taux de clutchs gagnés sur assez de tentatives.
   const clutchWins = matches.reduce((s, m) => s + m.clutchWins, 0);
   const clutchCount = matches.reduce((s, m) => s + m.clutchCount, 0);
   if (clutchCount >= CLUTCH_MIN && clutchWins / clutchCount >= CLUTCH_RATE) badges.push("clutch");
 
-  // 🚿 au moins une grosse journée de matchs.
   const perDay = new Map<string, number>();
   for (const m of matches) {
     const k = utcDayKey(m.playedAt);
@@ -69,26 +61,24 @@ export function computeBadges(matches: BadgeMatch[]): BadgeId[] {
 }
 
 /**
- * Badges À PALIERS façon Calibrum (B5.13) - `computeBadgeTiers`.
- * L'appelant passe les matchs DÉJÀ fenêtrés (24h pour classement/home, 30j pour profil).
- * Chaque badge porte un `count` (nb d'émojis) + un `message` (tooltip). Additif : ne
- * remplace pas `computeBadges`. Seuils = premier jet, à affiner post-déploiement.
+ * Badges à paliers (B5.13). L'appelant passe les matchs DÉJÀ fenêtrés (24h
+ * classement/home, 30j profil). count = nb d'émojis. Additif à computeBadges.
  */
-// Paliers (tous ajustables - cf. ROADMAP « À revoir après déploiement »).
-const STREAK_STEP = 3; // 🔥/😰 : 1 émoji par tranche de 3
-const GRIND_STEP = 2; // 🚿 : 1 émoji par tranche de 2 matchs sur la journée, plafonné à 3
+// Paliers ajustables (cf. ROADMAP).
+const STREAK_STEP = 3; // 🔥/😰 : 1 émoji / 3
+const GRIND_STEP = 2; // 🚿 : 1 émoji / 2 matchs/jour, max 3
 const HS_BANDS: [number, number] = [50, 60]; // 🎯 %HS → 1 puis 2 émojis
 const ENTRY_BANDS: [number, number] = [55, 70]; // 💣 % duels d'entrée
 const CLUTCH_BANDS: [number, number] = [50, 65]; // 🧠 % clutchs
-// Min-samples relâchés (fenêtres courtes) - sinon jamais de badge sur 24h.
+// Min-samples relâchés (sinon jamais de badge sur 24h).
 const TIER_HS_MIN = 5;
 const TIER_ENTRY_MIN = 8;
 const TIER_CLUTCH_MIN = 4;
 
-/** Nb de paliers atteints selon des seuils croissants (1 par seuil franchi). */
+/** Nb de paliers franchis (1 par seuil). */
 const bandCount = (v: number, bands: readonly number[]) => bands.filter((b) => v >= b).length;
 
-/** Cadre temporel de la fenêtre analysée : classement = 24h, profil = 30j. */
+/** Fenêtre : classement = 24h, profil = 30j. */
 export type BadgeScope = "today" | "month";
 
 export function computeBadgeTiers(matches: BadgeMatch[], scope: BadgeScope): BadgeTier[] {
@@ -117,7 +107,7 @@ export function computeBadgeTiers(matches: BadgeMatch[], scope: BadgeScope): Bad
     });
   }
 
-  // 🚿 grind : plus grosse journée (UTC) de la fenêtre.
+  // 🚿 plus grosse journée (UTC)
   const perDay = new Map<string, number>();
   for (const m of matches) perDay.set(utcDayKey(m.playedAt), (perDay.get(utcDayKey(m.playedAt)) ?? 0) + 1);
   const maxDay = Math.max(...perDay.values());
@@ -130,7 +120,6 @@ export function computeBadgeTiers(matches: BadgeMatch[], scope: BadgeScope): Bad
     });
   }
 
-  // 🎯 HS%, 💣 entry, 🧠 clutch : paliers par bandes de taux (min-samples relâchés).
   const hsAvg = matches.reduce((s, m) => s + m.hsPercent, 0) / n;
   if (n >= TIER_HS_MIN) {
     const c = bandCount(hsAvg, HS_BANDS);

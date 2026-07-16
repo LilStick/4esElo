@@ -1,8 +1,4 @@
-/**
- * Avatar Discord : URL CDN (pur) + récupération best-effort en data URI pour
- * l'embarquer dans un SVG (carte de partage OG, B5.4). Le fetch est isolé ici
- * (les apps n'ont pas le droit de fetch en direct) et injectable pour les tests.
- */
+/** Avatar Discord : URL CDN + fetch best-effort en data URI pour l'embarquer dans un SVG (carte OG, B5.4). */
 
 /** URL CDN de l'avatar. `size` doit être une puissance de 2 (16…4096). */
 export function discordAvatarUrl(discordId: string, hash: string, size = 256): string {
@@ -10,17 +6,12 @@ export function discordAvatarUrl(discordId: string, hash: string, size = 256): s
 }
 
 export interface FetchAvatarOptions {
-  /** Injectable pour les tests ; défaut = fetch global. */
   fetchImpl?: typeof fetch;
   size?: number;
   timeoutMs?: number;
 }
 
-/**
- * Télécharge l'avatar et le renvoie en `data:image/…;base64,…`, ou `null` si
- * quoi que ce soit échoue (CDN down, timeout, hash mort) - l'appelant retombe
- * alors sur une carte dégradée, ce n'est jamais une erreur bloquante.
- */
+/** Avatar en data URI base64, ou null si échec (CDN down, timeout, hash mort) - best-effort, jamais bloquant. */
 export async function fetchAvatarDataUri(
   discordId: string,
   hash: string,
@@ -38,7 +29,7 @@ export async function fetchAvatarDataUri(
     const mime = res.headers.get("content-type") ?? "image/png";
     return `data:${mime};base64,${bytes.toString("base64")}`;
   } catch {
-    // Best-effort : réseau / timeout / avatar supprimé → null = carte dégradée.
+    // best-effort : échec → null (carte dégradée)
     return null;
   } finally {
     clearTimeout(timer);
