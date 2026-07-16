@@ -16,7 +16,8 @@ import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 import backdrop from "../assets/maps/screens/de_mirage.png";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
+// Pseudo Discord en priorité (identifier qui est qui), Faceit en secours.
+const nameOf = (e: LeaderboardEntry) => e.discordName ?? e.faceitNickname ?? "-";
 
 /** Delta d'ELO sur 7 j (±points), entre le rang et l'avatar - « - » si nul / non suivi. */
 function EloDelta({ delta }: { delta: number | null | undefined }) {

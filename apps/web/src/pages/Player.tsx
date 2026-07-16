@@ -90,7 +90,8 @@ export function Player() {
     enabled: id.length > 0,
   });
 
-  const name = data?.faceitNickname ?? data?.discordName ?? "Joueur";
+  // Identité : pseudo Discord en priorité (on sait qui est qui), Faceit en secondaire.
+  const name = data?.discordName ?? data?.faceitNickname ?? "Joueur";
   useTitle(name);
 
   return (
@@ -123,6 +124,11 @@ export function Player() {
                 <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
                 <div className="min-w-0">
                   <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
+                  {data.discordName && data.faceitNickname && (
+                    <div className="mt-0.5 truncate font-mono text-[13px] text-ink-dim" title="Pseudo Faceit">
+                      {data.faceitNickname}
+                    </div>
+                  )}
                   <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">
                     {data.faceitNickname && (
                       <a
