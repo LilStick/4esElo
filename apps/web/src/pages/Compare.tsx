@@ -20,9 +20,7 @@ import type { IconType } from "react-icons";
 import type { LeaderboardEntry, StatsAggregate } from "@4eselo/types";
 import { getLeaderboard, getPlayerStats } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
-import { clampPage, pageCountOf } from "../lib/pagination";
-import { usePageSize } from "../lib/usePageSize";
-import { Avatar, Card, LevelBadge, Modal, Pagination } from "../ui";
+import { Avatar, Card, LevelBadge, Modal } from "../ui";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 import vsLogo from "../assets/compare/vs_logo.png";
@@ -179,7 +177,6 @@ export function Compare() {
   const [params, setParams] = useSearchParams();
   const [picking, setPicking] = useState<"a" | "b" | null>(null);
   const [pickQ, setPickQ] = useState("");
-  const [pickPage, setPickPage] = useState(0);
   const aId = params.get("a") ?? "";
   const bId = params.get("b") ?? "";
 
@@ -191,17 +188,12 @@ export function Compare() {
   const aEntry = players.find((p) => p.id === aId);
   const bEntry = players.find((p) => p.id === bId);
 
-  // Picker : recherche + pagination numérotée (taille de page selon l'écran).
+  // Picker : recherche + scroll (dans une modale, taper pour filtrer > pages numérotées).
   const pickable = players.filter(
     (p) =>
       p.id !== (picking === "a" ? bId : aId) &&
       (pickQ.trim() === "" || norm(nameOf(p)).includes(norm(pickQ.trim()))),
   );
-  const pickPageSize = usePageSize({ rowHeight: 48, reserved: 300, min: 6, max: 40 });
-  const pickPageCount = pageCountOf(pickable.length, pickPageSize);
-  const pickSafePage = clampPage(pickPage, pickPageCount);
-  const pickItems = pickable.slice(pickSafePage * pickPageSize, pickSafePage * pickPageSize + pickPageSize);
-  useEffect(() => setPickPage(0), [pickQ, picking]); // reset page sur recherche / ouverture
   useEffect(() => setPickQ(""), [picking]); // vide la recherche à chaque ouverture
 
   const statsA = useQuery({
@@ -387,11 +379,11 @@ export function Compare() {
               className="w-full rounded-xl border border-white/[0.09] bg-white/[0.02] py-2.5 pr-3 pl-9 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand/60"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            {pickItems.length === 0 ? (
+          <div className="flex max-h-[55vh] flex-col gap-1 overflow-y-auto">
+            {pickable.length === 0 ? (
               <p className="px-1 py-6 text-center text-sm text-ink-dim">Aucun membre trouvé.</p>
             ) : (
-              pickItems.map((p) => (
+              pickable.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => pick(p.id)}
@@ -405,7 +397,6 @@ export function Compare() {
               ))
             )}
           </div>
-          <Pagination page={pickSafePage} pageCount={pickPageCount} onPage={setPickPage} />
         </div>
       </Modal>
     </div>

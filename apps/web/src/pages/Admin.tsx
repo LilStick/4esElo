@@ -611,7 +611,7 @@ export function Admin() {
       </div>
 
       {/* Onglets (état dans l'URL ?tab= → deep-linkable, conservé au refresh) */}
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
         {TABS.map((t) => {
           const isActive = t.id === tab;
           return (
