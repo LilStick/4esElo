@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { TbChartBar } from "react-icons/tb";
 import type { StatsRange } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
-import { Card, CountUp, Skeleton } from "../ui";
+import { Card, CountUp, InfoTip, Skeleton } from "../ui";
 import { ratingColor } from "../lib/rating";
 import { EmptyState } from "./EmptyState";
 
@@ -17,6 +17,7 @@ const tileVariants = {
 
 function StatCard({
   label,
+  info,
   value,
   format,
   sub,
@@ -26,6 +27,8 @@ function StatCard({
   wide,
 }: {
   label: string;
+  /** Explication affichée au survol d'une icône « i » (ce que dit la stat). */
+  info?: string;
   /** null → « - » (pas de count-up). */
   value: number | null;
   format?: (n: number) => string;
@@ -46,7 +49,10 @@ function StatCard({
       className={wide ? "col-span-2" : undefined}
     >
       <Card className="p-[18px]">
-        <div className="text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{label}</div>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.12em] text-ink-faint uppercase">
+          {label}
+          {info && <InfoTip text={info} />}
+        </div>
         <div className="mt-2 flex items-baseline gap-2">
           <span
             className={`font-mono text-[28px] font-extrabold tracking-tight tabular-nums ${accent ?? (good ? "text-win" : "")}`}
@@ -107,22 +113,51 @@ export function StatsBento({ id, range = "all" }: { id: string; range?: StatsRan
         good
         subInline
         label="Win rate"
+        info="Part de matchs gagnés sur la période."
         value={o.winRate}
         format={pct}
         sub={`${o.wins}V · ${losses}D`}
       />
-      <StatCard label="K/D" value={o.kd} format={(n) => n.toFixed(2)} good={o.kd >= 1} />
-      <StatCard label="ADR" value={o.adr} format={(n) => n.toFixed(1)} />
-      <StatCard label="HS %" value={o.hsPercent} format={pct} />
-      <StatCard label="Clutch" value={o.clutchWinRate} format={pct} />
-      <StatCard label="Entry" value={o.entrySuccessRate} format={pct} />
       <StatCard
-        label="Utility /match"
+        label="K/D"
+        info="Ratio kills / morts moyen. Au-dessus de 1, tu fais plus de kills que de morts."
+        value={o.kd}
+        format={(n) => n.toFixed(2)}
+        good={o.kd >= 1}
+      />
+      <StatCard
+        label="ADR"
+        info="Dégâts moyens infligés par round (Average Damage per Round)."
+        value={o.adr}
+        format={(n) => n.toFixed(1)}
+      />
+      <StatCard
+        label="HS %"
+        info="Part de tes kills réalisés en headshot."
+        value={o.hsPercent}
+        format={pct}
+      />
+      <StatCard
+        label="Clutchs gagnés"
+        info="Rounds gagnés en dernier survivant face à un ou plusieurs adversaires (1vX)."
+        value={o.clutchWinRate}
+        format={pct}
+      />
+      <StatCard
+        label="Entrées gagnées"
+        info="Duels d'ouverture gagnés : le premier contact du round tourne en ta faveur."
+        value={o.entrySuccessRate}
+        format={pct}
+      />
+      <StatCard
+        label="Dégâts utilitaire / match"
+        info="Dégâts infligés avec les grenades (molotov, HE) en moyenne par match."
         value={o.utilityDamagePerMatch}
         format={(n) => String(Math.round(n))}
       />
       <StatCard
         label="Rating"
+        info="Note de performance globale du match façon HLTV (kills, morts, impact…). 1.0 = niveau moyen."
         value={o.rating}
         format={(n) => n.toFixed(2)}
         accent={o.rating != null ? ratingColor(o.rating) : undefined}

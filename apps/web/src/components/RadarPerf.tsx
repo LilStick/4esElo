@@ -12,46 +12,82 @@ import {
 import { TbChartRadar, TbGitCompare } from "react-icons/tb";
 import type { StatsAggregate, StatsRange } from "@4eselo/types";
 import { getPlayerStats } from "../lib/api";
-import { Card, Skeleton } from "../ui";
+import { Card, InfoTip, Skeleton } from "../ui";
 import { EmptyState } from "./EmptyState";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
-/** Tooltip du radar : montre la vraie valeur de l'axe survolé (pas la valeur normalisée). */
+/** Tooltip du radar : titre lisible + vraie valeur + explication (pas la valeur normalisée). */
 function RadarTip({
   active,
   payload,
 }: {
   active?: boolean;
-  payload?: { payload: { axis: string; value: string } }[];
+  payload?: { payload: { full: string; value: string; desc: string } }[];
 }) {
   if (!active || !payload?.length) return null;
   const p = payload[0]!.payload;
   return (
-    <div className="rounded-lg border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-xs shadow-xl">
-      <span className="font-semibold text-ink-dim">{p.axis}</span>{" "}
-      <span className="font-mono font-bold text-brand-hi">{p.value}</span>
+    <div className="max-w-[220px] rounded-lg border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-xs shadow-xl">
+      <div>
+        <span className="font-semibold text-ink-dim">{p.full}</span>{" "}
+        <span className="font-mono font-bold text-brand-hi">{p.value}</span>
+      </div>
+      <div className="mt-0.5 text-ink-faint">{p.desc}</div>
     </div>
   );
 }
 
 /**
  * Chaque axe est ramené sur 0-100 pour le radar (`v`) ; `value` reste la vraie stat lisible.
- * - Aim = HS% · Impact = K/D remis à l'échelle (0.6 → 0, 1.6 → 100)
- * - Clutch / Entry / Win = taux déjà en 0-100 · Utility = dégâts/match (120 = plafond)
+ * `axis` = libellé court (autour du radar), `full` = libellé complet, `desc` = explication.
+ * - Précision = HS% · Impact = K/D remis à l'échelle (0.6 → 0, 1.6 → 100)
+ * - Clutch / Entrées / Victoires = taux déjà en 0-100 · Utilité = dégâts/match (120 = plafond)
  */
 function buildAxes(o: StatsAggregate) {
   return [
-    { axis: "Aim", v: clamp(o.hsPercent), value: `${Math.round(o.hsPercent)}%` },
-    { axis: "Impact", v: clamp(((o.kd - 0.6) / 1.0) * 100), value: o.kd.toFixed(2) },
-    { axis: "Clutch", v: clamp(o.clutchWinRate), value: `${Math.round(o.clutchWinRate)}%` },
-    { axis: "Entry", v: clamp(o.entrySuccessRate), value: `${Math.round(o.entrySuccessRate)}%` },
     {
-      axis: "Utility",
+      axis: "Précision",
+      full: "Précision (HS %)",
+      desc: "Part de tes kills réalisés en headshot.",
+      v: clamp(o.hsPercent),
+      value: `${Math.round(o.hsPercent)}%`,
+    },
+    {
+      axis: "Impact",
+      full: "Impact (K/D)",
+      desc: "Ratio kills / morts moyen. Au-dessus de 1, tu fais plus de kills que de morts.",
+      v: clamp(((o.kd - 0.6) / 1.0) * 100),
+      value: o.kd.toFixed(2),
+    },
+    {
+      axis: "Clutch",
+      full: "Clutchs gagnés %",
+      desc: "Rounds gagnés en dernier survivant face à un ou plusieurs adversaires (1vX).",
+      v: clamp(o.clutchWinRate),
+      value: `${Math.round(o.clutchWinRate)}%`,
+    },
+    {
+      axis: "Entrées",
+      full: "Entrées gagnées %",
+      desc: "Duels d'ouverture gagnés : le premier contact du round tourne en ta faveur.",
+      v: clamp(o.entrySuccessRate),
+      value: `${Math.round(o.entrySuccessRate)}%`,
+    },
+    {
+      axis: "Utilité",
+      full: "Dégâts utilitaire / match",
+      desc: "Dégâts infligés avec les grenades (molotov, HE) en moyenne par match.",
       v: clamp((o.utilityDamagePerMatch / 120) * 100),
       value: String(Math.round(o.utilityDamagePerMatch)),
     },
-    { axis: "Win", v: clamp(o.winRate), value: `${Math.round(o.winRate)}%` },
+    {
+      axis: "Victoires",
+      full: "Taux de victoire",
+      desc: "Part de matchs gagnés sur la période.",
+      v: clamp(o.winRate),
+      value: `${Math.round(o.winRate)}%`,
+    },
   ];
 }
 
@@ -115,8 +151,11 @@ export function RadarPerf({ id, range = "all" }: { id: string; range?: StatsRang
 
       <div className="flex w-full flex-col justify-center gap-3 md:w-60">
         {rows.map((r) => (
-          <div key={r.axis} className="flex items-center gap-3">
-            <span className="w-14 shrink-0 text-xs text-ink-dim">{r.axis}</span>
+          <div key={r.axis} className="flex items-center gap-2">
+            <span className="flex w-28 shrink-0 items-center gap-1 text-xs text-ink-dim">
+              <span className="truncate">{r.full}</span>
+              <InfoTip text={r.desc} className="shrink-0" />
+            </span>
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
               <span className="block h-full rounded-full bg-brand" style={{ width: `${r.v}%` }} />
             </span>
