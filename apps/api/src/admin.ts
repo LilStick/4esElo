@@ -1,9 +1,16 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { announcements, bannedDiscordIds, db, players } from "@4eselo/db";
-import type { Announcement, BanEntry, BansResponse, WrappedResponse } from "@4eselo/types";
-import { requireAdmin, readSession, authDeps } from "./auth";
+import type {
+  AdminEntry,
+  AdminsResponse,
+  Announcement,
+  BanEntry,
+  BansResponse,
+  WrappedResponse,
+} from "@4eselo/types";
+import { requireAdmin, requireRootAdmin, readSession, authDeps, isAdmin } from "./auth";
 import { invalidateBanCache } from "./banCache";
 import { notifyAdminAction } from "./adminNotify";
 import { computeAwards } from "./wrapped";
@@ -169,8 +176,8 @@ adminRoutes.get("/admin/bans", async (c) => {
 adminRoutes.put("/admin/bans/:discordId", async (c) => {
   const id = discordIdSchema.safeParse(c.req.param("discordId"));
   if (!id.success) return c.json({ error: "invalid discord id" }, 400);
-  // anti-lockout : pas de ban d'un admin whitelisté
-  if (authDeps.config?.adminDiscordIds.includes(id.data)) {
+  // anti-lockout : pas de ban d'un admin (env ou base)
+  if (await isAdmin(id.data)) {
     return c.json({ error: "impossible de bannir un admin" }, 400);
   }
   let body: unknown = {};
@@ -203,5 +210,85 @@ adminRoutes.delete("/admin/bans/:discordId", async (c) => {
   await db.delete(bannedDiscordIds).where(eq(bannedDiscordIds.discordId, id.data));
   invalidateBanCache();
   await notifyAdminAction("♻️ Débannissement", `Discord \`${id.data}\` débanni`);
+  return c.json({ ok: true });
+});
+
+// Admins (B12.10) : socle env (ADMIN_DISCORD_IDS, non-retirable) + flag is_admin en base.
+adminRoutes.get("/admin/admins", async (c) => {
+  const envIds = authDeps.config?.adminDiscordIds ?? [];
+  const dbRows = await db
+    .select({ discordId: players.discordId, discordName: players.discordName })
+    .from(players)
+    .where(eq(players.isAdmin, true));
+
+  const nameByDiscord = new Map<string, string | null>();
+  for (const r of dbRows) if (r.discordId) nameByDiscord.set(r.discordId, r.discordName);
+  if (envIds.length) {
+    const envPlayers = await db
+      .select({ discordId: players.discordId, discordName: players.discordName })
+      .from(players)
+      .where(inArray(players.discordId, envIds));
+    for (const r of envPlayers) if (r.discordId) nameByDiscord.set(r.discordId, r.discordName);
+  }
+
+  const admins: AdminEntry[] = [];
+  const seen = new Set<string>();
+  for (const id of envIds) {
+    admins.push({ discordId: id, discordName: nameByDiscord.get(id) ?? null, source: "env" });
+    seen.add(id);
+  }
+  for (const r of dbRows) {
+    if (!r.discordId || seen.has(r.discordId)) continue; // un env admin aussi flaggé en base reste "env"
+    admins.push({ discordId: r.discordId, discordName: r.discordName, source: "db" });
+    seen.add(r.discordId);
+  }
+  return c.json<AdminsResponse>({ admins });
+});
+
+adminRoutes.put("/admin/admins/:discordId", requireRootAdmin, async (c) => {
+  const id = discordIdSchema.safeParse(c.req.param("discordId"));
+  if (!id.success) return c.json({ error: "invalid discord id" }, 400);
+  const [updated] = await db
+    .update(players)
+    .set({ isAdmin: true })
+    .where(eq(players.discordId, id.data))
+    .returning({ id: players.id });
+  if (!updated) return c.json({ error: "membre inconnu (doit s'être connecté au moins une fois)" }, 404);
+  const session = await readSession(c); // requireAdmin garantit la session
+  await notifyAdminAction(
+    "⭐ Admin ajouté",
+    `Discord \`${id.data}\` promu admin${session?.discordId ? ` par \`${session.discordId}\`` : ""}`,
+  );
+  return c.json({ ok: true });
+});
+
+adminRoutes.delete("/admin/admins/:discordId", requireRootAdmin, async (c) => {
+  const id = discordIdSchema.safeParse(c.req.param("discordId"));
+  if (!id.success) return c.json({ error: "invalid discord id" }, 400);
+  // socle env = root, jamais retirable via l'API
+  if (authDeps.config?.adminDiscordIds.includes(id.data)) {
+    return c.json({ error: "admin root (ADMIN_DISCORD_IDS), non-retirable" }, 400);
+  }
+  // jamais 0 admin : env ∪ base
+  const envIds = authDeps.config?.adminDiscordIds ?? [];
+  const dbAdmins = await db
+    .select({ discordId: players.discordId })
+    .from(players)
+    .where(eq(players.isAdmin, true));
+  const total = new Set<string>(envIds);
+  for (const r of dbAdmins) if (r.discordId) total.add(r.discordId);
+  if (total.size <= 1) return c.json({ error: "impossible de retirer le dernier admin" }, 400);
+
+  const [updated] = await db
+    .update(players)
+    .set({ isAdmin: false })
+    .where(and(eq(players.discordId, id.data), eq(players.isAdmin, true)))
+    .returning({ id: players.id });
+  if (!updated) return c.json({ error: "pas un admin en base" }, 404);
+  const session = await readSession(c);
+  await notifyAdminAction(
+    "🚫 Admin retiré",
+    `Discord \`${id.data}\` retiré des admins${session?.discordId ? ` par \`${session.discordId}\`` : ""}`,
+  );
   return c.json({ ok: true });
 });
