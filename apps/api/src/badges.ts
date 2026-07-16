@@ -88,10 +88,15 @@ const TIER_CLUTCH_MIN = 4;
 /** Nb de paliers atteints selon des seuils croissants (1 par seuil franchi). */
 const bandCount = (v: number, bands: readonly number[]) => bands.filter((b) => v >= b).length;
 
-export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
+/** Cadre temporel de la fenêtre analysée : classement = 24h, profil = 30j. */
+export type BadgeScope = "today" | "month";
+
+export function computeBadgeTiers(matches: BadgeMatch[], scope: BadgeScope): BadgeTier[] {
   const tiers: BadgeTier[] = [];
   const n = matches.length;
   if (n === 0) return tiers;
+
+  const when = scope === "today" ? "aujourd'hui" : "ce mois-ci";
 
   const byDateDesc = [...matches].sort((a, b) => b.playedAt.getTime() - a.playedAt.getTime());
   const streak = computeStreak(byDateDesc.map((m) => m.result));
@@ -121,7 +126,7 @@ export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
       id: "grind",
       emoji: "🚿",
       count: Math.min(3, Math.floor(maxDay / GRIND_STEP)),
-      message: `${maxDay} matchs dans la journée`,
+      message: scope === "today" ? `${maxDay} matchs aujourd'hui` : `${maxDay} matchs en 1 jour ce mois-ci`,
     });
   }
 
@@ -134,7 +139,7 @@ export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
         id: "headshot",
         emoji: "🎯",
         count: c,
-        message: `${Math.round(hsAvg)}% de HS de moyenne`,
+        message: `${Math.round(hsAvg)}% de HS ${when}`,
       });
   }
   const eWins = matches.reduce((s, m) => s + m.entryWins, 0);
@@ -147,7 +152,7 @@ export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
         id: "entry",
         emoji: "💣",
         count: c,
-        message: `${Math.round(rate)}% de duels d'entrée gagnés`,
+        message: `${Math.round(rate)}% de duels d'entrée gagnés ${when}`,
       });
   }
   const cWins = matches.reduce((s, m) => s + m.clutchWins, 0);
@@ -156,7 +161,12 @@ export function computeBadgeTiers(matches: BadgeMatch[]): BadgeTier[] {
     const rate = (cWins / cCount) * 100;
     const c = bandCount(rate, CLUTCH_BANDS);
     if (c > 0)
-      tiers.push({ id: "clutch", emoji: "🧠", count: c, message: `${Math.round(rate)}% de clutchs gagnés` });
+      tiers.push({
+        id: "clutch",
+        emoji: "🧠",
+        count: c,
+        message: `${Math.round(rate)}% de clutchs gagnés ${when}`,
+      });
   }
 
   return tiers;

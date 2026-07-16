@@ -109,12 +109,12 @@ test("badges cumulables (streak + headshot + grind)", () => {
 const tier = (ts: ReturnType<typeof computeBadgeTiers>, id: string) => ts.find((t) => t.id === id);
 
 test("tiers : aucun match → aucun badge", () => {
-  assert.deepEqual(computeBadgeTiers([]), []);
+  assert.deepEqual(computeBadgeTiers([], "today"), []);
 });
 
 test("tiers : 🔥 6 victoires d'affilée → count 2 + message", () => {
   const ms = [1, 2, 3, 4, 5, 6].map((n) => m({ playedAt: day(n), result: 1 }));
-  const streak = tier(computeBadgeTiers(ms), "streak");
+  const streak = tier(computeBadgeTiers(ms, "today"), "streak");
   assert.equal(streak?.count, 2); // floor(6/3)
   assert.equal(streak?.emoji, "🔥");
   assert.match(streak?.message ?? "", /6 victoires/);
@@ -122,7 +122,7 @@ test("tiers : 🔥 6 victoires d'affilée → count 2 + message", () => {
 
 test("tiers : 😰 série de défaites (badge négatif)", () => {
   const ms = [1, 2, 3].map((n) => m({ playedAt: day(n), result: 0 }));
-  const cold = tier(computeBadgeTiers(ms), "coldstreak");
+  const cold = tier(computeBadgeTiers(ms, "today"), "coldstreak");
   assert.equal(cold?.count, 1);
   assert.equal(cold?.emoji, "😰");
 });
@@ -134,7 +134,7 @@ test("tiers : 🚿 grind à paliers sur la journée (4 matchs → count 2)", () 
     m({ playedAt: day(5, 14), result: 1 }),
     m({ playedAt: day(5, 16), result: 0 }),
   ];
-  const grind = tier(computeBadgeTiers(ms), "grind");
+  const grind = tier(computeBadgeTiers(ms, "today"), "grind");
   assert.equal(grind?.count, 2); // floor(4/2)
   assert.match(grind?.message ?? "", /4 matchs/);
 });
@@ -142,8 +142,25 @@ test("tiers : 🚿 grind à paliers sur la journée (4 matchs → count 2)", () 
 test("tiers : 🎯 HS% par bandes (≥60 → count 2) + min-samples", () => {
   // 6 matchs sur des jours distincts (pas de grind), résultats alternés (pas de streak).
   const hi = [1, 2, 3, 4, 5, 6].map((n) => m({ playedAt: day(n), result: n % 2, hsPercent: 62 }));
-  assert.equal(tier(computeBadgeTiers(hi), "headshot")?.count, 2);
+  assert.equal(tier(computeBadgeTiers(hi, "today"), "headshot")?.count, 2);
   // Sous le min d'échantillon (4 < 5) → pas de badge HS.
   const few = [1, 2, 3, 4].map((n) => m({ playedAt: day(n), result: n % 2, hsPercent: 62 }));
-  assert.equal(tier(computeBadgeTiers(few), "headshot"), undefined);
+  assert.equal(tier(computeBadgeTiers(few, "today"), "headshot"), undefined);
+});
+
+test("tiers : le scope date le message (classement = aujourd'hui, profil = ce mois-ci)", () => {
+  const twoInADay = [
+    m({ playedAt: day(5, 10), result: 1, hsPercent: 62 }),
+    m({ playedAt: day(5, 12), result: 0, hsPercent: 62 }),
+  ];
+  // 🚿 grind : formulation différente selon la fenêtre.
+  assert.match(tier(computeBadgeTiers(twoInADay, "today"), "grind")?.message ?? "", /2 matchs aujourd'hui/);
+  assert.match(
+    tier(computeBadgeTiers(twoInADay, "month"), "grind")?.message ?? "",
+    /2 matchs en 1 jour ce mois-ci/,
+  );
+  // 🎯 HS : suffixe temporel.
+  const hi = [1, 2, 3, 4, 5, 6].map((n) => m({ playedAt: day(n), result: n % 2, hsPercent: 62 }));
+  assert.match(tier(computeBadgeTiers(hi, "today"), "headshot")?.message ?? "", /aujourd'hui$/);
+  assert.match(tier(computeBadgeTiers(hi, "month"), "headshot")?.message ?? "", /ce mois-ci$/);
 });
