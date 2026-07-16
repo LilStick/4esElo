@@ -125,9 +125,15 @@ export function Leaderboard() {
             e.rank
           )}
         </span>
-        <EloDelta delta={eloMove.get(e.id)} />
+        {/* Δ7j + badge de niveau : masqués sur mobile (place au pseudo ; le niveau
+            est déjà porté par le bandeau de palier). display:none retire aussi le gap. */}
+        <span className="hidden sm:contents">
+          <EloDelta delta={eloMove.get(e.id)} />
+        </span>
         <Avatar name={nameOf(e)} size={34} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
-        <LevelBadge level={e.level} size={24} />
+        <span className="hidden sm:contents">
+          <LevelBadge level={e.level} size={24} />
+        </span>
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className={cn("truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
             {nameOf(e)}
@@ -150,7 +156,7 @@ export function Leaderboard() {
         <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
           {e.elo ?? "-"}
         </span>
-        <TbArrowRight className="text-ink-faint" size={17} />
+        <TbArrowRight className="hidden text-ink-faint sm:block" size={17} />
       </>
     );
   };
