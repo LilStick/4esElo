@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-16
+
+- 2026-07-16 · Web : inscription mobile utilisable, bouton « terminer » réparé + parcours /register empilé et CTA pleine largeur sur téléphone. (#379)
+
 ## 2026-07-15
 
 - Web : page /nouveautés refaite en patch note — hero Version 1.0 + 6 features lisibles, zéro liste technique. (#372)
