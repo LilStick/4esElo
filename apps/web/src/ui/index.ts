@@ -9,5 +9,6 @@ export { Modal } from "./Modal";
 export { HoverBarList } from "./HoverBarList";
 export { InfoTip } from "./InfoTip";
 export { Pagination } from "./Pagination";
+export { ScrollFadeX } from "./ScrollFadeX";
 export { RangeTabs } from "./RangeTabs";
 export { Skeleton } from "./Skeleton";

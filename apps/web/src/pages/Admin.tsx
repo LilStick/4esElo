@@ -30,7 +30,7 @@ import { discordAvatarUrl } from "../lib/discord";
 import { currentPeriod, parsePeriod } from "../lib/period";
 import { promoLabel } from "../lib/promo";
 import { fullDate } from "../lib/relativeTime";
-import { Avatar, Button, Card, Modal, Skeleton } from "../ui";
+import { Avatar, Button, Card, Modal, ScrollFadeX, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { useTitle } from "../lib/useTitle";
 import { cn } from "../lib/cn";
@@ -611,7 +611,7 @@ export function Admin() {
       </div>
 
       {/* Onglets (état dans l'URL ?tab= → deep-linkable, conservé au refresh) */}
-      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+      <ScrollFadeX className="flex gap-1 rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
         {TABS.map((t) => {
           const isActive = t.id === tab;
           return (
@@ -629,7 +629,7 @@ export function Admin() {
             </button>
           );
         })}
-      </div>
+      </ScrollFadeX>
 
       {tab === "joueurs" && (
         <Section icon={TbUsers} title={`Joueurs (${players.length})`}>
