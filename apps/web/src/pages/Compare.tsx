@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
@@ -12,6 +12,7 @@ import {
   TbMedal,
   TbPercentage,
   TbPlus,
+  TbSearch,
   TbSwords,
   TbTrophy,
 } from "react-icons/tb";
@@ -19,7 +20,9 @@ import type { IconType } from "react-icons";
 import type { LeaderboardEntry, StatsAggregate } from "@4eselo/types";
 import { getLeaderboard, getPlayerStats } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Card, LevelBadge, Modal } from "../ui";
+import { clampPage, pageCountOf } from "../lib/pagination";
+import { usePageSize } from "../lib/usePageSize";
+import { Avatar, Card, LevelBadge, Modal, Pagination } from "../ui";
 import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 import vsLogo from "../assets/compare/vs_logo.png";
@@ -27,7 +30,12 @@ import faceoffBg from "../assets/maps/screens/de_ancient.png";
 
 const A_COLOR = "#5E8BFF";
 const B_COLOR = "#34D8A0";
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
+const nameOf = (e: LeaderboardEntry) => e.discordName ?? e.faceitNickname ?? "-";
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
 function axes(o: StatsAggregate) {
@@ -170,6 +178,8 @@ export function Compare() {
   useTitle("Comparer");
   const [params, setParams] = useSearchParams();
   const [picking, setPicking] = useState<"a" | "b" | null>(null);
+  const [pickQ, setPickQ] = useState("");
+  const [pickPage, setPickPage] = useState(0);
   const aId = params.get("a") ?? "";
   const bId = params.get("b") ?? "";
 
@@ -180,6 +190,19 @@ export function Compare() {
   const players = lb?.leaderboard ?? [];
   const aEntry = players.find((p) => p.id === aId);
   const bEntry = players.find((p) => p.id === bId);
+
+  // Picker : recherche + pagination numérotée (taille de page selon l'écran).
+  const pickable = players.filter(
+    (p) =>
+      p.id !== (picking === "a" ? bId : aId) &&
+      (pickQ.trim() === "" || norm(nameOf(p)).includes(norm(pickQ.trim()))),
+  );
+  const pickPageSize = usePageSize({ rowHeight: 48, reserved: 300, min: 6, max: 40 });
+  const pickPageCount = pageCountOf(pickable.length, pickPageSize);
+  const pickSafePage = clampPage(pickPage, pickPageCount);
+  const pickItems = pickable.slice(pickSafePage * pickPageSize, pickSafePage * pickPageSize + pickPageSize);
+  useEffect(() => setPickPage(0), [pickQ, picking]); // reset page sur recherche / ouverture
+  useEffect(() => setPickQ(""), [picking]); // vide la recherche à chaque ouverture
 
   const statsA = useQuery({
     queryKey: ["stats", aId, "all"],
@@ -350,21 +373,39 @@ export function Compare() {
 
       {/* Picker - exclut le joueur déjà choisi de l'autre côté */}
       <Modal open={picking !== null} onClose={() => setPicking(null)} title="Choisir un joueur">
-        <div className="flex flex-col gap-1">
-          {players
-            .filter((p) => p.id !== (picking === "a" ? bId : aId))
-            .map((p) => (
-              <button
-                key={p.id}
-                onClick={() => pick(p.id)}
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-white/[0.05]"
-              >
-                <Avatar name={nameOf(p)} size={32} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
-                <LevelBadge level={p.level} size={20} />
-                <span className="flex-1 truncate text-sm font-semibold">{nameOf(p)}</span>
-                <span className="font-mono text-sm font-bold text-brand tabular-nums">{p.elo ?? "-"}</span>
-              </button>
-            ))}
+        <div className="flex flex-col gap-3">
+          <div className="relative">
+            <TbSearch
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint"
+              size={16}
+            />
+            <input
+              value={pickQ}
+              onChange={(e) => setPickQ(e.target.value)}
+              placeholder="Rechercher un membre…"
+              autoFocus
+              className="w-full rounded-xl border border-white/[0.09] bg-white/[0.02] py-2.5 pr-3 pl-9 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand/60"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            {pickItems.length === 0 ? (
+              <p className="px-1 py-6 text-center text-sm text-ink-dim">Aucun membre trouvé.</p>
+            ) : (
+              pickItems.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => pick(p.id)}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-white/[0.05]"
+                >
+                  <Avatar name={nameOf(p)} size={32} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
+                  <LevelBadge level={p.level} size={20} />
+                  <span className="flex-1 truncate text-sm font-semibold">{nameOf(p)}</span>
+                  <span className="font-mono text-sm font-bold text-brand tabular-nums">{p.elo ?? "-"}</span>
+                </button>
+              ))
+            )}
+          </div>
+          <Pagination page={pickSafePage} pageCount={pickPageCount} onPage={setPickPage} />
         </div>
       </Modal>
     </div>

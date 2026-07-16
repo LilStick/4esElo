@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbMap2, TbSearch, TbUsersGroup } from "react-icons/tb";
@@ -7,7 +7,9 @@ import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
-import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { clampPage, pageCountOf } from "../lib/pagination";
+import { usePageSize } from "../lib/usePageSize";
+import { Avatar, Card, HoverBarList, LevelBadge, Pagination, Skeleton } from "../ui";
 import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -105,9 +107,18 @@ export function Leaderboard() {
   const searching = q.trim() !== "";
   const listItems = searching ? board.filter((e) => norm(nameOf(e)).includes(norm(q.trim()))) : board;
 
+  // Pagination (numérotée). Taille de page selon la hauteur d'écran ; les paliers
+  // de niveau sont re-groupés à l'intérieur de la page courante (grouping conservé).
+  const pageSize = usePageSize({ rowHeight: 56, reserved: 430, min: 8 });
+  const pageCount = pageCountOf(listItems.length, pageSize);
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [q]); // nouvelle recherche → page 1
+  const safePage = clampPage(page, pageCount);
+  const pageItems = listItems.slice(safePage * pageSize, safePage * pageSize + pageSize);
+
   // Paliers de niveau dès qu'on ne cherche pas ; liste plate en recherche.
   const grouped = !searching;
-  const groups = useMemo(() => (grouped ? groupByLevel(listItems) : []), [grouped, listItems]);
+  const groups = useMemo(() => (grouped ? groupByLevel(pageItems) : []), [grouped, pageItems]);
 
   const renderRow = (e: LeaderboardEntry) => {
     const isMe = myId != null && e.id === myId;
@@ -221,7 +232,7 @@ export function Leaderboard() {
         ) : (
           <Card className="p-[var(--bezel)]">
             <HoverBarList
-              items={listItems}
+              items={pageItems}
               rowHeight={56}
               keyOf={(e) => e.id}
               onSelect={(e) => navigate(`/player/${e.id}`)}
@@ -229,6 +240,10 @@ export function Leaderboard() {
             />
           </Card>
         ))}
+
+      {listItems.length > 0 && (
+        <Pagination page={safePage} pageCount={pageCount} onPage={setPage} className="mt-6" />
+      )}
 
       {searching && board.length > 0 && listItems.length === 0 && (
         <EmptyState icon={TbSearch} title="Aucun membre trouvé">
