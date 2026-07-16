@@ -35,7 +35,7 @@ try {
   );
   const counts = new Map();
   for (const m of milestones) {
-    const num = /^Bloc (\d+) -/.exec(m.title)?.[1];
+    const num = /^Bloc (\d+)\s*[—–-]/u.exec(m.title)?.[1];
     if (num) counts.set(`B${num}`, { open: m.open, closed: m.closed });
   }
 
@@ -54,7 +54,7 @@ try {
     );
     for (const i of issues) {
       if (i.labels.some((l) => l.name === "epic")) continue;
-      const num = /^Bloc (\d+) -/.exec(i.milestone?.title ?? "")?.[1];
+      const num = /^Bloc (\d+)\s*[—–-]/u.exec(i.milestone?.title ?? "")?.[1];
       if (!num) continue;
       const o = ownerOf.get(`B${num}`) ?? { noe: 0, arthur: 0 };
       o[key] += 1;
@@ -64,7 +64,7 @@ try {
   const ownerLabel = (bloc) => {
     if (bloc === "V1") return "duo";
     const o = ownerOf.get(bloc);
-    if (!o) return "à tick.";
+    if (!o) return counts.has(bloc) ? "-" : "à tick."; // ticketé sans label proprio vs pas de milestone
     if (o.noe > 0 && o.arthur > 0) return "duo";
     return o.arthur > 0 ? "Arthur" : "Noé";
   };
@@ -96,10 +96,10 @@ try {
     const ratio = total > 0 ? done / total : icon === "✅" ? 1 : 0;
     const filled = Math.round(ratio * BAR);
     const bar = "█".repeat(filled) + "░".repeat(BAR - filled);
-    const count = total > 0 ? `${done}/${total}` : "";
-    const sujet = row.sujet.length > 36 ? row.sujet.slice(0, 35) + "…" : row.sujet;
+    const count = total > 0 ? `${done}/${total}` : "-";
+    const sujet = row.sujet.length > 48 ? row.sujet.slice(0, 47) + "…" : row.sujet;
     lines.push(
-      `  ${icon} ${row.bloc.padEnd(4)} ${bar} ${count.padEnd(6)} ${ownerLabel(row.bloc).padEnd(7)} ${sujet}`,
+      `  ${icon} ${row.bloc.padEnd(4)} ${bar} ${count.padStart(5)}  ${ownerLabel(row.bloc).padEnd(8)} ${sujet}`,
     );
   }
   lines.push("  " + "─".repeat(58));
