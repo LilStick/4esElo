@@ -10,8 +10,8 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
 
 /**
  * Carte double-bezel (Doppelrand) : une coque en verre dépoli qui enserre un
- * cœur plus sombre. Les rayons sont concentriques par construction —
- * `radius(cœur) = radius(coque) − bezel` — pour que les coins s'emboîtent.
+ * cœur plus sombre. Les rayons sont concentriques par construction -
+ * `radius(cœur) = radius(coque) - bezel` - pour que les coins s'emboîtent.
  *
  * `className` stylise le cœur (padding, layout du contenu) ; `outerClassName`
  * agit sur la coque entière (ex. la soulever) pour ne pas désolidariser bezel

@@ -85,7 +85,7 @@ export function getLeaderboard(source: EloSource = "faceit", sparkline?: number)
   return get<LeaderboardResponse>(`/leaderboard?source=${source}${spark}`);
 }
 
-/** Classement du pôle par map (B13.5) — toutes les maps + leur top membres. */
+/** Classement du pôle par map (B13.5) - toutes les maps + leur top membres. */
 export function getMapsLeaderboard() {
   return get<MapsLeaderboardResponse>(`/leaderboard/maps`);
 }
@@ -106,7 +106,7 @@ export function getAnnouncements(limit = 5) {
   return get<AnnouncementsResponse>(`/announcements?limit=${limit}`);
 }
 
-/** Boîte à idées (B17.8) — fil des idées récentes. */
+/** Boîte à idées (B17.8) - fil des idées récentes. */
 export function getIdeas() {
   return get<IdeasResponse>(`/ideas`);
 }
@@ -137,17 +137,17 @@ export function getPlayer(id: string, source: EloSource = "faceit") {
   return get<PlayerDetail>(`/players/${id}?source=${source}`);
 }
 
-/** Rafraîchit l'ELO d'un joueur à la demande (B16.10) — resync Faceit, rate-limité 1/min. */
+/** Rafraîchit l'ELO d'un joueur à la demande (B16.10) - resync Faceit, rate-limité 1/min. */
 export function refreshPlayerElo(id: string) {
   return post<RefreshEloResponse>(`/players/${id}/refresh`);
 }
 
-/** Roast du joueur (B7.7) — punchlines profil (négatif + positif) + forecast ELO. */
+/** Roast du joueur (B7.7) - punchlines profil (négatif + positif) + forecast ELO. */
 export function getPlayerRoast(id: string) {
   return get<RoastResponse>(`/players/${id}/roast`);
 }
 
-/** Succès permanents du joueur (B7.9) — 14 paliers, débloqués + progression des verrouillés. */
+/** Succès permanents du joueur (B7.9) - 14 paliers, débloqués + progression des verrouillés. */
 export function getPlayerAchievements(id: string) {
   return get<AchievementsResponse>(`/players/${id}/achievements`);
 }
@@ -156,7 +156,7 @@ export function getPlayerStats(id: string, range: StatsRange = "all") {
   return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}`);
 }
 
-/** Benchmark intra-asso (B5.12) — ta place dans le pôle (percentile par stat clé), même fenêtre que /stats. */
+/** Benchmark intra-asso (B5.12) - ta place dans le pôle (percentile par stat clé), même fenêtre que /stats. */
 export function getPlayerBenchmark(id: string, range: StatsRange = "all") {
   return get<PlayerBenchmarkResponse>(`/players/${id}/benchmark?range=${range}`);
 }
@@ -182,7 +182,7 @@ export function getDuos() {
   return get<DuosResponse>(`/social/duos`);
 }
 
-/** Lineups (B4.5) — groupes de 3 à 5 membres qui jouent ensemble (games + winrate). */
+/** Lineups (B4.5) - groupes de 3 à 5 membres qui jouent ensemble (games + winrate). */
 export function getLineups() {
   return get<LineupsResponse>(`/social/lineups`);
 }
@@ -193,7 +193,7 @@ export function getPlayerDuos(id: string) {
 
 // --- Auth / compte (B17) ---
 
-/** URL de login OAuth Discord — redirection pleine page (le back gère le flow + le cookie). */
+/** URL de login OAuth Discord - redirection pleine page (le back gère le flow + le cookie). */
 export const loginUrl = () => `${BASE}/auth/login`;
 
 /** Qui suis-je : session + fiche joueur matchée (ou anonyme). */
@@ -238,7 +238,7 @@ export function adminRegenerateWrapped(year: number, month: number) {
   return post<WrappedResponse>(`/admin/wrapped/${year}/${month}/regenerate`);
 }
 
-/** Bans (B17.10, admin) — liste, bannir un compte Discord (raison), débannir. */
+/** Bans (B17.10, admin) - liste, bannir un compte Discord (raison), débannir. */
 export function getBans() {
   return get<BansResponse>(`/admin/bans`);
 }

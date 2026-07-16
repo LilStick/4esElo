@@ -64,7 +64,7 @@ export function Styleguide() {
       <section>
         <SectionHead label="Fondations" title="Palette & tokens">
           Variables CSS comme source de vérité (Tailwind v4). Règle des cartes : radius enfant = radius parent
-          − bezel, donc tout reste concentrique.
+          - bezel, donc tout reste concentrique.
         </SectionHead>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
           {SWATCHES.map((s) => (
@@ -120,7 +120,7 @@ export function Styleguide() {
             <Eyebrow>Variante accent-bar</Eyebrow>
             <p className="mt-2 max-w-[52ch] text-sm text-ink-dim">
               Carte avec un soulignement dégradé en bas (prop{" "}
-              <code className="font-mono text-ink">accent</code>), façon DPM — pour mettre en avant une carte
+              <code className="font-mono text-ink">accent</code>), façon DPM - pour mettre en avant une carte
               clé.
             </p>
           </Card>

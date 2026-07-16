@@ -33,7 +33,7 @@ import { Avatar, Button, Card, Modal, Skeleton } from "../ui";
 import { EmptyState } from "../components/EmptyState";
 import { useTitle } from "../lib/useTitle";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 
 const YEAR = new Date().getUTCFullYear();
 const YEARS = Array.from({ length: 9 }, (_, i) => YEAR + 2 - i);
@@ -111,7 +111,7 @@ function EditPlayerModal({ entry, onClose }: { entry: LeaderboardEntry; onClose:
               onChange={(e) => setPromoStart(Number(e.target.value))}
               className={fieldClass}
             >
-              <option value={0}>—</option>
+              <option value={0}>-</option>
               {YEARS.map((y) => (
                 <option key={y} value={y} className="bg-bg">
                   {y}
@@ -126,7 +126,7 @@ function EditPlayerModal({ entry, onClose }: { entry: LeaderboardEntry; onClose:
               onChange={(e) => setPromoEnd(Number(e.target.value))}
               className={fieldClass}
             >
-              <option value={0}>—</option>
+              <option value={0}>-</option>
               {YEARS.map((y) => (
                 <option key={y} value={y} className="bg-bg">
                   {y}
@@ -271,7 +271,7 @@ function WrappedRegen() {
   const [msg, setMsg] = useState<string | null>(null);
   const regen = useMutation({
     mutationFn: () => adminRegenerateWrapped(year, month),
-    onSuccess: (r) => setMsg(`Wrapped régénéré — ${r.awards.length} award(s) publié(s) ✓`),
+    onSuccess: (r) => setMsg(`Wrapped régénéré - ${r.awards.length} award(s) publié(s) ✓`),
     onError: (e) => setMsg(e instanceof Error ? e.message : "Échec"),
   });
   return (
@@ -346,7 +346,7 @@ function PlayerPicker({
             <span className="truncate">{nameOf(selected)}</span>
           </span>
         ) : (
-          <span className="text-ink-faint">— choisir un membre —</span>
+          <span className="text-ink-faint">- choisir un membre -</span>
         )}
         <TbChevronDown size={16} className="shrink-0 text-ink-faint" />
       </button>
@@ -479,7 +479,7 @@ function BansSection({ players }: { players: LeaderboardEntry[] }) {
           <p className="text-sm text-ink-dim">
             Bannir <span className="font-bold text-ink">{nameByDiscord(targetId)}</span> le déconnecte et
             l'empêche de se reconnecter
-            {reason.trim() ? ` — raison : « ${reason.trim()} »` : ""}.
+            {reason.trim() ? ` - raison : « ${reason.trim()} »` : ""}.
           </p>
           {error && (
             <p className="flex items-center gap-2 text-sm text-loss">
@@ -579,7 +579,7 @@ export function Admin() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold">{nameOf(p)}</div>
                 <div className="truncate text-xs text-ink-faint">
-                  {p.formation ?? "—"}
+                  {p.formation ?? "-"}
                   {promoLabel(p.promoStart, p.promoEnd) ? ` · ${promoLabel(p.promoStart, p.promoEnd)}` : ""}
                 </div>
               </div>
@@ -603,7 +603,7 @@ export function Admin() {
         <AnnouncementEditor current={staff} />
       </Section>
 
-      <Section icon={TbBan} title="Modération — bans">
+      <Section icon={TbBan} title="Modération - bans">
         <BansSection players={players} />
       </Section>
 

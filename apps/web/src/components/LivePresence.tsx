@@ -8,7 +8,7 @@ import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 
-const nameOf = (p: PresenceEntry) => p.faceitNickname ?? p.discordName ?? "—";
+const nameOf = (p: PresenceEntry) => p.faceitNickname ?? p.discordName ?? "-";
 
 type Status = { rank: number; label: string; text: string; dot: string; pulse: boolean; icon?: IconType };
 
@@ -25,7 +25,7 @@ function Header() {
  * Statut le plus précis d'un membre (B15.8), du plus fort au plus faible :
  * match Faceit confirmé > en jeu CS2 > en ligne ; sinon null (masqué).
  * `inFaceitMatch` n'est truthy que si `=== true` : null (vérif impossible) ou
- * false retombent sur « En jeu CS2 » — jamais de mention Faceit non confirmée.
+ * false retombent sur « En jeu CS2 » - jamais de mention Faceit non confirmée.
  */
 function statusOf(p: PresenceEntry): Status | null {
   if (p.inFaceitMatch)

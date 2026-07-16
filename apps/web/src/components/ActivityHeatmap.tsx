@@ -124,7 +124,7 @@ export function ActivityHeatmap({ id, title = "Activité" }: { id?: string; titl
             ))}
           </div>
 
-          {/* Zone grille (mesurée) — overflow-hidden pour que rien ne dépasse la card */}
+          {/* Zone grille (mesurée) - overflow-hidden pour que rien ne dépasse la card */}
           <div ref={gridRef} className="min-w-0 flex-1 overflow-hidden">
             {/* Labels mois (texte débordant à droite → lisible) */}
             <div className="flex text-[10px] text-ink-faint" style={{ gap: GAP, height: MONTH_ROW }}>

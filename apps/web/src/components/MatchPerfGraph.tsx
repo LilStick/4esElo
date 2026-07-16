@@ -7,7 +7,7 @@ import { LevelBadge } from "../ui";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
 
-/** Palier Faceit (CS2) d'un ELO — pour le barème de gauche. */
+/** Palier Faceit (CS2) d'un ELO - pour le barème de gauche. */
 function eloLevel(elo: number): number {
   if (elo >= 2001) return 10;
   if (elo >= 1851) return 9;
@@ -52,7 +52,7 @@ export function MatchPerfGraph({ matches }: { matches: MatchSummary[] }) {
   if (firstKnown == null || matches.length < 2) {
     return (
       <div className="grid h-56 w-full place-items-center px-6 text-center text-sm text-ink-dim">
-        La courbe se trace dès que tes matchs portent leur ELO — reviens après quelques games.
+        La courbe se trace dès que tes matchs portent leur ELO - reviens après quelques games.
       </div>
     );
   }
@@ -113,7 +113,7 @@ export function MatchPerfGraph({ matches }: { matches: MatchSummary[] }) {
         ))}
       </div>
 
-      {/* Zone plot (courbe + bande) — survol partagé : hover courbe OU pille déclenche le tooltip */}
+      {/* Zone plot (courbe + bande) - survol partagé : hover courbe OU pille déclenche le tooltip */}
       <div className="relative flex-1" onMouseMove={onMove} onMouseLeave={() => setActive(null)}>
         <div className="relative h-56">
           <svg
@@ -211,13 +211,13 @@ function PerfTooltip({ pt }: { pt: { x: number; m: MatchSummary } }) {
       <div className="mt-2 flex flex-col gap-1">
         <Row
           label="Rating"
-          value={r != null ? r.toFixed(2) : "—"}
+          value={r != null ? r.toFixed(2) : "-"}
           accent={r != null ? ratingColor(r) : undefined}
         />
         <Row label="K / D / A" value={`${s.kills} / ${s.deaths} / ${s.assists}`} />
         <Row
           label="± ELO"
-          value={m.eloDelta == null ? "—" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
+          value={m.eloDelta == null ? "-" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
           accent={m.eloDelta == null ? undefined : m.eloDelta > 0 ? "text-win" : "text-loss"}
         />
       </div>

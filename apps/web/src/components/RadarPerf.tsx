@@ -36,9 +36,9 @@ function RadarTip({
 }
 
 /**
- * Chaque axe est ramené sur 0–100 pour le radar (`v`) ; `value` reste la vraie stat lisible.
+ * Chaque axe est ramené sur 0-100 pour le radar (`v`) ; `value` reste la vraie stat lisible.
  * - Aim = HS% · Impact = K/D remis à l'échelle (0.6 → 0, 1.6 → 100)
- * - Clutch / Entry / Win = taux déjà en 0–100 · Utility = dégâts/match (120 = plafond)
+ * - Clutch / Entry / Win = taux déjà en 0-100 · Utility = dégâts/match (120 = plafond)
  */
 function buildAxes(o: StatsAggregate) {
   return [

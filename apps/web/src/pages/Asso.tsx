@@ -25,7 +25,7 @@ export function Asso() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight">L'asso</h1>
       <p className="mt-1 mb-8 text-sm text-ink-dim">
-        Le classement CS2 du pôle — 4eSport, l'asso jeux vidéo de l'Efrei Paris.
+        Le classement CS2 du pôle - 4eSport, l'asso jeux vidéo de l'Efrei Paris.
       </p>
 
       <div className="flex flex-col gap-4">
@@ -37,7 +37,7 @@ export function Asso() {
 
         <Section icon={TbShieldCheck} title="Les règles">
           <ul className="flex list-disc flex-col gap-1.5 pl-5">
-            <li>Un seul compte Faceit par personne — pas de smurf (Faceit l'interdit de toute façon).</li>
+            <li>Un seul compte Faceit par personne - pas de smurf (Faceit l'interdit de toute façon).</li>
             <li>Le classement se base sur l'ELO Faceit, mis à jour automatiquement.</li>
             <li>Fair-play : le site est là pour se comparer et se charrier, pas pour se prendre la tête.</li>
           </ul>
@@ -46,7 +46,7 @@ export function Asso() {
         <Section icon={TbUserPlus} title="Rejoindre le classement">
           <p>
             Tu joues au pôle CS2 de 4eSport et tu veux apparaître ? Inscris-toi directement avec ton compte
-            Discord et ton pseudo Faceit — ton ELO arrive à la prochaine synchro.
+            Discord et ton pseudo Faceit - ton ELO arrive à la prochaine synchro.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link

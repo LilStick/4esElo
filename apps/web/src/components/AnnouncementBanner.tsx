@@ -18,7 +18,7 @@ const readDismissed = (): string | null => {
 
 /**
  * Bannière d'annonce sur la home (B15.9) : la plus récente annonce (Wrapped auto
- * ou staff). Dismissible et mémorisé en localStorage — fermée, elle ne revient
+ * ou staff). Dismissible et mémorisé en localStorage - fermée, elle ne revient
  * pas. Aucune annonce (ou déjà fermée) → aucun DOM.
  */
 export function AnnouncementBanner() {

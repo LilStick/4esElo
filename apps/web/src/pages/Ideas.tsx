@@ -36,7 +36,7 @@ export function Ideas() {
       setMsg({
         text:
           status === 429
-            ? "Limite de 3 idées par jour atteinte — reviens demain."
+            ? "Limite de 3 idées par jour atteinte - reviens demain."
             : "Échec de l'envoi, réessaie.",
         tone: "warn",
       });
@@ -52,7 +52,7 @@ export function Ideas() {
           <TbBulb className="text-brand" size={24} /> Boîte à idées
         </h1>
         <p className="mt-1 text-sm text-ink-dim">
-          Une idée pour le site ? Propose-la — elle atterrit direct dans le salon dev.
+          Une idée pour le site ? Propose-la - elle atterrit direct dans le salon dev.
         </p>
       </div>
 

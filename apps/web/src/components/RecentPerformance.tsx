@@ -70,7 +70,7 @@ export function RecentPerformance({
                 <div className="mb-3">
                   <div className="flex items-baseline justify-between font-mono text-[11px] text-ink-dim tabular-nums">
                     <span>{min}</span>
-                    <span className="text-base font-bold text-ink">{elo ?? "—"}</span>
+                    <span className="text-base font-bold text-ink">{elo ?? "-"}</span>
                     <span>{max}</span>
                   </div>
                   <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.08]">
@@ -86,7 +86,7 @@ export function RecentPerformance({
                       (delta ?? 0) >= 0 ? "text-win" : "text-loss",
                     )}
                   >
-                    {delta != null ? `${delta >= 0 ? "+" : ""}${delta}` : "—"}
+                    {delta != null ? `${delta >= 0 ? "+" : ""}${delta}` : "-"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1">
@@ -101,7 +101,7 @@ export function RecentPerformance({
                       {streak.current.type === "win" ? "🔥" : "❄️"} {streak.current.length}
                     </span>
                   ) : (
-                    <span className="font-mono font-bold text-ink-faint tabular-nums">—</span>
+                    <span className="font-mono font-bold text-ink-faint tabular-nums">-</span>
                   )}
                 </div>
                 <div className="flex items-center justify-between py-1">

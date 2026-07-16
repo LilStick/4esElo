@@ -111,7 +111,7 @@ export function Player() {
           {/* Colonne gauche (desktop). En 1 colonne, `contents` aplatit ses items dans la grille
               et chacun est ordonné via `order-*` pour donner la séquence demandée. */}
           <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
-            {/* 1 — profil + retour */}
+            {/* 1 - profil + retour */}
             <div className="order-1 flex flex-col gap-4">
               <button
                 onClick={() => navigate(-1)}
@@ -177,7 +177,7 @@ export function Player() {
                   <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
                     <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
                     <span>
-                      Heures de jeu privées — passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
+                      Heures de jeu privées - passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
                       <a
                         href="https://steamcommunity.com/my/edit/settings"
                         target="_blank"
@@ -193,17 +193,17 @@ export function Player() {
               </Card>
             </div>
 
-            {/* 6 — heatmap d'activité */}
+            {/* 6 - heatmap d'activité */}
             <div className="order-6">
               <ActivityHeatmap id={id} />
             </div>
 
-            {/* 11 — avec qui il win le + */}
+            {/* 11 - avec qui il win le + */}
             <div className="order-11">
               <PlayerDuos id={id} />
             </div>
 
-            {/* 12 — roast 4esBot (déterministe, négatif + positif) */}
+            {/* 12 - roast 4esBot (déterministe, négatif + positif) */}
             <div className="order-12">
               <div className="mb-3">
                 <SectionTitle icon={TbFlame}>Roast</SectionTitle>
@@ -215,17 +215,17 @@ export function Player() {
           {/* Colonne centrale (desktop). En 1 colonne, `contents` + `order-*` intercalent ses
               items avec ceux de la colonne gauche selon la séquence demandée. */}
           <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
-            {/* 2 — ELO */}
+            {/* 2 - ELO */}
             <div className="order-2">
               <EloSummaryCard id={id} elo={data.elo} level={data.level} />
             </div>
 
-            {/* 3 — performances récentes */}
+            {/* 3 - performances récentes */}
             <div className="order-3">
               <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
             </div>
 
-            {/* 4 — statistiques */}
+            {/* 4 - statistiques */}
             <div className="order-4 min-w-0">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
@@ -234,7 +234,7 @@ export function Player() {
               <StatsBento id={id} range={range} />
             </div>
 
-            {/* 5 — profil de performance */}
+            {/* 5 - profil de performance */}
             <div className="order-5">
               <div className="mb-3">
                 <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
@@ -242,7 +242,7 @@ export function Player() {
               <RadarPerf id={id} range={range} />
             </div>
 
-            {/* 7 — par map */}
+            {/* 7 - par map */}
             <div className="order-7">
               <div className="mb-3">
                 <SectionTitle icon={TbMap2}>Par map</SectionTitle>
@@ -250,7 +250,7 @@ export function Player() {
               <MapStats id={id} range={range} />
             </div>
 
-            {/* 8 — matchs récents */}
+            {/* 8 - matchs récents */}
             <div className="order-8 min-w-0">
               <div className="mb-3">
                 <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
@@ -258,7 +258,7 @@ export function Player() {
               <MatchesList id={id} />
             </div>
 
-            {/* 9 — ta place dans l'asso (benchmark intra-asso, même fenêtre que les stats) */}
+            {/* 9 - ta place dans l'asso (benchmark intra-asso, même fenêtre que les stats) */}
             <div className="order-9">
               <div className="mb-3">
                 <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
@@ -266,7 +266,7 @@ export function Player() {
               <PlayerBenchmark id={id} range={range} />
             </div>
 
-            {/* 10 — succès (résumé cliquable → page dédiée) */}
+            {/* 10 - succès (résumé cliquable → page dédiée) */}
             <div className="order-10">
               <AchievementsSummary id={id} />
             </div>

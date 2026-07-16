@@ -7,7 +7,7 @@ import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { Badges } from "./Badges";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 
 /** Aperçu du classement sur le home : ladder simple (top 5) + ligne « +N autres » vers le complet. */
 export function LadderPreview({ top = 5 }: { top?: number }) {
@@ -54,7 +54,7 @@ export function LadderPreview({ top = 5 }: { top?: number }) {
                   <span className="truncate font-semibold">{nameOf(e)}</span>
                   <Badges tiers={e.badgeTiers} max={2} />
                 </span>
-                <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "—"}</span>
+                <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "-"}</span>
               </>
             )}
           />

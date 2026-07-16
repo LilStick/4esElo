@@ -48,7 +48,7 @@ function Tile({ a }: { a: AchievementState }) {
   );
 }
 
-/** Page dédiée « Succès » d'un joueur (B7.9) — en-tête + progression globale + grille de tuiles. */
+/** Page dédiée « Succès » d'un joueur (B7.9) - en-tête + progression globale + grille de tuiles. */
 export function Achievements() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ export function Achievements() {
   });
 
   const name = player?.faceitNickname ?? player?.discordName ?? "Joueur";
-  useTitle(`Succès — ${name}`);
+  useTitle(`Succès - ${name}`);
 
   const items = data?.achievements ?? [];
   const unlocked = items.filter((a) => a.unlocked).length;

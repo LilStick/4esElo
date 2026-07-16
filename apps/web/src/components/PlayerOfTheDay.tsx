@@ -6,7 +6,7 @@ import { getMovers } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 
-const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "—";
+const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "-";
 
 /** Widget « Joueur du jour » : plus gros gain d'ELO sur 24h (+ mention de la plus grosse chute). */
 export function PlayerOfTheDay() {
@@ -51,7 +51,7 @@ export function PlayerOfTheDay() {
                 </span>
                 <LevelBadge level={best.level} size={18} />
               </div>
-              <div className="text-xs text-ink-faint">{best.elo ?? "—"} ELO</div>
+              <div className="text-xs text-ink-faint">{best.elo ?? "-"} ELO</div>
             </div>
             <span className="font-mono text-xl font-extrabold text-win tabular-nums">+{best.delta}</span>
           </Link>

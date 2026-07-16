@@ -9,7 +9,7 @@ const OPTIONS: { value: StatsRange; label: string }[] = [
   { value: "all", label: "Tout" },
 ];
 
-/** Segmented control pour la fenêtre temporelle des stats — pastille active qui glisse. */
+/** Segmented control pour la fenêtre temporelle des stats - pastille active qui glisse. */
 export function RangeTabs({ value, onChange }: { value: StatsRange; onChange: (r: StatsRange) => void }) {
   const reduce = useReducedMotion();
   return (

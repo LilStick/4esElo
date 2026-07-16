@@ -22,7 +22,7 @@ export function HomeHero() {
         <div>
           <Logo title="Retake" className="h-12 w-auto text-ink sm:h-16" />
           <p className="mt-3 max-w-lg text-sm text-ink-dim sm:text-base">
-            Le classement Faceit du pôle CS2 de <b className="text-ink">4eSport</b> · Efrei Paris — en direct.
+            Le classement Faceit du pôle CS2 de <b className="text-ink">4eSport</b> · Efrei Paris - en direct.
           </p>
         </div>
 

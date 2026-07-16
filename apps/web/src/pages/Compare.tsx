@@ -27,7 +27,7 @@ import faceoffBg from "../assets/maps/screens/de_ancient.png";
 
 const A_COLOR = "#5E8BFF";
 const B_COLOR = "#34D8A0";
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
 function axes(o: StatsAggregate) {
@@ -72,7 +72,7 @@ function RadarFlank({ o, color, side }: { o: StatsAggregate; color: string; side
   );
 }
 
-/** Panneau joueur (façon carte de match) — cliquable pour (re)choisir. */
+/** Panneau joueur (façon carte de match) - cliquable pour (re)choisir. */
 function PlayerPanel({
   entry,
   color,
@@ -107,7 +107,7 @@ function PlayerPanel({
             </div>
             <div className="mt-1 flex items-center justify-center gap-2">
               <LevelBadge level={entry.level} size={20} />
-              <span className="font-mono text-sm font-bold text-ink tabular-nums">{entry.elo ?? "—"}</span>
+              <span className="font-mono text-sm font-bold text-ink tabular-nums">{entry.elo ?? "-"}</span>
             </div>
           </div>
           <span className="text-[11px] text-ink-faint underline-offset-2 group-hover:underline">Changer</span>
@@ -149,13 +149,13 @@ function CmpRow({
     <div className="py-2.5">
       <div className="flex items-center justify-between text-sm">
         <span className={cn("font-mono font-bold tabular-nums", aWins ? "text-brand" : "text-ink")}>
-          {a != null ? fmt(a) : "—"}
+          {a != null ? fmt(a) : "-"}
         </span>
         <span className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] text-ink-faint uppercase">
           <Icon size={13} /> {label}
         </span>
         <span className={cn("font-mono font-bold tabular-nums", bWins ? "text-win" : "text-ink")}>
-          {b != null ? fmt(b) : "—"}
+          {b != null ? fmt(b) : "-"}
         </span>
       </div>
       <div className="mt-1.5 flex h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
@@ -220,7 +220,7 @@ export function Compare() {
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <TbGitCompare className="text-brand" size={22} /> Comparer
         </h1>
-        <p className="mt-1 text-sm text-ink-dim">Deux membres face à face — radar et stats côte à côte.</p>
+        <p className="mt-1 text-sm text-ink-dim">Deux membres face à face - radar et stats côte à côte.</p>
       </div>
 
       {/* Face-à-face */}
@@ -348,7 +348,7 @@ export function Compare() {
         </div>
       )}
 
-      {/* Picker — exclut le joueur déjà choisi de l'autre côté */}
+      {/* Picker - exclut le joueur déjà choisi de l'autre côté */}
       <Modal open={picking !== null} onClose={() => setPicking(null)} title="Choisir un joueur">
         <div className="flex flex-col gap-1">
           {players
@@ -362,7 +362,7 @@ export function Compare() {
                 <Avatar name={nameOf(p)} size={32} src={discordAvatarUrl(p.discordId, p.discordAvatar)} />
                 <LevelBadge level={p.level} size={20} />
                 <span className="flex-1 truncate text-sm font-semibold">{nameOf(p)}</span>
-                <span className="font-mono text-sm font-bold text-brand tabular-nums">{p.elo ?? "—"}</span>
+                <span className="font-mono text-sm font-bold text-brand tabular-nums">{p.elo ?? "-"}</span>
               </button>
             ))}
         </div>

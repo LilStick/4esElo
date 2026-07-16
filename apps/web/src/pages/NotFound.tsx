@@ -73,7 +73,7 @@ export function NotFound() {
         </div>
         <h1 className="text-xl font-bold">Page introuvable</h1>
         <p className="max-w-sm text-sm text-ink-dim">
-          Cette page n'existe pas (ou plus) — comme un smoke qui part dans le vide.
+          Cette page n'existe pas (ou plus) - comme un smoke qui part dans le vide.
         </p>
         <Button onClick={() => navigate("/")}>Retour à l'accueil</Button>
       </div>

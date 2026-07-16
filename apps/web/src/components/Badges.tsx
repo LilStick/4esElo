@@ -5,7 +5,7 @@ import { cn } from "../lib/cn";
 const MAX_REPEAT = 3;
 
 /**
- * Badges à paliers (B5.14) — façon Calibrum. Chaque badge rend `count` émojis
+ * Badges à paliers (B5.14) - façon Calibrum. Chaque badge rend `count` émojis
  * (paliers) avec un tooltip = `message` (fourni par l'API, déjà fenêtré : 24h sur
  * le classement/home, 30j sur le profil). `max` limite le nombre de badges affichés
  * (le reste passe en « +N »). Le badge négatif `coldstreak` est teinté « loss ».

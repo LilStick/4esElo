@@ -6,7 +6,7 @@ const DISCORD = "https://discord.gg/gEVQtdCv6N";
 
 const V1_FEATURES = [
   { emoji: "🏆", text: "Classement ELO du pôle en temps réel" },
-  { emoji: "📊", text: "Stats détaillées par match — ADR, clutch, entry…" },
+  { emoji: "📊", text: "Stats détaillées par match - ADR, clutch, entry…" },
   { emoji: "📈", text: "Courbe d'ELO depuis ton arrivée dans le pôle" },
   { emoji: "🥇", text: "Ta place dans l'asso sur chaque stat" },
   { emoji: "🤝", text: "Comparaison 2 joueurs, duos, stats sociales" },

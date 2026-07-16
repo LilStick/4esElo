@@ -16,12 +16,12 @@ import { cn } from "../lib/cn";
 import { useTitle } from "../lib/useTitle";
 import backdrop from "../assets/maps/screens/de_mirage.png";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 
-/** Delta d'ELO sur 7 j (±points), entre le rang et l'avatar — « – » si nul / non suivi. */
+/** Delta d'ELO sur 7 j (±points), entre le rang et l'avatar - « - » si nul / non suivi. */
 function EloDelta({ delta }: { delta: number | null | undefined }) {
   if (delta == null || delta === 0) {
-    return <span className="w-10 text-center font-mono text-xs text-ink-faint">–</span>;
+    return <span className="w-10 text-center font-mono text-xs text-ink-faint">-</span>;
   }
   const up = delta > 0;
   return (
@@ -148,7 +148,7 @@ export function Leaderboard() {
           <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
         )}
         <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
-          {e.elo ?? "—"}
+          {e.elo ?? "-"}
         </span>
         <TbArrowRight className="text-ink-faint" size={17} />
       </>

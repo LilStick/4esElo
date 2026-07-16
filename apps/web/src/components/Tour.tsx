@@ -27,14 +27,14 @@ const STEPS: Step[] = [
     targetMobile: '[data-tour="nav-mobile"]',
     title: "La navigation",
     body: "Accueil, Classement, Comparer, Social, Wrapped… tout est ici, à gauche.",
-    bodyMobile: "Le menu ☰ : ouvre la navigation — Accueil, Classement, Comparer, Social, Wrapped.",
+    bodyMobile: "Le menu ☰ : ouvre la navigation - Accueil, Classement, Comparer, Social, Wrapped.",
   },
   {
     path: "/",
     target: '[data-tour="search"]',
     targetMobile: '[data-tour="search-mobile"]',
     title: "Recherche rapide",
-    body: "Trouve un membre en un éclair — ou appuie sur ⌘/Ctrl + K de n'importe où.",
+    body: "Trouve un membre en un éclair - ou appuie sur ⌘/Ctrl + K de n'importe où.",
     bodyMobile: "Trouve un membre en un éclair depuis cette loupe.",
   },
   {
@@ -68,7 +68,7 @@ const seen = (): boolean => {
 };
 
 /**
- * Onboarding première visite (B14.6) — tour guidé « façon jeu vidéo » : spotlight
+ * Onboarding première visite (B14.6) - tour guidé « façon jeu vidéo » : spotlight
  * sur les vrais éléments, bulle explicative, navigation automatique entre les
  * pages, progression. Une seule fois (localStorage). Skippable, Échap ferme,
  * respecte prefers-reduced-motion.
@@ -262,7 +262,7 @@ export function Tour() {
         {/* Capte les clics hors bulle (tour guidé). */}
         <div className="absolute inset-0" onClick={() => {}} />
 
-        {/* Bulle — reste montée entre les étapes : left/top animés au spring → elle
+        {/* Bulle - reste montée entre les étapes : left/top animés au spring → elle
             glisse vers la nouvelle position au lieu de re-popper (key retirée exprès). */}
         <motion.div
           ref={tipRef}

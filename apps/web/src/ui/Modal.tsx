@@ -6,7 +6,7 @@ import { cn } from "../lib/cn";
 /**
  * Modale centrée en double-bezel (comme la Card) : coque en verre dépoli qui
  * enserre un cœur sombre, backdrop flou, fermeture Esc / clic dehors, corps
- * scrollable. Rayons concentriques (`cœur = coque − bezel`).
+ * scrollable. Rayons concentriques (`cœur = coque - bezel`).
  */
 export function Modal({
   open,

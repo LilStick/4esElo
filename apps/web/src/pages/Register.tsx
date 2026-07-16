@@ -104,7 +104,7 @@ export function Register() {
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 404
-          ? "Pseudo Faceit introuvable — vérifie l'orthographe exacte."
+          ? "Pseudo Faceit introuvable - vérifie l'orthographe exacte."
           : "Impossible de vérifier ce pseudo pour l'instant.",
       );
       setLookup(null);
@@ -139,11 +139,11 @@ export function Register() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Inscription au pôle</h1>
         <p className="mt-1 text-sm text-ink-dim">
-          Relie ton compte Discord à ton pseudo Faceit — tu apparaîtras au classement.
+          Relie ton compte Discord à ton pseudo Faceit - tu apparaîtras au classement.
         </p>
       </div>
 
-      {/* Étape 1 — pseudo Faceit */}
+      {/* Étape 1 - pseudo Faceit */}
       <Card className="flex flex-col gap-4 p-6">
         <form
           onSubmit={(e) => {
@@ -198,7 +198,7 @@ export function Register() {
               <div className="truncate text-lg font-bold">{lookup.nickname}</div>
               <div className="mt-1 flex items-center gap-2 text-sm text-ink-dim">
                 <LevelBadge level={lookup.level} size={20} />
-                <span className="font-mono font-bold text-brand tabular-nums">{lookup.elo ?? "—"}</span>
+                <span className="font-mono font-bold text-brand tabular-nums">{lookup.elo ?? "-"}</span>
                 <span className="text-ink-faint">ELO</span>
               </div>
             </div>
@@ -206,7 +206,7 @@ export function Register() {
         )}
       </Card>
 
-      {/* Étape 2 — promo + confirmation (une fois le pseudo validé) */}
+      {/* Étape 2 - promo + confirmation (une fois le pseudo validé) */}
       {lookup && (
         <Card className="flex flex-col gap-5 p-6">
           <div className="grid gap-4 sm:grid-cols-2">
