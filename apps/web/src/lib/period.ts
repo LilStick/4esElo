@@ -40,7 +40,7 @@ export function currentPeriod(): string {
   return toPeriod(d.getFullYear(), d.getMonth() + 1);
 }
 
-/** BIG Wrapped (B7.12) — période longue : "2026" (année) | "2026-H1" | "2026-H2". */
+/** BIG Wrapped (B7.12) - période longue : "2026" (année) | "2026-H1" | "2026-H2". */
 export type BigPeriod = { year: number; half: 1 | 2 | null };
 
 /** Parse une période longue d'URL (null si invalide). */

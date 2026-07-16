@@ -6,7 +6,7 @@ import { getOvertakes } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, Skeleton } from "../ui";
 
-const nameOf = (p: OvertakePlayer) => p.faceitNickname ?? p.discordName ?? "—";
+const nameOf = (p: OvertakePlayer) => p.faceitNickname ?? p.discordName ?? "-";
 
 function Header() {
   return (

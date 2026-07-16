@@ -114,7 +114,7 @@ export function RecentMatches() {
                     )}
                     title="±ELO du match"
                   >
-                    {m.eloDelta == null ? "—" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
+                    {m.eloDelta == null ? "-" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
                   </span>
                 </>
               );

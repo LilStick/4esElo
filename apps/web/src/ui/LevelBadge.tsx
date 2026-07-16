@@ -25,7 +25,7 @@ const ICONS: Record<number, string> = {
 
 export function LevelBadge({ level, size = 28 }: { level: number | null; size?: number }) {
   const src = level != null ? ICONS[level] : undefined;
-  if (!src) return <span className="text-xs text-ink-faint">—</span>;
+  if (!src) return <span className="text-xs text-ink-faint">-</span>;
   return (
     <img
       src={src}

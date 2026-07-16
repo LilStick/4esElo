@@ -6,7 +6,7 @@ import { getMovers } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 
-const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "—";
+const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "-";
 
 /** Widget « Grimpeur de la semaine » : plus gros gain d'ELO sur 7 jours. */
 export function TopClimber() {
@@ -43,7 +43,7 @@ export function TopClimber() {
                 </span>
                 <LevelBadge level={best.level} size={18} />
               </div>
-              <div className="text-xs text-ink-faint">{best.elo ?? "—"} ELO</div>
+              <div className="text-xs text-ink-faint">{best.elo ?? "-"} ELO</div>
             </div>
             <span className="font-mono text-xl font-extrabold text-win tabular-nums">+{best.delta}</span>
           </Link>

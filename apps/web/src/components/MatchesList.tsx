@@ -38,7 +38,7 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
           className={cn("w-11 text-right font-extrabold", r != null ? ratingColor(r) : "text-ink-faint")}
           title="Rating (façon HLTV)"
         >
-          {r != null ? r.toFixed(2) : "—"}
+          {r != null ? r.toFixed(2) : "-"}
         </span>
         <span className="w-16 text-right">
           {m.stats.kills}
@@ -56,7 +56,7 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
           )}
           title="±ELO du match"
         >
-          {m.eloDelta == null ? "—" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
+          {m.eloDelta == null ? "-" : `${m.eloDelta > 0 ? "+" : ""}${m.eloDelta}`}
         </span>
       </div>
     </>

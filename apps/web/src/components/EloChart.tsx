@@ -13,7 +13,7 @@ export function EloChart({ points }: { points: EloPoint[] }) {
           />
         ))}
         <div className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-ink-dim">
-          La courbe d'ELO se trace dès que ton ELO évolue — les matchs stockés ne portent pas encore leur ELO.
+          La courbe d'ELO se trace dès que ton ELO évolue - les matchs stockés ne portent pas encore leur ELO.
         </div>
       </div>
     );

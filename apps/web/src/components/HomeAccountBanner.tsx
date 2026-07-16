@@ -49,7 +49,7 @@ export function HomeAccountBanner() {
       <div>
         <div className="text-lg font-bold">Content de te revoir, {name} 👋</div>
         <p className="mt-1 max-w-xl text-sm text-ink-dim">
-          Ton récap du mois t'attend — et ton profil suit ta progression.
+          Ton récap du mois t'attend - et ton profil suit ta progression.
         </p>
       </div>
       <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">

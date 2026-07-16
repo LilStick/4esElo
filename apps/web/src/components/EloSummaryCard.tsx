@@ -119,7 +119,7 @@ export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | n
             className="font-mono text-[44px] leading-none font-extrabold tracking-[-0.02em] tabular-nums"
             style={{ color, textShadow: `0 0 24px ${color}55` }}
           >
-            {elo != null ? <CountUp value={elo} /> : "—"}
+            {elo != null ? <CountUp value={elo} /> : "-"}
           </div>
           <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">Elo Faceit</div>
         </div>
@@ -130,7 +130,7 @@ export function EloSummaryCard({ id, elo, level }: { id: string; elo: number | n
           </span>
           <span>
             <span className="font-mono font-bold text-win tabular-nums">
-              {winrate != null ? `${winrate}%` : "—"}
+              {winrate != null ? `${winrate}%` : "-"}
             </span>{" "}
             victoires
           </span>

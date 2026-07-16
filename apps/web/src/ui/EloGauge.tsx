@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 type Props = {
   elo: number;
-  /** Position dans le palier de niveau, 0–100. */
+  /** Position dans le palier de niveau, 0-100. */
   pct: number;
   size?: number;
 };

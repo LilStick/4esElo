@@ -7,7 +7,7 @@ import { getLeaderboard, getPlayerStats } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, CountUp, Skeleton } from "../ui";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 const MIN_MATCHES = 5; // seuil pour les records de taux (winrate, K/D)
 
 type Row = { p: LeaderboardEntry; s: PlayerStatsResponse["overall"] };
@@ -49,7 +49,7 @@ function RecordCard({
         </div>
       </Link>
       <span className="font-mono text-lg font-extrabold text-brand tabular-nums">
-        {value == null ? "—" : <CountUp value={value} format={format} />}
+        {value == null ? "-" : <CountUp value={value} format={format} />}
       </span>
     </Card>
   );

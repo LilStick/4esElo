@@ -1,7 +1,7 @@
 import { hltvRating, type FaceitMatchStats } from "@4eselo/types";
 
 /**
- * Rating façon HLTV 1.0 d'un match — délègue à la formule partagée `hltvRating`
+ * Rating façon HLTV 1.0 d'un match - délègue à la formule partagée `hltvRating`
  * (source unique front/back, #298). Le nombre de rounds est dérivé de `kr`
  * (kills par round). Null si non calculable.
  */

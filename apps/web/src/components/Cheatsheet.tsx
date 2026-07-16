@@ -5,7 +5,7 @@ import { replayTour } from "../lib/tour";
 
 type Shortcut = { keys: string[]; sequence?: boolean; label: string };
 
-/** Les raccourcis réellement câblés (voir AppShell) — à garder en phase. */
+/** Les raccourcis réellement câblés (voir AppShell) - à garder en phase. */
 const SHORTCUTS: Shortcut[] = [
   { keys: ["Ctrl", "K"], label: "Recherche globale (⌘K sur Mac)" },
   { keys: ["G", "H"], sequence: true, label: "Aller à l'accueil" },
@@ -23,7 +23,7 @@ function Kbd({ children }: { children: ReactNode }) {
   );
 }
 
-/** Modale d'aide (B14.15) — ouverte par « ? », liste les raccourcis clavier. */
+/** Modale d'aide (B14.15) - ouverte par « ? », liste les raccourcis clavier. */
 export function Cheatsheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal open={open} onClose={onClose} title="Raccourcis clavier">

@@ -43,7 +43,7 @@ function MenuAction({
  * Bloc de session dans la sidebar (B17.3). Trois états : anonyme (bouton login
  * Discord), connecté sans fiche (inviter à finir l'inscription), connecté membre.
  *
- * Membre (B14.17) : même interaction déplié/replié — un clic sur l'avatar
+ * Membre (B14.17) : même interaction déplié/replié - un clic sur l'avatar
  * (+ nom si déplié) ouvre un popover à droite avec profil / Wrapped / admin /
  * déconnexion (façon Widelab), plutôt qu'un bandeau d'icônes toujours ouvert.
  */

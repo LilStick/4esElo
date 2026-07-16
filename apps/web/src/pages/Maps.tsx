@@ -45,7 +45,7 @@ function Row({ e, index }: { e: MapLeaderboardEntry; index: number }) {
   );
 }
 
-/** Classement par map (B13.5) — sélecteur de map + top membres dessus (winrate, K/D). */
+/** Classement par map (B13.5) - sélecteur de map + top membres dessus (winrate, K/D). */
 export function Maps() {
   useTitle("Classement par map");
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ export function Maps() {
         </h1>
         <p className="mt-1 text-sm text-ink-dim">
           Les rois de chaque carte
-          {data ? ` — à partir de ${data.minMatches} games sur la map.` : "."}
+          {data ? ` - à partir de ${data.minMatches} games sur la map.` : "."}
         </p>
       </div>
 

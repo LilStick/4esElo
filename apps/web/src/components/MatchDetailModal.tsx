@@ -155,7 +155,7 @@ export function MatchDetailModal({
             </div>
           </div>
 
-          {/* Punchline 4esBot de la game (hype ou vanne) — barre d'accent + chip emoji, verre discret */}
+          {/* Punchline 4esBot de la game (hype ou vanne) - barre d'accent + chip emoji, verre discret */}
           {roast && (
             <div className="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.025] py-3 pr-4 pl-5">
               <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", win ? "bg-win" : "bg-loss")} />
@@ -176,7 +176,7 @@ export function MatchDetailModal({
             <HeroCell
               icon={TbStar}
               label="Rating"
-              value={r != null ? r.toFixed(2) : "—"}
+              value={r != null ? r.toFixed(2) : "-"}
               accent={r != null ? ratingColor(r) : undefined}
             />
             <HeroCell icon={TbSwords} label="K / D / A" value={`${s.kills}/${s.deaths}/${s.assists}`} />

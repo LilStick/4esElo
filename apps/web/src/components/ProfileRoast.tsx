@@ -27,7 +27,7 @@ function BotHeader() {
 }
 
 /**
- * Encart roast du profil (B7.7) — variante « 4esBot » : la mascotte analyse les
+ * Encart roast du profil (B7.7) - variante « 4esBot » : la mascotte analyse les
  * dernières games et balance ses punchlines (négatif + positif) au clic, avec un
  * effet de frappe façon IA, mais 100 % déterministe (données de `GET /players/:id/roast`).
  */

@@ -9,7 +9,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 /**
- * Bouton. Le feedback qui compte est le press (`scale`), pas le hover — donc
+ * Bouton. Le feedback qui compte est le press (`scale`), pas le hover - donc
  * le hover ne fait que changer la couleur, et l'icône nichée glisse légèrement.
  */
 export function Button({ variant = "primary", icon: Icon, className, children, ...props }: Props) {

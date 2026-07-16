@@ -33,7 +33,7 @@ const EXPAND_MIN_PX = 1760;
 
 /**
  * Déclencheur de la recherche globale (Ctrl/Cmd+K). Une seule structure pour
- * les deux états — l'icône reste dans un slot fixe (jamais de saut), seul le
+ * les deux états - l'icône reste dans un slot fixe (jamais de saut), seul le
  * libellé + le raccourci se rétractent en largeur/opacité au repli.
  */
 function SearchTrigger({ onClick, collapsed }: { onClick: () => void; collapsed?: boolean }) {
@@ -95,7 +95,7 @@ function Brand({ collapsed }: { collapsed?: boolean }) {
 
 /**
  * Bascule replier/déplier la sidebar (état persisté), posée en haut à gauche
- * du contenu — pas dans la sidebar elle-même. Icône nue, sans contour.
+ * du contenu - pas dans la sidebar elle-même. Icône nue, sans contour.
  * L'icône change selon l'état.
  */
 function CollapseToggle({
@@ -138,7 +138,7 @@ const NAV_ROW = 40; // hauteur d'un item (h-10)
 const NAV_STEP = NAV_ROW + 4; // + gap-1
 
 /** Nav vertical avec une barre unique qui glisse derrière l'item survolé, et
- *  revient sur l'item actif au repos — comme les listes du site. Replié :
+ *  revient sur l'item actif au repos - comme les listes du site. Replié :
  *  icônes seules + tooltip au survol (façon Taskk/Widelab). */
 function NavList({ onNavigate, collapsed }: { onNavigate?: () => void; collapsed?: boolean }) {
   const { pathname } = useLocation();
@@ -398,7 +398,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Contenu — la largeur max est portée par chaque page (évite le reflow pendant la transition).
+      {/* Contenu - la largeur max est portée par chaque page (évite le reflow pendant la transition).
           Le shell (sidebar + marge) reste fixe à l'écran ; seule la bulle défile en interne. */}
       <div
         className={cn(
@@ -410,7 +410,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* La « bulle » (cadre arrondi + dégradé + décor) n'existe qu'à partir de lg.
               En mode menu burger (mobile), le contenu s'affiche à plat, pleine largeur. */}
           <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden lg:rounded-[28px] lg:bg-gradient-to-b lg:from-surface lg:to-bg">
-            {/* Décor — en dehors du conteneur qui défile, reste fixe avec le cadre. */}
+            {/* Décor - en dehors du conteneur qui défile, reste fixe avec le cadre. */}
             <div
               aria-hidden
               className="pointer-events-none absolute -top-32 -right-32 hidden size-96 rounded-full bg-brand/10 blur-3xl lg:block"

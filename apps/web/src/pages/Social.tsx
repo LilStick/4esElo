@@ -102,7 +102,7 @@ export function Social() {
         </h1>
         <p className="mt-1 text-sm text-ink-dim">
           Les paires qui gagnent le plus ensemble
-          {data ? ` — à partir de ${data.minMatches} games en commun.` : "."}
+          {data ? ` - à partir de ${data.minMatches} games en commun.` : "."}
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export function Social() {
         </Card>
       )}
 
-      {/* Les fives du pôle (B4.5) — groupes de 3 à 5 qui jouent ensemble */}
+      {/* Les fives du pôle (B4.5) - groupes de 3 à 5 qui jouent ensemble */}
       <div className="mt-2">
         <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <TbUsersGroup className="text-brand" size={24} />
@@ -143,7 +143,7 @@ export function Social() {
         </h2>
         <p className="mt-1 text-sm text-ink-dim">
           Les groupes qui gagnent le plus ensemble
-          {lineupData ? ` — à partir de ${lineupData.minMatches} games en commun.` : "."}
+          {lineupData ? ` - à partir de ${lineupData.minMatches} games en commun.` : "."}
         </p>
       </div>
 

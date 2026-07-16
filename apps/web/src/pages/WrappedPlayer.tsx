@@ -125,7 +125,7 @@ export function WrappedPlayer() {
                 />
                 <Tile
                   label="Δ ELO du mois"
-                  value={data.elo ? `${data.elo.delta > 0 ? "+" : ""}${data.elo.delta}` : "—"}
+                  value={data.elo ? `${data.elo.delta > 0 ? "+" : ""}${data.elo.delta}` : "-"}
                   accent={data.elo ? (data.elo.delta >= 0 ? "text-win" : "text-loss") : undefined}
                 />
                 <Tile

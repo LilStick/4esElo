@@ -19,9 +19,9 @@ export function Dashboard() {
       <AnnouncementBanner />
 
       {/* 2 colonnes dès xl (rail gauche + centre large), 3 colonnes à 2xl (ajoute le rail matchs)
-          → le centre ne s'écrase pas sur les laptops ~1280–1536. */}
+          → le centre ne s'écrase pas sur les laptops ~1280-1536. */}
       <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] xl:items-start 2xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-        {/* Rail gauche : joueur du jour, grimpeur, présence, dépassements, records — en entier, sans clic.
+        {/* Rail gauche : joueur du jour, grimpeur, présence, dépassements, records - en entier, sans clic.
             En 1 colonne il passe en dernier (ordre : centre → matchs → rail gauche). */}
         <aside className="order-3 flex flex-col gap-4 xl:order-1">
           <PlayerOfTheDay />

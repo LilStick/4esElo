@@ -9,7 +9,7 @@ import { getLeaderboard } from "../lib/api";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, LevelBadge } from "../ui";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "—";
+const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
 
 const PAGES: { to: string; label: string; icon: IconType }[] = [
   { to: "/", label: "Accueil", icon: TbLayoutDashboard },
@@ -115,7 +115,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                         <LevelBadge level={e.level} size={22} />
                         <span className="flex-1 truncate text-sm font-semibold">{nameOf(e)}</span>
                         <span className="font-mono text-sm font-bold text-brand tabular-nums">
-                          {e.elo ?? "—"}
+                          {e.elo ?? "-"}
                         </span>
                       </Command.Item>
                     ))}

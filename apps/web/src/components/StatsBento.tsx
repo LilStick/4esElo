@@ -26,7 +26,7 @@ function StatCard({
   wide,
 }: {
   label: string;
-  /** null → « — » (pas de count-up). */
+  /** null → « - » (pas de count-up). */
   value: number | null;
   format?: (n: number) => string;
   sub?: string;
@@ -51,7 +51,7 @@ function StatCard({
           <span
             className={`font-mono text-[28px] font-extrabold tracking-tight tabular-nums ${accent ?? (good ? "text-win" : "")}`}
           >
-            {value == null ? "—" : <CountUp value={value} format={format} />}
+            {value == null ? "-" : <CountUp value={value} format={format} />}
           </span>
           {sub && subInline && <span className="text-xs text-ink-dim">{sub}</span>}
         </div>
