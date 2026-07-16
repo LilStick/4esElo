@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbCrown, TbMap2, TbSearch, TbUsersGroup } from "react-icons/tb";
@@ -7,9 +7,7 @@ import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
-import { clampPage, pageCountOf } from "../lib/pagination";
-import { usePageSize } from "../lib/usePageSize";
-import { Avatar, Card, HoverBarList, LevelBadge, Pagination, Skeleton } from "../ui";
+import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
 import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -107,18 +105,39 @@ export function Leaderboard() {
   const searching = q.trim() !== "";
   const listItems = searching ? board.filter((e) => norm(nameOf(e)).includes(norm(q.trim()))) : board;
 
-  // Pagination (numérotée). Taille de page selon la hauteur d'écran ; les paliers
-  // de niveau sont re-groupés à l'intérieur de la page courante (grouping conservé).
-  const pageSize = usePageSize({ rowHeight: 56, reserved: 430, min: 8 });
-  const pageCount = pageCountOf(listItems.length, pageSize);
-  const [page, setPage] = useState(0);
-  useEffect(() => setPage(0), [q]); // nouvelle recherche → page 1
-  const safePage = clampPage(page, pageCount);
-  const pageItems = listItems.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  // Scroll infini : on ne rend qu'un lot de lignes, agrandi quand la sentinelle
+  // approche du viewport (IntersectionObserver, pas de handler de scroll). Données
+  // déjà côté client → révélation progressive du DOM, aucun refetch.
+  const BATCH = 30;
+  const [visible, setVisible] = useState(BATCH);
+  useEffect(() => setVisible(BATCH), [q]); // reset au changement de recherche
+  const shownItems = listItems.slice(0, visible);
+  const hasMore = visible < listItems.length;
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setVisible((v) => Math.min(v + BATCH, listItems.length));
+      },
+      { rootMargin: "800px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, listItems.length]);
 
   // Paliers de niveau dès qu'on ne cherche pas ; liste plate en recherche.
+  // Les paliers sont re-groupés à l'intérieur des lignes déjà révélées.
   const grouped = !searching;
-  const groups = useMemo(() => (grouped ? groupByLevel(pageItems) : []), [grouped, pageItems]);
+  const groups = useMemo(() => (grouped ? groupByLevel(shownItems) : []), [grouped, shownItems]);
+  // Compteur par palier = total réel (indépendant de la révélation progressive).
+  const totalByLevel = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const e of listItems) m.set(e.level ?? 0, (m.get(e.level ?? 0) ?? 0) + 1);
+    return m;
+  }, [listItems]);
 
   const renderRow = (e: LeaderboardEntry) => {
     const isMe = myId != null && e.id === myId;
@@ -216,7 +235,7 @@ export function Leaderboard() {
           <div data-tour="ladder" className="flex flex-col gap-5">
             {groups.map((g) => (
               <div key={g.level}>
-                <TierBanner level={g.level} count={g.items.length} />
+                <TierBanner level={g.level} count={totalByLevel.get(g.level) ?? g.items.length} />
                 <Card className="p-[var(--bezel)]">
                   <HoverBarList
                     items={g.items}
@@ -232,7 +251,7 @@ export function Leaderboard() {
         ) : (
           <Card className="p-[var(--bezel)]">
             <HoverBarList
-              items={pageItems}
+              items={shownItems}
               rowHeight={56}
               keyOf={(e) => e.id}
               onSelect={(e) => navigate(`/player/${e.id}`)}
@@ -241,8 +260,11 @@ export function Leaderboard() {
           </Card>
         ))}
 
-      {listItems.length > 0 && (
-        <Pagination page={safePage} pageCount={pageCount} onPage={setPage} className="mt-6" />
+      {/* Sentinelle du scroll infini : agrandit le lot quand elle approche du viewport. */}
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-6" aria-hidden>
+          <span className="size-5 animate-spin rounded-full border-2 border-white/15 border-t-brand" />
+        </div>
       )}
 
       {searching && board.length > 0 && listItems.length === 0 && (
