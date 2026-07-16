@@ -33,14 +33,14 @@ function MatchRowContent({ m }: { m: MatchSummary }) {
           {relativeTime(m.playedAt)}
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-6 font-mono text-sm font-semibold tabular-nums sm:gap-9">
+      <div className="flex shrink-0 items-center gap-4 font-mono text-sm font-semibold tabular-nums sm:gap-9">
         <span
           className={cn("w-11 text-right font-extrabold", r != null ? ratingColor(r) : "text-ink-faint")}
           title="Rating (façon HLTV)"
         >
           {r != null ? r.toFixed(2) : "-"}
         </span>
-        <span className="w-16 text-right">
+        <span className="hidden w-16 text-right sm:block">
           {m.stats.kills}
           <span className="text-ink-faint"> / </span>
           {m.stats.deaths}
@@ -69,9 +69,9 @@ function Header() {
     <div className="mb-1 flex items-center gap-4 px-4 text-[10px] font-semibold tracking-wider text-ink-faint uppercase">
       <span className="w-9 shrink-0 text-center">W/L</span>
       <span className="min-w-0 flex-1">Match</span>
-      <span className="flex shrink-0 items-center gap-6 sm:gap-9">
+      <span className="flex shrink-0 items-center gap-4 sm:gap-9">
         <span className="w-11 text-right">Rating</span>
-        <span className="w-16 text-right">K / D</span>
+        <span className="hidden w-16 text-right sm:block">K / D</span>
         <span className="hidden w-12 text-right sm:block">Ratio</span>
         <span className="hidden w-12 text-right sm:block">ADR</span>
         <span className="w-12 text-right">±ELO</span>
