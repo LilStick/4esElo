@@ -67,12 +67,16 @@ export function MatchPerfGraph({ matches }: { matches: MatchSummary[] }) {
   const elos = series.map((s) => s.elo);
   const lo = Math.min(...elos);
   const hi = Math.max(...elos);
-  const span = hi - lo || 1;
+  const flat = hi === lo; // ELO constant sur la fenêtre → pas de span réel
+  const span = flat ? 1 : hi - lo;
   const n = series.length;
 
   // Padding vertical : la courbe reste dans [PAD, 100-PAD] → sommets/creux ne débordent pas.
   const PAD = 10;
-  const yOf = (elo: number) => PAD + (1 - (elo - lo) / span) * (100 - 2 * PAD);
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+  // Clampé : en ELO plat les ticks pouvaient sortir de la card (top 170%) et
+  // déborder sur la card du dessous (#383). On garde tout dans [PAD, 100-PAD].
+  const yOf = (elo: number) => clamp(PAD + (1 - (elo - lo) / span) * (100 - 2 * PAD), PAD, 100 - PAD);
 
   const pts = series.map((s, i) => ({
     x: n === 1 ? 50 : (i / (n - 1)) * 100,
@@ -80,11 +84,13 @@ export function MatchPerfGraph({ matches }: { matches: MatchSummary[] }) {
     m: s.m,
   }));
 
-  // Barème gauche : 4 paliers d'ELO répartis, avec l'icône de rang correspondante.
-  const ticks = [0, 1, 2, 3].map((i) => {
-    const elo = Math.round(hi - (i / 3) * span);
-    return { elo, level: eloLevel(elo), y: yOf(elo) };
-  });
+  // Barème gauche : 4 paliers répartis (ou un seul, centré, si l'ELO est plat).
+  const ticks = flat
+    ? [{ elo: hi, level: eloLevel(hi), y: 50 }]
+    : [0, 1, 2, 3].map((i) => {
+        const elo = Math.round(hi - (i / 3) * span);
+        return { elo, level: eloLevel(elo), y: yOf(elo) };
+      });
 
   const line = smoothPath(pts);
   const area = line ? `${line} L 100 100 L 0 100 Z` : "";
