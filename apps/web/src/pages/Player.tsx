@@ -5,6 +5,7 @@ import type { IconType } from "react-icons";
 import {
   TbArrowLeft,
   TbChartBar,
+  TbChartLine,
   TbExternalLink,
   TbFlame,
   TbLock,
@@ -14,11 +15,14 @@ import {
   TbTrophy,
   TbUserQuestion,
 } from "react-icons/tb";
-import type { StatsRange } from "@4eselo/types";
+import type { PlayerDetail, StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
+import { useEloSource } from "../lib/useEloSource";
+import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Button, Card, RangeTabs, Skeleton } from "../ui";
+import { Avatar, Button, Card, PremierBadge, RangeTabs, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
+import { EloChart } from "../components/EloChart";
 import { EmptyState } from "../components/EmptyState";
 import { StatsBento } from "../components/StatsBento";
 import { RadarPerf } from "../components/RadarPerf";
@@ -80,13 +84,97 @@ function SectionTitle({ icon: Icon, children }: { icon: IconType; children: Reac
   );
 }
 
+/** Carte d'identité (avatar, pseudo Discord + Faceit, liens, badges, promo) — partagée Faceit/Premier. */
+function IdentityCard({ data, name }: { data: PlayerDetail; name: string }) {
+  return (
+    <Card className="flex flex-col items-center gap-4 p-6 text-center">
+      <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
+      <div className="min-w-0">
+        <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
+        {data.discordName && data.faceitNickname && (
+          <div className="mt-0.5 truncate font-mono text-[13px] text-ink-dim" title="Pseudo Faceit">
+            {data.faceitNickname}
+          </div>
+        )}
+        <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">
+          {data.faceitNickname && (
+            <a
+              href={`https://www.faceit.com/fr/players/${data.faceitNickname}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
+            >
+              Faceit <TbExternalLink size={13} />
+            </a>
+          )}
+          {data.steamId64 && (
+            <a
+              href={`https://steamcommunity.com/profiles/${data.steamId64}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
+            >
+              Steam <TbExternalLink size={13} />
+            </a>
+          )}
+        </div>
+      </div>
+
+      <Badges tiers={data.badgeTiers} className="flex-wrap justify-center" />
+
+      {(isAlumni(data.promoEnd) || promoLabel(data.promoStart, data.promoEnd) || data.formation) && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          {isAlumni(data.promoEnd) && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
+              🎓 Alumni
+            </span>
+          )}
+          {promoLabel(data.promoStart, data.promoEnd) && (
+            <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-ink-dim">
+              Promo {promoLabel(data.promoStart, data.promoEnd)}
+            </span>
+          )}
+          {data.formation && (
+            <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[11px] text-ink-dim">
+              {data.formation}
+            </span>
+          )}
+        </div>
+      )}
+
+      <ShareButton className="w-full" />
+
+      {data.playtimePrivate === true && (
+        <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
+          <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
+          <span>
+            Heures de jeu privées - passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
+            <a
+              href="https://steamcommunity.com/my/edit/settings"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-loss underline-offset-2 hover:underline"
+            >
+              Steam
+            </a>{" "}
+            pour apparaître dans les stats de temps de jeu.
+          </span>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export function Player() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [range, setRange] = useState<StatsRange>("all");
+  const [source, setSource] = useEloSource();
+  const premierEnabled = usePremierEnabled();
+  const premier = source === "premier";
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["player", id],
-    queryFn: () => getPlayer(id),
+    queryKey: ["player", id, source],
+    queryFn: () => getPlayer(id, source),
     enabled: id.length > 0,
   });
 
@@ -108,179 +196,118 @@ export function Player() {
       )}
 
       {data && (
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
-          {/* Colonne gauche (desktop). En 1 colonne, `contents` aplatit ses items dans la grille
-              et chacun est ordonné via `order-*` pour donner la séquence demandée. */}
-          <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
-            {/* 1 - profil + retour */}
-            <div className="order-1 flex flex-col gap-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="inline-flex cursor-pointer items-center gap-1.5 self-start text-sm text-ink-dim transition-colors hover:text-ink"
-              >
-                <TbArrowLeft size={16} /> Retour
-              </button>
-              <Card className="flex flex-col items-center gap-4 p-6 text-center">
-                <Avatar name={name} size={104} src={discordAvatarUrl(data.discordId, data.discordAvatar)} />
-                <div className="min-w-0">
-                  <h1 className="truncate text-[22px] font-extrabold tracking-[-0.03em]">{name}</h1>
-                  {data.discordName && data.faceitNickname && (
-                    <div className="mt-0.5 truncate font-mono text-[13px] text-ink-dim" title="Pseudo Faceit">
-                      {data.faceitNickname}
-                    </div>
-                  )}
-                  <div className="mt-2 flex flex-wrap justify-center gap-4 text-[13px] text-ink-dim">
-                    {data.faceitNickname && (
-                      <a
-                        href={`https://www.faceit.com/fr/players/${data.faceitNickname}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
-                      >
-                        Faceit <TbExternalLink size={13} />
-                      </a>
-                    )}
-                    {data.steamId64 && (
-                      <a
-                        href={`https://steamcommunity.com/profiles/${data.steamId64}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 transition-colors hover:text-brand-hi"
-                      >
-                        Steam <TbExternalLink size={13} />
-                      </a>
-                    )}
-                  </div>
-                </div>
+        <>
+          {/* Barre haut : retour + sélecteur de source (si Premier activé). */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink"
+            >
+              <TbArrowLeft size={16} /> Retour
+            </button>
+            {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
+          </div>
 
-                <Badges tiers={data.badgeTiers} className="flex-wrap justify-center" />
-
-                {(isAlumni(data.promoEnd) ||
-                  promoLabel(data.promoStart, data.promoEnd) ||
-                  data.formation) && (
-                  <div className="flex flex-wrap items-center justify-center gap-1.5">
-                    {isAlumni(data.promoEnd) && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
-                        🎓 Alumni
-                      </span>
-                    )}
-                    {promoLabel(data.promoStart, data.promoEnd) && (
-                      <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-ink-dim">
-                        Promo {promoLabel(data.promoStart, data.promoEnd)}
-                      </span>
-                    )}
-                    {data.formation && (
-                      <span className="rounded-md border border-white/[0.1] bg-white/[0.03] px-2 py-0.5 text-[11px] text-ink-dim">
-                        {data.formation}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <ShareButton className="w-full" />
-
-                {data.playtimePrivate === true && (
-                  <div className="flex items-start gap-2 rounded-lg border border-loss/25 bg-loss/[0.08] px-3 py-2 text-left text-xs text-ink-dim">
-                    <TbLock size={14} className="mt-0.5 shrink-0 text-loss" />
-                    <span>
-                      Heures de jeu privées - passe «&nbsp;Détails du jeu&nbsp;» en public sur{" "}
-                      <a
-                        href="https://steamcommunity.com/my/edit/settings"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-loss underline-offset-2 hover:underline"
-                      >
-                        Steam
-                      </a>{" "}
-                      pour apparaître dans les stats de temps de jeu.
-                    </span>
-                  </div>
+          {premier ? (
+            /* Premier : identité + CS Rating + courbe. Les stats détaillées sont Faceit-only. */
+            <div className="mx-auto flex max-w-2xl flex-col gap-4">
+              <IdentityCard data={data} name={name} />
+              <Card className="flex flex-col items-center gap-3 p-6">
+                <SectionTitle icon={TbTrophy}>CS Rating Premier</SectionTitle>
+                {data.elo != null ? (
+                  <PremierBadge rating={data.elo} height={44} />
+                ) : (
+                  <p className="text-center text-sm text-ink-dim">
+                    Pas encore de CS Rating — il apparaît après quelques parties Premier synchronisées.
+                  </p>
                 )}
               </Card>
-            </div>
-
-            {/* 6 - heatmap d'activité */}
-            <div className="order-6">
-              <ActivityHeatmap id={id} />
-            </div>
-
-            {/* 11 - avec qui il win le + */}
-            <div className="order-11">
-              <PlayerDuos id={id} />
-            </div>
-
-            {/* 12 - roast 4esBot (déterministe, négatif + positif) */}
-            <div className="order-12">
-              <div className="mb-3">
-                <SectionTitle icon={TbFlame}>Roast</SectionTitle>
+              <div>
+                <div className="mb-3">
+                  <SectionTitle icon={TbChartLine}>Progression CS Rating</SectionTitle>
+                </div>
+                <Card className="p-5">
+                  <EloChart points={data.history} />
+                </Card>
               </div>
-              <ProfileRoast id={id} />
+              <Card className="flex items-start gap-3 p-4 text-sm text-ink-dim">
+                <TbChartBar size={18} className="mt-0.5 shrink-0 text-ink-faint" />
+                <span>
+                  Les stats détaillées (ADR, K/D, radar, matchs, maps…) ne sont disponibles que sur{" "}
+                  <b className="text-ink">Faceit</b>. Bascule la source en haut pour les voir.
+                </span>
+              </Card>
             </div>
-          </div>
-
-          {/* Colonne centrale (desktop). En 1 colonne, `contents` + `order-*` intercalent ses
-              items avec ceux de la colonne gauche selon la séquence demandée. */}
-          <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
-            {/* 2 - ELO */}
-            <div className="order-2">
-              <EloSummaryCard id={id} elo={data.elo} level={data.level} />
-            </div>
-
-            {/* 3 - performances récentes */}
-            <div className="order-3">
-              <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
-            </div>
-
-            {/* 4 - statistiques */}
-            <div className="order-4 min-w-0">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
-                <RangeTabs value={range} onChange={setRange} />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
+              {/* Colonne gauche (desktop). `contents` + `order-*` en 1 colonne. */}
+              <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
+                <div className="order-1">
+                  <IdentityCard data={data} name={name} />
+                </div>
+                <div className="order-6">
+                  <ActivityHeatmap id={id} />
+                </div>
+                <div className="order-11">
+                  <PlayerDuos id={id} />
+                </div>
+                <div className="order-12">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbFlame}>Roast</SectionTitle>
+                  </div>
+                  <ProfileRoast id={id} />
+                </div>
               </div>
-              <StatsBento id={id} range={range} />
-            </div>
 
-            {/* 5 - profil de performance */}
-            <div className="order-5">
-              <div className="mb-3">
-                <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
+              {/* Colonne centrale (desktop). */}
+              <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
+                <div className="order-2">
+                  <EloSummaryCard id={id} elo={data.elo} level={data.level} />
+                </div>
+                <div className="order-3">
+                  <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
+                </div>
+                <div className="order-4 min-w-0">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
+                    <RangeTabs value={range} onChange={setRange} />
+                  </div>
+                  <StatsBento id={id} range={range} />
+                </div>
+                <div className="order-5">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
+                  </div>
+                  <RadarPerf id={id} range={range} />
+                </div>
+                <div className="order-7">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbMap2}>Par map</SectionTitle>
+                  </div>
+                  <MapStats id={id} range={range} />
+                </div>
+                <div className="order-8 min-w-0">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
+                  </div>
+                  <MatchesList id={id} />
+                </div>
+                <div className="order-9">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
+                  </div>
+                  <PlayerBenchmark id={id} range={range} />
+                </div>
+                <div className="order-10">
+                  <AchievementsSummary id={id} />
+                </div>
               </div>
-              <RadarPerf id={id} range={range} />
-            </div>
 
-            {/* 7 - par map */}
-            <div className="order-7">
-              <div className="mb-3">
-                <SectionTitle icon={TbMap2}>Par map</SectionTitle>
-              </div>
-              <MapStats id={id} range={range} />
+              {/* Gutter droit : vide, pour centrer la colonne principale */}
+              <div className="hidden xl:block" />
             </div>
-
-            {/* 8 - matchs récents */}
-            <div className="order-8 min-w-0">
-              <div className="mb-3">
-                <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
-              </div>
-              <MatchesList id={id} />
-            </div>
-
-            {/* 9 - ta place dans l'asso (benchmark intra-asso, même fenêtre que les stats) */}
-            <div className="order-9">
-              <div className="mb-3">
-                <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
-              </div>
-              <PlayerBenchmark id={id} range={range} />
-            </div>
-
-            {/* 10 - succès (résumé cliquable → page dédiée) */}
-            <div className="order-10">
-              <AchievementsSummary id={id} />
-            </div>
-          </div>
-
-          {/* Gutter droit : vide, pour que la colonne principale reste centrée */}
-          <div className="hidden xl:block" />
-        </div>
+          )}
+        </>
       )}
     </div>
   );
