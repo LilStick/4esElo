@@ -208,105 +208,110 @@ export function Player() {
             {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
           </div>
 
-          {premier ? (
-            /* Premier : identité + CS Rating + courbe. Les stats détaillées sont Faceit-only. */
-            <div className="mx-auto flex max-w-2xl flex-col gap-4">
-              <IdentityCard data={data} name={name} />
-              <Card className="flex flex-col items-center gap-3 p-6">
-                <SectionTitle icon={TbTrophy}>CS Rating Premier</SectionTitle>
-                {data.elo != null ? (
-                  <PremierBadge rating={data.elo} height={44} />
-                ) : (
-                  <p className="text-center text-sm text-ink-dim">
-                    Pas encore de CS Rating — il apparaît après quelques parties Premier synchronisées.
-                  </p>
-                )}
-              </Card>
-              <div>
-                <div className="mb-3">
-                  <SectionTitle icon={TbChartLine}>Progression CS Rating</SectionTitle>
-                </div>
-                <Card className="p-5">
-                  <EloChart points={data.history} />
-                </Card>
+          {/* Même grille / breakpoints / gutters qu'en Faceit. En Premier, les cards
+              sans données (stats, radar, matchs, maps, benchmark, duos, roast, heatmap,
+              succès) ne sont simplement pas rendues — la structure reste identique. */}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
+            {/* Colonne gauche (desktop). `contents` + `order-*` en 1 colonne. */}
+            <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
+              <div className="order-1">
+                <IdentityCard data={data} name={name} />
               </div>
-              <Card className="flex items-start gap-3 p-4 text-sm text-ink-dim">
-                <TbChartBar size={18} className="mt-0.5 shrink-0 text-ink-faint" />
-                <span>
-                  Les stats détaillées (ADR, K/D, radar, matchs, maps…) ne sont disponibles que sur{" "}
-                  <b className="text-ink">Faceit</b>. Bascule la source en haut pour les voir.
-                </span>
-              </Card>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_minmax(0,920px)_1fr] xl:items-start">
-              {/* Colonne gauche (desktop). `contents` + `order-*` en 1 colonne. */}
-              <div className="contents xl:flex xl:w-[300px] xl:flex-col xl:gap-4 xl:justify-self-end">
-                <div className="order-1">
-                  <IdentityCard data={data} name={name} />
-                </div>
+              {!premier && (
                 <div className="order-6">
                   <ActivityHeatmap id={id} />
                 </div>
+              )}
+              {!premier && (
                 <div className="order-11">
                   <PlayerDuos id={id} />
                 </div>
+              )}
+              {!premier && (
                 <div className="order-12">
                   <div className="mb-3">
                     <SectionTitle icon={TbFlame}>Roast</SectionTitle>
                   </div>
                   <ProfileRoast id={id} />
                 </div>
-              </div>
-
-              {/* Colonne centrale (desktop). */}
-              <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
-                <div className="order-2">
-                  <EloSummaryCard id={id} elo={data.elo} level={data.level} />
-                </div>
-                <div className="order-3">
-                  <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
-                </div>
-                <div className="order-4 min-w-0">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
-                    <RangeTabs value={range} onChange={setRange} />
-                  </div>
-                  <StatsBento id={id} range={range} />
-                </div>
-                <div className="order-5">
-                  <div className="mb-3">
-                    <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
-                  </div>
-                  <RadarPerf id={id} range={range} />
-                </div>
-                <div className="order-7">
-                  <div className="mb-3">
-                    <SectionTitle icon={TbMap2}>Par map</SectionTitle>
-                  </div>
-                  <MapStats id={id} range={range} />
-                </div>
-                <div className="order-8 min-w-0">
-                  <div className="mb-3">
-                    <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
-                  </div>
-                  <MatchesList id={id} />
-                </div>
-                <div className="order-9">
-                  <div className="mb-3">
-                    <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
-                  </div>
-                  <PlayerBenchmark id={id} range={range} />
-                </div>
-                <div className="order-10">
-                  <AchievementsSummary id={id} />
-                </div>
-              </div>
-
-              {/* Gutter droit : vide, pour centrer la colonne principale */}
-              <div className="hidden xl:block" />
+              )}
             </div>
-          )}
+
+            {/* Colonne centrale (desktop). */}
+            <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-4">
+              <div className="order-2">
+                {premier ? (
+                  <Card className="flex flex-col items-center gap-3 p-6">
+                    <SectionTitle icon={TbTrophy}>CS Rating Premier</SectionTitle>
+                    {data.elo != null ? (
+                      <PremierBadge rating={data.elo} height={44} />
+                    ) : (
+                      <p className="text-center text-sm text-ink-dim">
+                        Pas encore de CS Rating — il apparaît après quelques parties Premier synchronisées.
+                      </p>
+                    )}
+                  </Card>
+                ) : (
+                  <EloSummaryCard id={id} elo={data.elo} level={data.level} />
+                )}
+              </div>
+              <div className="order-3">
+                {premier ? (
+                  <>
+                    <div className="mb-3">
+                      <SectionTitle icon={TbChartLine}>Progression CS Rating</SectionTitle>
+                    </div>
+                    <Card className="p-5">
+                      <EloChart points={data.history} />
+                    </Card>
+                  </>
+                ) : (
+                  <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
+                )}
+              </div>
+              {!premier && (
+                <>
+                  <div className="order-4 min-w-0">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                      <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
+                      <RangeTabs value={range} onChange={setRange} />
+                    </div>
+                    <StatsBento id={id} range={range} />
+                  </div>
+                  <div className="order-5">
+                    <div className="mb-3">
+                      <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
+                    </div>
+                    <RadarPerf id={id} range={range} />
+                  </div>
+                  <div className="order-7">
+                    <div className="mb-3">
+                      <SectionTitle icon={TbMap2}>Par map</SectionTitle>
+                    </div>
+                    <MapStats id={id} range={range} />
+                  </div>
+                  <div className="order-8 min-w-0">
+                    <div className="mb-3">
+                      <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
+                    </div>
+                    <MatchesList id={id} />
+                  </div>
+                  <div className="order-9">
+                    <div className="mb-3">
+                      <SectionTitle icon={TbTrophy}>Ta place dans l'asso</SectionTitle>
+                    </div>
+                    <PlayerBenchmark id={id} range={range} />
+                  </div>
+                  <div className="order-10">
+                    <AchievementsSummary id={id} />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Gutter droit : vide, pour centrer la colonne principale */}
+            <div className="hidden xl:block" />
+          </div>
         </>
       )}
     </div>
