@@ -265,15 +265,16 @@ export function Leaderboard() {
                 : "Membres du pôle CS2, par ELO Faceit et palier de niveau."}
             </p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
-            {/* « Par map » = stats Faceit, sans objet en Premier. */}
+            {/* « Par map » = stats Faceit, sans objet en Premier. Même pilule que le
+                toggle (rayon/bordure/hauteur) pour un alignement propre sur la ligne. */}
             {!premier && (
               <Link
                 to="/classement/maps"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-sm font-semibold text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
               >
-                <TbMap2 size={16} /> Par map
+                <TbMap2 size={15} /> Par map
               </Link>
             )}
           </div>
