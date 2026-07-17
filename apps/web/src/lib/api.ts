@@ -25,6 +25,8 @@ import type {
   PlayerStatsResponse,
   PlayerWrappedResponse,
   PostIdeaResponse,
+  PremierConnectionStatus,
+  PremierConnectRequest,
   PresenceResponse,
   RecentMatchesResponse,
   RefreshEloResponse,
@@ -93,6 +95,12 @@ export async function getPremierEnabled(): Promise<boolean> {
     return false;
   }
 }
+
+/** Onboarding Premier (B18.6) : statut de connexion + lier / délier (auth gated). */
+export const getPremierStatus = () => get<PremierConnectionStatus>("/premier/status");
+export const premierConnect = (body: PremierConnectRequest) =>
+  post<{ ok: boolean }>("/premier/connect", body);
+export const premierDisconnect = () => send<{ ok: boolean }>("DELETE", "/premier/connect");
 
 export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
   const spark = sparkline ? `&sparkline=${sparkline}` : "";
