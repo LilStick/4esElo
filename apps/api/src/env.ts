@@ -35,6 +35,10 @@ const env = loadEnv(
     SESSION_SECRET: z.string().min(32, "SESSION_SECRET : 32 caractères minimum").optional(),
     /** Whitelist admin : discord_id séparés par des virgules. */
     ADMIN_DISCORD_IDS: z.string().default(""),
+    /** Feature flag V2 Premier (B18) : "true" = actif ; sinon routes/sync Premier inertes. */
+    PREMIER_ENABLED: z.string().default("false"),
+    /** Clé de chiffrement du game auth code Steam (64 hex) ; requise pour l'onboarding Premier. */
+    STEAM_AUTH_ENC_KEY: z.string().length(64).optional(),
   }),
 );
 
@@ -47,6 +51,9 @@ export const DISCORD_IDEAS_CHANNEL_ID = env.DISCORD_IDEAS_CHANNEL_ID;
 export const DISCORD_ADMIN_CHANNEL_ID = env.DISCORD_ADMIN_CHANNEL_ID;
 /** Origines CORS, séparées par des virgules. */
 export const WEB_ORIGINS = env.WEB_ORIGINS.split(",");
+/** V2 Premier (B18) : dormant tant que non "true". */
+export const PREMIER_ENABLED = env.PREMIER_ENABLED.toLowerCase() === "true";
+export const STEAM_AUTH_ENC_KEY = env.STEAM_AUTH_ENC_KEY;
 
 export interface AuthConfig {
   clientId: string;

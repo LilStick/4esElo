@@ -36,6 +36,12 @@ export const players = pgTable("players", {
   eloBackfillDoneAt: timestamp("elo_backfill_done_at", { withTimezone: true }),
   /** Pull profond de l'historique fait (B17.11) ; null = à deep-ingérer (nouvel inscrit ou roster à rattraper). */
   deepIngestedAt: timestamp("deep_ingested_at", { withTimezone: true }),
+  /** Premier (B18.2) : game auth code Steam chiffré (secret), null = pas connecté. */
+  premierAuthCodeEnc: text("premier_auth_code_enc"),
+  /** Dernier share code connu = curseur du walk Premier (avance de match en match). */
+  premierShareCode: text("premier_share_code"),
+  /** Dernière sync Premier réussie (null = jamais). */
+  premierSyncedAt: timestamp("premier_synced_at", { withTimezone: true }),
 });
 
 /** Série temporelle d'ELO (une ligne par capture) → la courbe. */

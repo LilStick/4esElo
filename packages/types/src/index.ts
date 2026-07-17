@@ -602,6 +602,19 @@ export interface AdminsResponse {
   admins: AdminEntry[];
 }
 
+/** Onboarding Premier (B18.2) : le membre fournit son game auth code Steam + un share code récent. */
+export interface PremierConnectRequest {
+  steamAuthCode: string;
+  shareCode: string;
+}
+
+/** État de la connexion Premier d'un membre (B18.2). */
+export interface PremierConnectionStatus {
+  connected: boolean;
+  /** ISO de la dernière sync réussie, null si jamais synchronisé. */
+  syncedAt: string | null;
+}
+
 /** Wrapped mensuel (B7.2) - awards du pôle, votés ✅ par l'asso. */
 export type AwardKey =
   | "rat"

@@ -13,6 +13,7 @@
     "@4eselo/discord": "workspace:*",
     "@4eselo/env": "workspace:*",
     "@4eselo/faceit": "workspace:*",
+    "@4eselo/premier": "workspace:*",
     "@4eselo/steam": "workspace:*",
     "@4eselo/types": "workspace:*",
     "@hono/node-server": "^2.0.8",

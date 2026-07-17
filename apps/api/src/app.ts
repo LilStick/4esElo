@@ -17,6 +17,7 @@ import { wrappedRoutes } from "./wrappedRoutes";
 import { ideasRoutes } from "./ideas";
 import { refreshRoutes } from "./refresh";
 import { ogRoutes } from "./og";
+import { premierRoutes } from "./premier";
 
 export const app = new Hono();
 app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
@@ -51,3 +52,4 @@ app.route("/", wrappedRoutes);
 app.route("/", ideasRoutes);
 app.route("/", refreshRoutes);
 app.route("/", ogRoutes);
+app.route("/", premierRoutes);

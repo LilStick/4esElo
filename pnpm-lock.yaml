@@ -74,6 +74,9 @@ importers:
       '@4eselo/faceit':
         specifier: workspace:*
         version: link:../../packages/faceit
+      '@4eselo/premier':
+        specifier: workspace:*
+        version: link:../../packages/premier
       '@4eselo/steam':
         specifier: workspace:*
         version: link:../../packages/steam
