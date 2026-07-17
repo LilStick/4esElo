@@ -150,8 +150,13 @@ export function Tour() {
       return;
     }
     let raf = 0;
-    let tries = 0;
     let scrolled = false;
+    // Deadline (temps, pas frames) : une étape sur une autre page doit attendre la
+    // transition de route (AnimatePresence mode="wait") PUIS le montage/fetch de la
+    // page (ex. `[data-tour="ladder"]` n'existe qu'une fois les données chargées, pas
+    // dans le skeleton). 40 frames (~0.6s) timeout-aient trop tôt → spotlight absent.
+    // On garde l'ancien spotlight/contenu tant que la nouvelle cible n'est pas là.
+    const deadline = performance.now() + 6000;
     const tick = () => {
       const el = document.querySelector<HTMLElement>(targetSel);
       const r = el?.getBoundingClientRect();
@@ -165,10 +170,10 @@ export function Tour() {
         setMode("spot");
         setShownIndex(index); // cible prête → on bascule contenu + position ensemble
         raf = requestAnimationFrame(tick); // colle le spotlight pendant le scroll
-      } else if (tries++ < 40) {
+      } else if (performance.now() < deadline) {
         raf = requestAnimationFrame(tick);
       } else {
-        setMode("center"); // introuvable → bulle centrée (pas de blocage prolongé)
+        setMode("center"); // vraiment introuvable → bulle centrée (pas de blocage infini)
         setShownIndex(index);
       }
     };
