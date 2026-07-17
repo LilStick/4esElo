@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { premierTier } from "./premierTier";
 
 describe("premierTier", () => {
-  it("mappe chaque bande de 5000 à la bonne couleur", () => {
-    assert.equal(premierTier(0).name, "grey");
-    assert.equal(premierTier(4999).name, "grey");
+  it("mappe chaque bande de 5000 au bon palier", () => {
+    assert.equal(premierTier(0).name, "steel");
+    assert.equal(premierTier(4999).name, "steel");
     assert.equal(premierTier(5000).name, "sky");
     assert.equal(premierTier(9999).name, "sky");
     assert.equal(premierTier(10000).name, "blue");
@@ -14,10 +14,10 @@ describe("premierTier", () => {
     assert.equal(premierTier(20000).name, "pink");
     assert.equal(premierTier(25000).name, "red");
     assert.equal(premierTier(30000).name, "gold");
-    assert.equal(premierTier(33800).color, "#FED700");
+    assert.equal(premierTier(33800).color, "#ffd23f");
   });
 
-  it("clamp les valeurs négatives à grey", () => {
-    assert.equal(premierTier(-100).name, "grey");
+  it("clamp les valeurs négatives au plus bas palier", () => {
+    assert.equal(premierTier(-100).name, "steel");
   });
 });

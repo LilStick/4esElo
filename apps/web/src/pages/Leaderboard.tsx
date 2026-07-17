@@ -9,6 +9,7 @@ import { useEloSource } from "../lib/useEloSource";
 import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
+import { premierRangeLabel, premierTier } from "../lib/premierTier";
 import { Avatar, Card, HoverBarList, LevelBadge, PremierBadge, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
@@ -56,6 +57,33 @@ function groupByLevel(items: LeaderboardEntry[]): { level: number; items: Leader
     else map.set(lvl, [e]);
   }
   return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([level, items]) => ({ level, items }));
+}
+
+/** Regroupe par palier CS Rating Premier (bandes de 5000), du plus haut au plus bas. */
+function groupByPremierTier(
+  items: LeaderboardEntry[],
+): { name: string; min: number; color: string; items: LeaderboardEntry[] }[] {
+  const map = new Map<string, { name: string; min: number; color: string; items: LeaderboardEntry[] }>();
+  for (const e of items) {
+    const t = premierTier(e.elo ?? 0);
+    const g = map.get(t.name);
+    if (g) g.items.push(e);
+    else map.set(t.name, { name: t.name, min: t.min, color: t.color, items: [e] });
+  }
+  return [...map.values()].sort((a, b) => b.min - a.min);
+}
+
+/** Bandeau de palier Premier : pastille couleur + plage de rating. */
+function PremierTierBanner({ min, color, count }: { min: number; color: string; count: number }) {
+  return (
+    <div className="mb-2 flex items-center gap-2 px-1">
+      <span className="size-3 rounded-sm" style={{ backgroundColor: color }} />
+      <span className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        {premierRangeLabel(min)}
+      </span>
+      <span className="ml-auto font-mono text-[11px] text-ink-faint tabular-nums">{count}</span>
+    </div>
+  );
 }
 
 /** Bandeau de palier entre les groupes de niveau. */
@@ -144,6 +172,21 @@ export function Leaderboard() {
   const totalByLevel = useMemo(() => {
     const m = new Map<number, number>();
     for (const e of listItems) m.set(e.level ?? 0, (m.get(e.level ?? 0) ?? 0) + 1);
+    return m;
+  }, [listItems]);
+
+  // Premier : groupé par palier CS Rating (bandes de 5000), comme les niveaux Faceit.
+  const premierGrouped = !searching && premier;
+  const premierGroups = useMemo(
+    () => (premierGrouped ? groupByPremierTier(shownItems) : []),
+    [premierGrouped, shownItems],
+  );
+  const totalByPremierName = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of listItems) {
+      const n = premierTier(e.elo ?? 0).name;
+      m.set(n, (m.get(n) ?? 0) + 1);
+    }
     return m;
   }, [listItems]);
 
@@ -260,6 +303,27 @@ export function Leaderboard() {
             {groups.map((g) => (
               <div key={g.level}>
                 <TierBanner level={g.level} count={totalByLevel.get(g.level) ?? g.items.length} />
+                <Card className="p-[var(--bezel)]">
+                  <HoverBarList
+                    items={g.items}
+                    rowHeight={56}
+                    keyOf={(e) => e.id}
+                    onSelect={(e) => navigate(`/player/${e.id}`)}
+                    children={renderRow}
+                  />
+                </Card>
+              </div>
+            ))}
+          </div>
+        ) : premierGrouped ? (
+          <div data-tour="ladder" className="flex flex-col gap-5">
+            {premierGroups.map((g) => (
+              <div key={g.name}>
+                <PremierTierBanner
+                  min={g.min}
+                  color={g.color}
+                  count={totalByPremierName.get(g.name) ?? g.items.length}
+                />
                 <Card className="p-[var(--bezel)]">
                   <HoverBarList
                     items={g.items}
