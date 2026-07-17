@@ -84,14 +84,12 @@ before(async () => {
   premierDeps.encKey = "0".repeat(64);
   if (DB_UP) {
     await db.delete(players).where(inArray(players.discordId, TEST_IDS));
-    await db
-      .insert(players)
-      .values({
-        discordId: MEMBER,
-        discordName: "Member",
-        faceitId: "fc-prem-b1802",
-        faceitNickname: "prem",
-      });
+    await db.insert(players).values({
+      discordId: MEMBER,
+      discordName: "Member",
+      faceitId: "fc-prem-b1802",
+      faceitNickname: "prem",
+    });
   }
 });
 beforeEach(async () => {
