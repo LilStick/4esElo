@@ -5,17 +5,20 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   TbBrandDiscord,
   TbConfetti,
+  TbDeviceGamepad2,
   TbLogout,
   TbSelector,
   TbShieldCog,
   TbUser,
   TbUserPlus,
 } from "react-icons/tb";
-import { Avatar } from "../ui";
+import { Avatar, Modal } from "../ui";
 import { loginUrl, logout } from "../lib/api";
 import { useMe } from "../lib/useMe";
+import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { currentPeriod } from "../lib/period";
 import { cn } from "../lib/cn";
+import { PremierConnect } from "./PremierConnect";
 
 /** Ligne d'action du popover (icône + libellé, façon menu). */
 function MenuAction({
@@ -49,6 +52,8 @@ function MenuAction({
  */
 export function AuthMenu({ onNavigate, collapsed }: { onNavigate?: () => void; collapsed?: boolean }) {
   const { isLoading, isAuthenticated, player, displayName, isAdmin, avatarUrl } = useMe();
+  const premierEnabled = usePremierEnabled();
+  const [premierOpen, setPremierOpen] = useState(false);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -214,10 +219,26 @@ export function AuthMenu({ onNavigate, collapsed }: { onNavigate?: () => void; c
               onClick={() => go(`/wrapped/${currentPeriod()}/${player.id}`)}
             />
             {isAdmin && <MenuAction label="Panel admin" icon={TbShieldCog} onClick={() => go("/admin")} />}
+            {premierEnabled && (
+              <MenuAction
+                label="Lier Premier"
+                icon={TbDeviceGamepad2}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setPremierOpen(true);
+                }}
+              />
+            )}
             <MenuAction label="Se déconnecter" icon={TbLogout} onClick={onLogout} />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Modal open={premierOpen} onClose={() => setPremierOpen(false)} title="Lier mon compte Premier">
+        <div className="p-3">
+          <PremierConnect />
+        </div>
+      </Modal>
     </div>
   );
 }
