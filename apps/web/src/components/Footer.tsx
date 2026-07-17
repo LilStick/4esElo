@@ -41,7 +41,7 @@ export function Footer() {
           ))}
         </div>
       </div>
-      <div className="text-center sm:text-left">Pôle CS2 · données Faceit</div>
+      <div className="text-center sm:text-left">Pôle CS2 · Faceit &amp; Premier</div>
     </footer>
   );
 }

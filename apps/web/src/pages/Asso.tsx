@@ -31,14 +31,17 @@ export function Asso() {
       <div className="flex flex-col gap-4">
         <Section icon={TbInfoCircle} title="C'est quoi Retake ?">
           Le classement ELO du pôle CS2 de <b className="text-ink">4eSport</b>, l'association jeux vidéo de l'
-          <b className="text-ink">Efrei Paris</b>. Le site agrège les stats Faceit des membres, garde
-          l'historique et affiche la progression : classement, profils, courbes d'ELO et stats par match.
+          <b className="text-ink">Efrei Paris</b>. Le site agrège l'ELO Faceit et le CS Rating Premier des
+          membres, garde l'historique et affiche la progression : classement, profils, courbes et stats par
+          match.
         </Section>
 
         <Section icon={TbShieldCheck} title="Les règles">
           <ul className="flex list-disc flex-col gap-1.5 pl-5">
             <li>Un seul compte Faceit par personne - pas de smurf (Faceit l'interdit de toute façon).</li>
-            <li>Le classement se base sur l'ELO Faceit, mis à jour automatiquement.</li>
+            <li>
+              Le classement se base sur l'ELO Faceit et le CS Rating Premier, mis à jour automatiquement.
+            </li>
             <li>Fair-play : le site est là pour se comparer et se charrier, pas pour se prendre la tête.</li>
           </ul>
         </Section>
