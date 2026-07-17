@@ -44,7 +44,10 @@ function AnimatedRoutes() {
       <motion.div
         key={location.pathname}
         className={`mx-auto w-full ${maxw}`}
-        initial={reduce ? false : { opacity: 0, y: 8 }}
+        // Pas d'`initial` opacity:0 : l'anim d'entrée (rAF) est mise en pause quand
+        // l'onglet n'a pas le focus → la page restait invisible (grise) jusqu'au focus.
+        // On garde uniquement la sortie ; le contenu est visible immédiatement.
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         exit={reduce ? {} : { opacity: 0, y: -6 }}
         transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
