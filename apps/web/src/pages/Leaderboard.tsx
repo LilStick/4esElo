@@ -266,7 +266,11 @@ export function Leaderboard() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-            {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
+            {premierEnabled && (
+              <span className="inline-flex" data-tour="source">
+                <SourceToggle value={source} onChange={setSource} />
+              </span>
+            )}
             {/* « Par map » = stats Faceit, sans objet en Premier. Même pilule que le
                 toggle (rayon/bordure/hauteur) pour un alignement propre sur la ligne. */}
             {!premier && (
