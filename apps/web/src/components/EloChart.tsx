@@ -43,6 +43,9 @@ export function EloChart({ points }: { points: EloPoint[] }) {
             axisLine={false}
             width={44}
             domain={["dataMin - 50", "dataMax + 50"]}
+            // Compacte les gros ratings (Premier, 5 chiffres) : 31200 -> "31k".
+            // Faceit (< 10000) reste tel quel → axe inchangé.
+            tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)}k` : String(v))}
           />
           <Tooltip
             contentStyle={{
