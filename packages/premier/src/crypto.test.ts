@@ -22,7 +22,7 @@ test("mauvaise clé → échec", () => {
 
 test("blob altéré → échec (auth tag GCM)", () => {
   const blob = encryptSecret("secret", KEY);
-  const [iv, tag, enc] = blob.split(":");
+  const [iv, tag] = blob.split(":");
   const tampered = [iv, tag, Buffer.from("zzzz").toString("base64")].join(":");
   assert.throws(() => decryptSecret(tampered, KEY));
 });

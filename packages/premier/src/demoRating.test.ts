@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeRatingAfter, type DemoTickRow } from "./resolver";
+import { computeRatingAfter, type DemoTickRow } from "./demoRating";
 
 const A = "76561199025088808";
 const row = (o: Partial<DemoTickRow>): DemoTickRow => ({
@@ -63,13 +63,11 @@ test("égalité → rank_if_tie", () => {
 });
 
 test("rating < 1000 (Compétitif, tier) → null", () => {
-  const rows = [row({ rank: 13, team_rounds_total: 13 })];
-  assert.equal(computeRatingAfter(rows, A), null);
+  assert.equal(computeRatingAfter([row({ rank: 13, team_rounds_total: 13 })], A), null);
 });
 
 test("joueur absent → null", () => {
-  const rows = [row({ steamid: "someone-else", rank: 20000 })];
-  assert.equal(computeRatingAfter(rows, A), null);
+  assert.equal(computeRatingAfter([row({ steamid: "someone-else", rank: 20000 })], A), null);
 });
 
 test("prend le dernier tick du joueur", () => {

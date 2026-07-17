@@ -1,4 +1,13 @@
-import { FACEIT_API_KEY, STEAM_API_KEY, WORKER_INTERVAL_MS } from "./env";
+import {
+  FACEIT_API_KEY,
+  STEAM_API_KEY,
+  WORKER_INTERVAL_MS,
+  PREMIER_ENABLED,
+  STEAM_BOT_USERNAME,
+  STEAM_BOT_PASSWORD,
+  STEAM_BOT_SHARED_SECRET,
+  STEAM_AUTH_ENC_KEY,
+} from "./env";
 import { db, players } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
@@ -14,6 +23,8 @@ import { announceWrapped } from "./announceWrapped";
 import { announceWeeklyRecap } from "./weeklyRecap";
 import { announceBigWrapped } from "./announceBigWrapped";
 import { curlFetch } from "./curlFetch";
+import { createGcBot, type GcBot } from "./premier/gcBot";
+import { runPremierSync } from "./premier/runSync";
 import {
   dbStore,
   dbMatchStatsStore,
@@ -175,9 +186,43 @@ async function main() {
     process.exit(0);
   }
 
+  // V2 Premier (B18) : bot GC longue durée, dormant si flag off ou config incomplète.
+  let premierBot: GcBot | null = null;
+  let premierReady = false;
+  if (
+    PREMIER_ENABLED &&
+    STEAM_BOT_USERNAME &&
+    STEAM_BOT_PASSWORD &&
+    STEAM_BOT_SHARED_SECRET &&
+    STEAM_AUTH_ENC_KEY &&
+    STEAM_API_KEY
+  ) {
+    premierBot = createGcBot({
+      username: STEAM_BOT_USERNAME,
+      password: STEAM_BOT_PASSWORD,
+      sharedSecret: STEAM_BOT_SHARED_SECRET,
+    });
+    premierBot
+      .ready()
+      .then(() => {
+        premierReady = true;
+        console.log("[premier] bot GC prêt");
+      })
+      .catch((e) => console.error("[premier] bot GC indisponible:", e instanceof Error ? e.message : e));
+  } else if (PREMIER_ENABLED) {
+    console.warn(
+      "[premier] PREMIER_ENABLED mais config incomplète (STEAM_BOT_* / STEAM_AUTH_ENC_KEY / STEAM_API_KEY) - sync sauté",
+    );
+  }
+
   console.log(`[worker] starting loop, every ${Math.round(INTERVAL_MS / 1000)}s`);
   while (true) {
     await runOnce(faceit).catch((err) => console.error("[worker] run failed:", err));
+    if (premierReady && premierBot && STEAM_API_KEY && STEAM_AUTH_ENC_KEY) {
+      await runPremierSync({ bot: premierBot, apiKey: STEAM_API_KEY, encKey: STEAM_AUTH_ENC_KEY }).catch(
+        (err) => console.error("[premier] sync run failed:", err instanceof Error ? err.message : err),
+      );
+    }
     await sleep(INTERVAL_MS);
   }
 }

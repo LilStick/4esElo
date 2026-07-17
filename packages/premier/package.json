@@ -12,6 +12,8 @@
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
+    "@laihoe/demoparser2": "^0.41.3",
+    "seek-bzip": "^2.0.0",
     "zod": "^3.24.1"
   }
 }
