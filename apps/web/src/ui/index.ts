@@ -10,5 +10,6 @@ export { HoverBarList } from "./HoverBarList";
 export { InfoTip } from "./InfoTip";
 export { Pagination } from "./Pagination";
 export { ScrollFadeX } from "./ScrollFadeX";
+export { SourceToggle } from "./SourceToggle";
 export { RangeTabs } from "./RangeTabs";
 export { Skeleton } from "./Skeleton";

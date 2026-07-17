@@ -80,6 +80,20 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T>
 
 const post = <T>(path: string, body?: unknown) => send<T>("POST", path, body);
 
+/**
+ * Premier activé côté serveur ? On sonde `/premier/status` : 503 = désactivé
+ * (flag `PREMIER_ENABLED` off), 200/401 = activé. Erreur réseau → considéré off.
+ * Provisoire tant que `/me` n'expose pas `premierEnabled` (B18.13).
+ */
+export async function getPremierEnabled(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/premier/status`, { credentials: "include" });
+    return res.status !== 503;
+  } catch {
+    return false;
+  }
+}
+
 export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
   const spark = sparkline ? `&sparkline=${sparkline}` : "";
   return get<LeaderboardResponse>(`/leaderboard?source=${source}${spark}`);
