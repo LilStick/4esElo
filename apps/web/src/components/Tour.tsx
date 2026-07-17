@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { TbArrowLeft, TbArrowRight, TbX } from "react-icons/tb";
+import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { TOUR_KEY, TOUR_REPLAY_EVENT, bubbleWidth, isMobileViewport, resolveTarget } from "../lib/tour";
 
 type Step = {
@@ -19,45 +20,67 @@ type Step = {
 };
 
 /** Le parcours guidé : navigue entre les pages et éclaire les vrais éléments.
- *  Sur mobile, la sidebar est cachée -> on cible le header/menu (cf. `resolveTarget`). */
-const STEPS: Step[] = [
-  {
-    path: "/",
-    target: '[data-tour="nav"]',
-    targetMobile: '[data-tour="nav-mobile"]',
-    title: "La navigation",
-    body: "Accueil, Classement, Comparer, Social, Wrapped… tout est ici, à gauche.",
-    bodyMobile: "Le menu ☰ : ouvre la navigation - Accueil, Classement, Comparer, Social, Wrapped.",
-  },
-  {
-    path: "/",
-    target: '[data-tour="search"]',
-    targetMobile: '[data-tour="search-mobile"]',
-    title: "Recherche rapide",
-    body: "Trouve un membre en un éclair - ou appuie sur ⌘/Ctrl + K de n'importe où.",
-    bodyMobile: "Trouve un membre en un éclair depuis cette loupe.",
-  },
-  {
-    path: "/classement",
-    target: '[data-tour="ladder"]',
-    title: "Le classement",
-    body: "Le cœur du site : classé par ELO Faceit et paliers. Clique une ligne pour ouvrir un profil détaillé (courbe d'ELO, stats, maps, duos).",
-  },
-  {
+ *  Sur mobile, la sidebar est cachée -> on cible le header/menu (cf. `resolveTarget`).
+ *  Les étapes/wording Premier ne s'affichent que si le mode est activé côté serveur. */
+function buildSteps(premierEnabled: boolean): Step[] {
+  const steps: Step[] = [
+    {
+      path: "/",
+      target: '[data-tour="nav"]',
+      targetMobile: '[data-tour="nav-mobile"]',
+      title: "La navigation",
+      body: "Accueil, Classement, Comparer, Social, Wrapped… tout est ici, à gauche.",
+      bodyMobile: "Le menu ☰ : ouvre la navigation - Accueil, Classement, Comparer, Social, Wrapped.",
+    },
+    {
+      path: "/",
+      target: '[data-tour="search"]',
+      targetMobile: '[data-tour="search-mobile"]',
+      title: "Recherche rapide",
+      body: "Trouve un membre en un éclair - ou appuie sur ⌘/Ctrl + K de n'importe où.",
+      bodyMobile: "Trouve un membre en un éclair depuis cette loupe.",
+    },
+    {
+      path: "/classement",
+      target: '[data-tour="ladder"]',
+      title: "Le classement",
+      body: premierEnabled
+        ? "Le cœur du site : classé par ELO Faceit et paliers (ou par CS Rating Premier, au choix). Clique une ligne pour un profil détaillé : courbe, stats, maps, duos."
+        : "Le cœur du site : classé par ELO Faceit et paliers. Clique une ligne pour ouvrir un profil détaillé (courbe d'ELO, stats, maps, duos).",
+    },
+  ];
+
+  // V2 - bascule Faceit / Premier (n'existe que si Premier est activé).
+  if (premierEnabled) {
+    steps.push({
+      path: "/classement",
+      target: '[data-tour="source"]',
+      title: "Faceit ou Premier",
+      body: "Bascule le classement entre l'ELO Faceit et le CS Rating Premier. Ton choix te suit partout : classement, accueil, profils.",
+    });
+  }
+
+  steps.push({
     path: "/",
     target: '[data-tour="auth"]',
     targetMobile: null,
     title: "Ton compte",
-    body: "Connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
-    bodyMobile:
-      "Ouvre le menu ☰ puis connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
-  },
-  {
+    body: premierEnabled
+      ? "Connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement. Depuis ce menu tu peux aussi lier ton compte Premier pour suivre ton CS Rating."
+      : "Connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
+    bodyMobile: premierEnabled
+      ? "Ouvre le menu ☰ : connecte-toi avec Discord + pseudo Faceit, et lie ton compte Premier (CS Rating) si tu veux."
+      : "Ouvre le menu ☰ puis connecte-toi avec Discord et renseigne ton pseudo Faceit pour apparaître au classement.",
+  });
+
+  steps.push({
     title: "Tu es prêt 🎯",
     body: "Explore, compare, grimpe. Astuce : la touche « ? » affiche tous les raccourcis clavier à tout moment.",
     bodyMobile: "Explore, compare, grimpe. Bon jeu 🎮",
-  },
-];
+  });
+
+  return steps;
+}
 
 const seen = (): boolean => {
   try {
@@ -77,6 +100,8 @@ export function Tour() {
   const reduce = useReducedMotion();
   const navigate = useNavigate();
   const location = useLocation();
+  const premierEnabled = usePremierEnabled();
+  const steps = useMemo(() => buildSteps(premierEnabled), [premierEnabled]);
   const [active, setActive] = useState(() => !seen());
   const [index, setIndex] = useState(0);
   // Index réellement affiché : il ne rattrape `index` qu'une fois la nouvelle cible
@@ -100,9 +125,13 @@ export function Tour() {
     setActive(false);
   }, []);
 
-  const step = STEPS[index]!;
-  const shown = STEPS[shownIndex]!;
-  const isLast = shownIndex === STEPS.length - 1;
+  // Clamp : `premierEnabled` peut basculer après le montage (query async) et changer
+  // le nombre d'étapes → on borne les index pour ne jamais sortir du tableau.
+  const stepIndex = Math.min(index, steps.length - 1);
+  const stepShownIndex = Math.min(shownIndex, steps.length - 1);
+  const step = steps[stepIndex]!;
+  const shown = steps[stepShownIndex]!;
+  const isLast = stepShownIndex === steps.length - 1;
 
   // Localise la cible de l'étape (navigue d'abord si besoin), en suivant les
   // éléments qui apparaissent après le changement de route.
@@ -299,11 +328,11 @@ export function Tour() {
 
             <div className="mt-1 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                {STEPS.map((_, i) => (
+                {steps.map((_, i) => (
                   <span
                     key={i}
                     className={
-                      i === shownIndex
+                      i === stepShownIndex
                         ? "h-1.5 w-4 rounded-full bg-brand"
                         : "size-1.5 rounded-full bg-white/20"
                     }
@@ -311,9 +340,9 @@ export function Tour() {
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                {shownIndex > 0 && (
+                {stepShownIndex > 0 && (
                   <button
-                    onClick={() => setIndex(shownIndex - 1)}
+                    onClick={() => setIndex(stepShownIndex - 1)}
                     aria-label="Précédent"
                     className="grid size-8 place-items-center rounded-full border border-white/[0.16] bg-white/[0.045] text-ink transition-colors hover:border-brand hover:text-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
                   >
@@ -321,7 +350,7 @@ export function Tour() {
                   </button>
                 )}
                 <button
-                  onClick={() => (isLast ? finish() : setIndex(shownIndex + 1))}
+                  onClick={() => (isLast ? finish() : setIndex(stepShownIndex + 1))}
                   className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-1.5 text-sm font-bold text-[#060a18] transition-colors hover:bg-brand-hi focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
                 >
                   {isLast ? "C'est parti" : "Suivant"}
