@@ -1,18 +1,25 @@
-import rawBg from "../assets/premiere-ranks/premier_rating_bg.svg?raw";
 import { premierTier } from "../lib/premierTier";
 import { cn } from "../lib/cn";
+import steel from "../assets/premiere-ranks/premier_rank_steel.svg";
+import sky from "../assets/premiere-ranks/premier_rank_sky.svg";
+import blue from "../assets/premiere-ranks/premier_rank_blue.svg";
+import purple from "../assets/premiere-ranks/premier_rank_purple.svg";
+import pink from "../assets/premiere-ranks/premier_rank_pink.svg";
+import red from "../assets/premiere-ranks/premier_rank_red.svg";
+import gold from "../assets/premiere-ranks/premier_rank_gold.svg";
+
+/** Un SVG pré-coloré par palier (image) → pas de teinte runtime ni de collision d'IDs. */
+const SRC: Record<string, string> = { steel, sky, blue, purple, pink, red, gold };
 
 const fmt = (n: number) => n.toLocaleString("en-US"); // 33800 -> "33,800"
 
 /**
- * Rang Premier (CS Rating) : le badge « drapeau » CS2 (asset SVG gris) dont on
- * teinte les chevrons `//` avec la couleur du palier, + le rating en texte
- * italique par-dessus (façon `.cs2rating` de csstats). Vectoriel, net à toute taille.
- * Remplace `LevelBadge` en mode Premier.
+ * Rang Premier (CS Rating) façon CS2 : badge « drapeau » coloré du palier
+ * (asset SVG dédié) + le rating en blanc italique par-dessus.
  */
 export function PremierBadge({
   rating,
-  height = 26,
+  height = 28,
   className,
 }: {
   rating: number;
@@ -20,9 +27,7 @@ export function PremierBadge({
   height?: number;
   className?: string;
 }) {
-  const { color } = premierTier(rating);
-  // Teinte les chevrons clairs de l'asset avec la couleur du palier.
-  const svg = rawBg.replaceAll("#E6E6E6", color).replaceAll("#DEDEDE", color);
+  const t = premierTier(rating);
   const width = Math.round((height * 178) / 64);
   const s = fmt(rating);
   const [head, ...rest] = s.split(",");
@@ -35,18 +40,14 @@ export function PremierBadge({
       role="img"
       aria-label={`CS Rating ${s}`}
     >
+      <img src={SRC[t.name] ?? steel} alt="" draggable={false} className="absolute inset-0 h-full w-full" />
       <span
         aria-hidden
-        className="absolute inset-0 [&>svg]:h-full [&>svg]:w-full"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
-      <span
-        aria-hidden
-        className="absolute inset-0 flex items-center justify-end pr-[7%] font-mono font-extrabold tabular-nums italic"
-        style={{ color, textShadow: "0 1px 0 #000", fontSize: Math.round(height * 0.5) }}
+        className="absolute inset-0 flex items-center justify-center pl-[14%] font-extrabold tabular-nums text-white italic"
+        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.7)", fontSize: Math.round(height * 0.5) }}
       >
         {head}
-        {tail && <small style={{ fontSize: "0.7em", opacity: 0.75 }}>{tail}</small>}
+        {tail && <small style={{ fontSize: "0.72em", opacity: 0.85 }}>{tail}</small>}
       </span>
     </span>
   );

@@ -5,9 +5,12 @@ import { TbArrowRight, TbCrown, TbMap2, TbSearch, TbUsersGroup } from "react-ico
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard, getMovers } from "../lib/api";
 import { useMe } from "../lib/useMe";
+import { useEloSource } from "../lib/useEloSource";
+import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { discordAvatarUrl } from "../lib/discord";
 import { isAlumni } from "../lib/promo";
-import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { premierRangeLabel, premierTier } from "../lib/premierTier";
+import { Avatar, Card, HoverBarList, LevelBadge, PremierBadge, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
 import { EmptyState } from "../components/EmptyState";
 import { Sparkline } from "../components/Sparkline";
@@ -56,6 +59,33 @@ function groupByLevel(items: LeaderboardEntry[]): { level: number; items: Leader
   return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([level, items]) => ({ level, items }));
 }
 
+/** Regroupe par palier CS Rating Premier (bandes de 5000), du plus haut au plus bas. */
+function groupByPremierTier(
+  items: LeaderboardEntry[],
+): { name: string; min: number; color: string; items: LeaderboardEntry[] }[] {
+  const map = new Map<string, { name: string; min: number; color: string; items: LeaderboardEntry[] }>();
+  for (const e of items) {
+    const t = premierTier(e.elo ?? 0);
+    const g = map.get(t.name);
+    if (g) g.items.push(e);
+    else map.set(t.name, { name: t.name, min: t.min, color: t.color, items: [e] });
+  }
+  return [...map.values()].sort((a, b) => b.min - a.min);
+}
+
+/** Bandeau de palier Premier : pastille couleur + plage de rating. */
+function PremierTierBanner({ min, color, count }: { min: number; color: string; count: number }) {
+  return (
+    <div className="mb-2 flex items-center gap-2 px-1">
+      <span className="size-3 rounded-sm" style={{ backgroundColor: color }} />
+      <span className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+        {premierRangeLabel(min)}
+      </span>
+      <span className="ml-auto font-mono text-[11px] text-ink-faint tabular-nums">{count}</span>
+    </div>
+  );
+}
+
 /** Bandeau de palier entre les groupes de niveau. */
 function TierBanner({ level, count }: { level: number; count: number }) {
   return (
@@ -89,11 +119,17 @@ export function Leaderboard() {
   useTitle("Classement");
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const [source, setSource] = useEloSource();
+  const premierEnabled = usePremierEnabled();
+  const premier = source === "premier";
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["leaderboard", "faceit", "spark12"],
-    queryFn: () => getLeaderboard("faceit", 12),
+    queryKey: ["leaderboard", source, "spark12"],
+    queryFn: () => getLeaderboard(source, 12),
   });
-  const { data: moversData } = useQuery({ queryKey: ["movers", "7d"], queryFn: () => getMovers("7d") });
+  const { data: moversData } = useQuery({
+    queryKey: ["movers", "7d", source],
+    queryFn: () => getMovers("7d", source),
+  });
   const eloMove = useMemo(
     () => new Map((moversData?.movers ?? []).map((m) => [m.id, m.delta])),
     [moversData],
@@ -128,14 +164,29 @@ export function Leaderboard() {
     return () => io.disconnect();
   }, [hasMore, listItems.length]);
 
-  // Paliers de niveau dès qu'on ne cherche pas ; liste plate en recherche.
-  // Les paliers sont re-groupés à l'intérieur des lignes déjà révélées.
-  const grouped = !searching;
+  // Paliers de niveau dès qu'on ne cherche pas — Faceit seulement (Premier n'a
+  // pas de niveaux) ; sinon liste plate triée par rating/ELO.
+  const grouped = !searching && !premier;
   const groups = useMemo(() => (grouped ? groupByLevel(shownItems) : []), [grouped, shownItems]);
   // Compteur par palier = total réel (indépendant de la révélation progressive).
   const totalByLevel = useMemo(() => {
     const m = new Map<number, number>();
     for (const e of listItems) m.set(e.level ?? 0, (m.get(e.level ?? 0) ?? 0) + 1);
+    return m;
+  }, [listItems]);
+
+  // Premier : groupé par palier CS Rating (bandes de 5000), comme les niveaux Faceit.
+  const premierGrouped = !searching && premier;
+  const premierGroups = useMemo(
+    () => (premierGrouped ? groupByPremierTier(shownItems) : []),
+    [premierGrouped, shownItems],
+  );
+  const totalByPremierName = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of listItems) {
+      const n = premierTier(e.elo ?? 0).name;
+      m.set(n, (m.get(n) ?? 0) + 1);
+    }
     return m;
   }, [listItems]);
 
@@ -162,9 +213,13 @@ export function Leaderboard() {
           <EloDelta delta={eloMove.get(e.id)} />
         </span>
         <Avatar name={nameOf(e)} size={34} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
-        <span className="hidden sm:contents">
-          <LevelBadge level={e.level} size={24} />
-        </span>
+        {/* Faceit : badge de niveau (masqué mobile). Premier : pas de niveau, le
+            rang CS Rating est affiché à droite (PremierBadge). */}
+        {!premier && (
+          <span className="hidden sm:contents">
+            <LevelBadge level={e.level} size={24} />
+          </span>
+        )}
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className={cn("truncate font-semibold", (e.rank === 1 || isMe) && "text-brand-hi")}>
             {nameOf(e)}
@@ -184,9 +239,13 @@ export function Leaderboard() {
         {e.sparkline && e.sparkline.length > 1 && (
           <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
         )}
-        <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
-          {e.elo ?? "-"}
-        </span>
+        {premier ? (
+          <PremierBadge rating={e.elo ?? 0} height={22} />
+        ) : (
+          <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
+            {e.elo ?? "-"}
+          </span>
+        )}
         <TbArrowRight className="hidden text-ink-faint sm:block" size={17} />
       </>
     );
@@ -200,15 +259,23 @@ export function Leaderboard() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Classement</h1>
             <p className="mt-1 text-sm text-ink-dim">
-              Membres du pôle CS2, par ELO Faceit et palier de niveau.
+              {premier
+                ? "Membres du pôle CS2, par CS Rating Premier."
+                : "Membres du pôle CS2, par ELO Faceit et palier de niveau."}
             </p>
           </div>
-          <Link
-            to="/classement/maps"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-sm font-semibold text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
-          >
-            <TbMap2 size={16} /> Par map
-          </Link>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
+            {/* « Par map » = stats Faceit, sans objet en Premier. */}
+            {!premier && (
+              <Link
+                to="/classement/maps"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-sm font-semibold text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none"
+              >
+                <TbMap2 size={16} /> Par map
+              </Link>
+            )}
+          </div>
         </div>
       </Card>
 
@@ -248,6 +315,27 @@ export function Leaderboard() {
               </div>
             ))}
           </div>
+        ) : premierGrouped ? (
+          <div data-tour="ladder" className="flex flex-col gap-5">
+            {premierGroups.map((g) => (
+              <div key={g.name}>
+                <PremierTierBanner
+                  min={g.min}
+                  color={g.color}
+                  count={totalByPremierName.get(g.name) ?? g.items.length}
+                />
+                <Card className="p-[var(--bezel)]">
+                  <HoverBarList
+                    items={g.items}
+                    rowHeight={56}
+                    keyOf={(e) => e.id}
+                    onSelect={(e) => navigate(`/player/${e.id}`)}
+                    children={renderRow}
+                  />
+                </Card>
+              </div>
+            ))}
+          </div>
         ) : (
           <Card className="p-[var(--bezel)]">
             <HoverBarList
@@ -275,7 +363,9 @@ export function Leaderboard() {
 
       {data && board.length === 0 && (
         <EmptyState icon={TbUsersGroup} title="Aucun joueur pour l'instant">
-          Ajoute des membres du pôle (via le worker) et leur ELO apparaîtra ici.
+          {premier
+            ? "Personne n'a encore lié son compte Premier — le classement CS Rating apparaîtra ici."
+            : "Ajoute des membres du pôle (via le worker) et leur ELO apparaîtra ici."}
         </EmptyState>
       )}
     </div>
