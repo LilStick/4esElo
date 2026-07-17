@@ -74,10 +74,11 @@ function groupByPremierTier(
 }
 
 /** Bandeau de palier Premier : pastille couleur + plage de rating. */
-function PremierTierBanner({ min, color, count }: { min: number; color: string; count: number }) {
+function PremierTierBanner({ min, count }: { min: number; count: number }) {
   return (
     <div className="mb-2 flex items-center gap-2 px-1">
-      <span className="size-3 rounded-sm" style={{ backgroundColor: color }} />
+      {/* Icône du rang au palier (seuil affiché dans le badge, ex. 30 000+). */}
+      <PremierBadge rating={min} height={22} />
       <span className="text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
         {premierRangeLabel(min)}
       </span>
@@ -319,11 +320,7 @@ export function Leaderboard() {
           <div data-tour="ladder" className="flex flex-col gap-5">
             {premierGroups.map((g) => (
               <div key={g.name}>
-                <PremierTierBanner
-                  min={g.min}
-                  color={g.color}
-                  count={totalByPremierName.get(g.name) ?? g.items.length}
-                />
+                <PremierTierBanner min={g.min} count={totalByPremierName.get(g.name) ?? g.items.length} />
                 <Card className="p-[var(--bezel)]">
                   <HoverBarList
                     items={g.items}

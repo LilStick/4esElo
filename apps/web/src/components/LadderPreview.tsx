@@ -3,18 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { TbArrowRight, TbTrophy } from "react-icons/tb";
 import type { LeaderboardEntry } from "@4eselo/types";
 import { getLeaderboard } from "../lib/api";
+import { useEloSource } from "../lib/useEloSource";
+import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Card, HoverBarList, LevelBadge, Skeleton } from "../ui";
+import { Avatar, Card, HoverBarList, LevelBadge, PremierBadge, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "./Badges";
 
-const nameOf = (e: LeaderboardEntry) => e.faceitNickname ?? e.discordName ?? "-";
+const nameOf = (e: LeaderboardEntry) => e.discordName ?? e.faceitNickname ?? "-";
 
 /** Aperçu du classement sur le home : ladder simple (top 5) + ligne « +N autres » vers le complet. */
 export function LadderPreview({ top = 5 }: { top?: number }) {
   const navigate = useNavigate();
+  const [source, setSource] = useEloSource();
+  const premierEnabled = usePremierEnabled();
+  const premier = source === "premier";
   const { data, isLoading } = useQuery({
-    queryKey: ["leaderboard", "faceit"],
-    queryFn: () => getLeaderboard("faceit"),
+    queryKey: ["leaderboard", source],
+    queryFn: () => getLeaderboard(source),
   });
   const board = data?.leaderboard ?? [];
   const items = board.slice(0, top);
@@ -22,9 +27,12 @@ export function LadderPreview({ top = 5 }: { top?: number }) {
 
   return (
     <section>
-      <div className="mb-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
-        <TbTrophy size={14} className="text-brand" />
-        Classement
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-ink-faint uppercase">
+          <TbTrophy size={14} className="text-brand" />
+          Classement
+        </div>
+        {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
       </div>
 
       {isLoading ? (
@@ -49,12 +57,16 @@ export function LadderPreview({ top = 5 }: { top?: number }) {
               <>
                 <span className="w-5 text-center font-mono font-bold text-ink-faint">{e.rank}</span>
                 <Avatar name={nameOf(e)} size={32} src={discordAvatarUrl(e.discordId, e.discordAvatar)} />
-                <LevelBadge level={e.level} size={22} />
+                {!premier && <LevelBadge level={e.level} size={22} />}
                 <span className="flex min-w-0 flex-1 items-center gap-1.5">
                   <span className="truncate font-semibold">{nameOf(e)}</span>
                   <Badges tiers={e.badgeTiers} max={2} />
                 </span>
-                <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "-"}</span>
+                {premier ? (
+                  <PremierBadge rating={e.elo ?? 0} height={20} />
+                ) : (
+                  <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "-"}</span>
+                )}
               </>
             )}
           />
