@@ -9,6 +9,7 @@ export { Modal } from "./Modal";
 export { HoverBarList } from "./HoverBarList";
 export { InfoTip } from "./InfoTip";
 export { Pagination } from "./Pagination";
+export { PremierBadge } from "./PremierBadge";
 export { ScrollFadeX } from "./ScrollFadeX";
 export { SourceToggle } from "./SourceToggle";
 export { RangeTabs } from "./RangeTabs";
