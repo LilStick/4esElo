@@ -19,9 +19,8 @@ import type { PlayerDetail, StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
 import { useEloSource } from "../lib/useEloSource";
 import { usePremierEnabled } from "../lib/usePremierEnabled";
-import { premierTier } from "../lib/premierTier";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Button, Card, PremierBadge, RangeTabs, Skeleton, SourceToggle } from "../ui";
+import { Avatar, Button, Card, RangeTabs, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
 import { EloChart } from "../components/EloChart";
 import { EmptyState } from "../components/EmptyState";
@@ -242,32 +241,13 @@ export function Player() {
                 (sinon le contenu Premier, plus court, laisse la grille se resserrer). */}
             <div className="contents xl:flex xl:w-[920px] xl:min-w-0 xl:flex-col xl:gap-4">
               <div className="order-2">
-                {premier ? (
-                  <Card accent className="relative flex flex-col items-center gap-3 overflow-hidden p-6">
-                    {/* Fond + glow teinté par le palier, derrière le rating. */}
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent"
-                    />
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute -top-24 left-1/2 h-56 w-[420px] -translate-x-1/2 rounded-full opacity-[0.16] blur-3xl"
-                      style={{ background: premierTier(data.elo ?? 0).color }}
-                    />
-                    <div className="relative flex flex-col items-center gap-3">
-                      <SectionTitle icon={TbTrophy}>CS Rating Premier</SectionTitle>
-                      {data.elo != null ? (
-                        <PremierBadge rating={data.elo} height={48} />
-                      ) : (
-                        <p className="text-center text-sm text-ink-dim">
-                          Pas encore de CS Rating — il apparaît après quelques parties Premier synchronisées.
-                        </p>
-                      )}
-                    </div>
-                  </Card>
-                ) : (
-                  <EloSummaryCard id={id} elo={data.elo} level={data.level} />
-                )}
+                <EloSummaryCard
+                  id={id}
+                  elo={data.elo}
+                  level={data.level}
+                  source={source}
+                  history={data.history}
+                />
               </div>
               <div className="order-3">
                 {premier ? (
