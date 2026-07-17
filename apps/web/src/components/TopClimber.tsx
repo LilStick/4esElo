@@ -3,14 +3,20 @@ import { Link } from "react-router-dom";
 import { TbTrendingUp } from "react-icons/tb";
 import type { MoverEntry } from "@4eselo/types";
 import { getMovers } from "../lib/api";
+import { useEloSource } from "../lib/useEloSource";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 
-const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "-";
+const nameOf = (m: MoverEntry) => m.discordName ?? m.faceitNickname ?? "-";
 
 /** Widget « Grimpeur de la semaine » : plus gros gain d'ELO sur 7 jours. */
 export function TopClimber() {
-  const { data, isLoading } = useQuery({ queryKey: ["movers", "7d"], queryFn: () => getMovers("7d") });
+  const [source] = useEloSource();
+  const premier = source === "premier";
+  const { data, isLoading } = useQuery({
+    queryKey: ["movers", "7d", source],
+    queryFn: () => getMovers("7d", source),
+  });
   const best = (data?.movers ?? []).filter((m) => m.delta != null && m.delta > 0)[0];
 
   return (
@@ -41,7 +47,7 @@ export function TopClimber() {
                 <span className="truncate font-semibold transition-colors group-hover:text-brand-hi">
                   {nameOf(best)}
                 </span>
-                <LevelBadge level={best.level} size={18} />
+                {!premier && <LevelBadge level={best.level} size={18} />}
               </div>
               <div className="text-xs text-ink-faint">{best.elo ?? "-"} ELO</div>
             </div>

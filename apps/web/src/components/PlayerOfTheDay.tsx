@@ -3,16 +3,19 @@ import { Link } from "react-router-dom";
 import { TbFlame } from "react-icons/tb";
 import type { MoverEntry } from "@4eselo/types";
 import { getMovers } from "../lib/api";
+import { useEloSource } from "../lib/useEloSource";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, LevelBadge, Skeleton } from "../ui";
 
-const nameOf = (m: MoverEntry) => m.faceitNickname ?? m.discordName ?? "-";
+const nameOf = (m: MoverEntry) => m.discordName ?? m.faceitNickname ?? "-";
 
 /** Widget « Joueur du jour » : plus gros gain d'ELO sur 24h (+ mention de la plus grosse chute). */
 export function PlayerOfTheDay() {
+  const [source] = useEloSource();
+  const premier = source === "premier";
   const { data, isLoading } = useQuery({
-    queryKey: ["movers", "24h"],
-    queryFn: () => getMovers("24h"),
+    queryKey: ["movers", "24h", source],
+    queryFn: () => getMovers("24h", source),
   });
 
   const movers = data?.movers ?? [];
@@ -49,7 +52,7 @@ export function PlayerOfTheDay() {
                 <span className="truncate font-semibold transition-colors group-hover:text-brand-hi">
                   {nameOf(best)}
                 </span>
-                <LevelBadge level={best.level} size={18} />
+                {!premier && <LevelBadge level={best.level} size={18} />}
               </div>
               <div className="text-xs text-ink-faint">{best.elo ?? "-"} ELO</div>
             </div>

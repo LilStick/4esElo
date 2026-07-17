@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { TbArrowUp, TbArrowsExchange } from "react-icons/tb";
 import type { OvertakeEntry, OvertakePlayer } from "@4eselo/types";
 import { getOvertakes } from "../lib/api";
+import { useEloSource } from "../lib/useEloSource";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Card, HoverBarList, Skeleton } from "../ui";
 
-const nameOf = (p: OvertakePlayer) => p.faceitNickname ?? p.discordName ?? "-";
+const nameOf = (p: OvertakePlayer) => p.discordName ?? p.faceitNickname ?? "-";
 
 function Header() {
   return (
@@ -19,7 +20,11 @@ function Header() {
 
 /** Widget « Dépassements récents » : qui est passé devant qui au classement sur 7 j. */
 export function Overtakes() {
-  const { data, isLoading } = useQuery({ queryKey: ["overtakes", "7d"], queryFn: () => getOvertakes("7d") });
+  const [source] = useEloSource();
+  const { data, isLoading } = useQuery({
+    queryKey: ["overtakes", "7d", source],
+    queryFn: () => getOvertakes("7d", source),
+  });
 
   const overtakes = data?.overtakes ?? [];
 
