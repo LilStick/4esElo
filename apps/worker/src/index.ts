@@ -23,7 +23,9 @@ import { announceWrapped } from "./announceWrapped";
 import { announceWeeklyRecap } from "./weeklyRecap";
 import { announceBigWrapped } from "./announceBigWrapped";
 import { curlFetch } from "./curlFetch";
+import { createMatchWalker } from "@4eselo/premier";
 import { createGcBot, type GcBot } from "./premier/gcBot";
+import { createResolver } from "./premier/resolver";
 import { runPremierSync } from "./premier/runSync";
 import {
   dbStore,
@@ -219,8 +221,10 @@ async function main() {
   while (true) {
     await runOnce(faceit).catch((err) => console.error("[worker] run failed:", err));
     if (premierReady && premierBot && STEAM_API_KEY && STEAM_AUTH_ENC_KEY) {
-      await runPremierSync({ bot: premierBot, apiKey: STEAM_API_KEY, encKey: STEAM_AUTH_ENC_KEY }).catch(
-        (err) => console.error("[premier] sync run failed:", err instanceof Error ? err.message : err),
+      const walker = createMatchWalker(STEAM_API_KEY);
+      const resolver = createResolver(premierBot);
+      await runPremierSync({ walker, resolver, encKey: STEAM_AUTH_ENC_KEY }).catch((err) =>
+        console.error("[premier] sync run failed:", err instanceof Error ? err.message : err),
       );
     }
     await sleep(INTERVAL_MS);
