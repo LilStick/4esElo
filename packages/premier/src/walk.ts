@@ -70,7 +70,23 @@ export interface MatchWalker {
   ): Promise<string[]>;
 }
 
-export function createMatchWalker(apiKey: string, fetchImpl: typeof fetch = fetch): MatchWalker {
+export interface MatchWalkerOptions {
+  fetchImpl?: typeof fetch;
+  sleep?: (ms: number) => Promise<void>;
+  /** Délai entre deux appels du walk (anti-429). */
+  throttleMs?: number;
+  /** Nb de retries sur 429 (backoff exponentiel 1s,2s,4s,8s). */
+  maxRetries?: number;
+}
+
+const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+export function createMatchWalker(apiKey: string, opts: MatchWalkerOptions = {}): MatchWalker {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const sleep = opts.sleep ?? defaultSleep;
+  const throttleMs = opts.throttleMs ?? 1000;
+  const maxRetries = opts.maxRetries ?? 4;
+
   async function nextShareCode(
     steamId64: string,
     authCode: string,
@@ -81,14 +97,21 @@ export function createMatchWalker(apiKey: string, fetchImpl: typeof fetch = fetc
       `&steamid=${encodeURIComponent(steamId64)}` +
       `&steamidkey=${encodeURIComponent(authCode)}` +
       `&knowncode=${encodeURIComponent(knownCode)}`;
-    const res = await fetchImpl(url);
-    if (res.status === 202) return null; // pas de match plus récent
-    if (res.status === 412) throw new ShareCodeExpiredError();
-    if (!res.ok) throw new PremierError(res.status, `GetNextMatchSharingCode ${res.status}`);
-    const parsed = nextCodeSchema.safeParse(await res.json());
-    if (!parsed.success) throw new PremierError(200, "réponse GetNextMatchSharingCode inattendue");
-    const next = parsed.data.result.nextcode;
-    return next === "n/a" ? null : next;
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetchImpl(url);
+      // 429 = rate-limit Steam (endpoint sensible aux bursts) → backoff + retry.
+      if (res.status === 429 && attempt < maxRetries) {
+        await sleep(1000 * 2 ** attempt);
+        continue;
+      }
+      if (res.status === 202) return null; // pas de match plus récent
+      if (res.status === 412) throw new ShareCodeExpiredError();
+      if (!res.ok) throw new PremierError(res.status, `GetNextMatchSharingCode ${res.status}`);
+      const parsed = nextCodeSchema.safeParse(await res.json());
+      if (!parsed.success) throw new PremierError(200, "réponse GetNextMatchSharingCode inattendue");
+      const next = parsed.data.result.nextcode;
+      return next === "n/a" ? null : next;
+    }
   }
 
   async function walkFrom(
@@ -101,6 +124,7 @@ export function createMatchWalker(apiKey: string, fetchImpl: typeof fetch = fetc
     const codes: string[] = [];
     let cur = knownCode;
     for (let i = 0; i < max; i++) {
+      if (i > 0) await sleep(throttleMs); // throttle : évite le burst qui déclenche le 429
       const next = await nextShareCode(steamId64, authCode, cur);
       if (!next) break;
       codes.push(next);
