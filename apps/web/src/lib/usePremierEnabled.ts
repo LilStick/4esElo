@@ -2,9 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getPremierEnabled } from "./api";
 
 /**
- * Premier est-il activé côté serveur ? Détecté via `GET /premier/status`
- * (503 = désactivé). En attendant que `/me` expose `premierEnabled` (B18.13),
- * c'est le seul signal disponible. Sert à masquer le toggle / l'onboarding.
+ * Premier est-il activé côté serveur ? Lu via `GET /config` (public, B18.13).
+ * Sert à masquer le toggle de source / l'onboarding quand Premier est off.
  */
 export function usePremierEnabled(): boolean {
   const { data } = useQuery({
