@@ -2,6 +2,7 @@ import type {
   AchievementsResponse,
   ActivityResponse,
   AdminPlayerPatch,
+  AdminsResponse,
   Announcement,
   AnnouncementsResponse,
   BansResponse,
@@ -249,6 +250,12 @@ export function adminUpdatePlayer(id: string, patch: AdminPlayerPatch) {
 export function adminDeletePlayer(id: string) {
   return send<{ ok: true }>("DELETE", `/admin/players/${id}?confirm=true`);
 }
+
+// Rôles admin en base (B12.10). Liste = tout admin ; ajout/retrait réservés au root.
+export const getAdmins = () => get<AdminsResponse>("/admin/admins");
+export const adminAddAdmin = (discordId: string) => send<{ ok: true }>("PUT", `/admin/admins/${discordId}`);
+export const adminRemoveAdmin = (discordId: string) =>
+  send<{ ok: true }>("DELETE", `/admin/admins/${discordId}`);
 
 export function adminPutAnnouncement(body: StaffAnnouncementRequest) {
   return send<Announcement>("PUT", `/admin/announcement`, body);
