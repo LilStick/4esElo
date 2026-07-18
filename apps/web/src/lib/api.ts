@@ -6,6 +6,7 @@ import type {
   AnnouncementsResponse,
   BansResponse,
   BigWrappedResponse,
+  ConfigResponse,
   DuosResponse,
   EloSource,
   IdeasResponse,
@@ -82,15 +83,16 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T>
 
 const post = <T>(path: string, body?: unknown) => send<T>("POST", path, body);
 
+/** Config publique du serveur (lisible en anonyme) : flags exposés au front. */
+export const getConfig = () => get<ConfigResponse>("/config");
+
 /**
- * Premier activé côté serveur ? On sonde `/premier/status` : 503 = désactivé
- * (flag `PREMIER_ENABLED` off), 200/401 = activé. Erreur réseau → considéré off.
- * Provisoire tant que `/me` n'expose pas `premierEnabled` (B18.13).
+ * Premier activé côté serveur ? Lit `GET /config` (public, B18.13). Erreur réseau
+ * → considéré off (le toggle / l'onboarding restent masqués).
  */
 export async function getPremierEnabled(): Promise<boolean> {
   try {
-    const res = await fetch(`${BASE}/premier/status`, { credentials: "include" });
-    return res.status !== 503;
+    return (await getConfig()).premierEnabled;
   } catch {
     return false;
   }
