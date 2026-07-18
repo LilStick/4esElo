@@ -12,15 +12,19 @@ import {
   TbTrash,
   TbUsers,
 } from "react-icons/tb";
-import type { Announcement, LeaderboardEntry } from "@4eselo/types";
+import type { AdminEntry, Announcement, LeaderboardEntry } from "@4eselo/types";
 import {
+  adminAddAdmin,
   adminBan,
   adminDeleteAnnouncement,
   adminDeletePlayer,
   adminPutAnnouncement,
   adminRegenerateWrapped,
+  adminRemoveAdmin,
   adminUnban,
   adminUpdatePlayer,
+  ApiError,
+  getAdmins,
   getAnnouncements,
   getBans,
   getLeaderboard,
@@ -523,30 +527,167 @@ function BansSection({ players }: { players: LeaderboardEntry[] }) {
   );
 }
 
-/** Onglet Admins : visualisation seule (front). La liste complète et l'ajout/retrait
- *  d'admins dépendent du back (rôles en base, ticket #388) — pas faisable côté front. */
-function AdminsSection() {
-  const { displayName, avatarUrl } = useMe();
+/** Onglet Admins (B12.10) : liste des admins (root = socle serveur, non-retirable),
+ *  promotion / retrait d'un membre — réservés au root, gatés `requireRootAdmin` côté API. */
+function AdminsSection({ players }: { players: LeaderboardEntry[] }) {
+  const qc = useQueryClient();
+  const { me } = useMe();
+  const myId = me.authenticated ? me.discordId : null;
+  const { data } = useQuery({ queryKey: ["admins"], queryFn: getAdmins });
+  const admins = data?.admins ?? [];
+  // Root = admin défini côté serveur (source "env") ; lui seul peut promouvoir/retirer.
+  const iAmRoot = admins.some((a) => a.source === "env" && a.discordId === myId);
+
+  const adminIds = new Set(admins.map((a) => a.discordId));
+  const addable = players.filter((p) => p.discordId && !adminIds.has(p.discordId));
+  const playerByDiscord = (did: string) => players.find((p) => p.discordId === did);
+  const nameOfAdmin = (a: AdminEntry) => {
+    const p = playerByDiscord(a.discordId);
+    return a.discordName ?? p?.discordName ?? p?.faceitNickname ?? a.discordId;
+  };
+  const nameByDiscordId = (did: string) => {
+    const a = admins.find((x) => x.discordId === did);
+    return a ? nameOfAdmin(a) : did;
+  };
+
+  const [targetId, setTargetId] = useState("");
+  const [removeId, setRemoveId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const add = useMutation({
+    mutationFn: () => adminAddAdmin(targetId),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admins"] });
+      setTargetId("");
+      setError(null);
+    },
+    onError: (e) =>
+      setError(
+        e instanceof ApiError && e.status === 404
+          ? "Ce membre ne s'est jamais connecté au site — il doit se connecter une fois avant d'être promu."
+          : e instanceof Error
+            ? e.message
+            : "Échec de la promotion",
+      ),
+  });
+  const remove = useMutation({
+    mutationFn: (did: string) => adminRemoveAdmin(did),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admins"] });
+      setRemoveId(null);
+    },
+  });
+
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex items-center gap-3 p-4">
-        <Avatar name={displayName ?? "Admin"} size={40} src={avatarUrl ?? undefined} />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{displayName ?? "Toi"}</div>
-          <div className="text-xs text-ink-faint">Connecté en tant qu'admin</div>
+    <Card className="flex flex-col gap-5 p-5">
+      {/* Liste des admins */}
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Admins ({admins.length})</span>
+        <div className="flex flex-col divide-y divide-white/[0.05]">
+          {admins.map((a) => {
+            const p = playerByDiscord(a.discordId);
+            const isMe = a.discordId === myId;
+            return (
+              <div key={a.discordId} className="flex items-center gap-3 py-2.5">
+                <Avatar
+                  name={nameOfAdmin(a)}
+                  size={36}
+                  src={p ? discordAvatarUrl(a.discordId, p.discordAvatar) : undefined}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
+                    {nameOfAdmin(a)}
+                    {isMe && (
+                      <span className="text-[10px] font-bold tracking-wider text-brand-hi uppercase">
+                        toi
+                      </span>
+                    )}
+                  </div>
+                  <div className="truncate text-xs text-ink-faint">
+                    {a.source === "env"
+                      ? "Root · défini côté serveur, non-retirable"
+                      : "Ajouté depuis le panel"}
+                  </div>
+                </div>
+                {a.source === "env" ? (
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
+                    <TbShieldCheck size={13} /> Root
+                  </span>
+                ) : iAmRoot ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setRemoveId(a.discordId)}
+                    className="px-3 py-1.5 text-xs"
+                  >
+                    Retirer
+                  </Button>
+                ) : (
+                  <span className="shrink-0 text-[11px] text-ink-faint">Admin</span>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-hi">
-          <TbShieldCheck size={13} /> Admin
-        </span>
-      </Card>
-      <Card className="flex items-start gap-3 p-4 text-sm text-ink-dim">
-        <TbAlertTriangle size={18} className="mt-0.5 shrink-0 text-ink-faint" />
-        <p>
-          La liste complète des admins et l'ajout/retrait se feront ici une fois le back prêt (gestion des
-          rôles en base). Pour l'instant, les admins sont définis côté serveur.
-        </p>
-      </Card>
-    </div>
+      </div>
+
+      {/* Promouvoir un membre (root uniquement) */}
+      {iAmRoot ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <span className={labelClass}>Promouvoir un membre</span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="flex flex-1 flex-col gap-1.5">
+              <span className="text-xs text-ink-faint">Membre</span>
+              <PlayerPicker
+                players={addable}
+                value={targetId}
+                onChange={(v) => {
+                  setTargetId(v);
+                  setError(null);
+                }}
+              />
+            </label>
+            <Button icon={TbShieldCheck} onClick={() => add.mutate()} disabled={!targetId || add.isPending}>
+              {add.isPending ? "…" : "Promouvoir"}
+            </Button>
+          </div>
+          {error && (
+            <p className="flex items-center gap-2 text-sm text-loss">
+              <TbAlertTriangle size={16} /> {error}
+            </p>
+          )}
+          <p className="text-xs text-ink-faint">Le membre doit s'être connecté au moins une fois au site.</p>
+        </div>
+      ) : (
+        <div className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-ink-dim">
+          <TbAlertTriangle size={18} className="mt-0.5 shrink-0 text-ink-faint" />
+          <p>
+            Seul le <b className="text-ink">root</b> (admins socle définis côté serveur) peut promouvoir ou
+            retirer des admins.
+          </p>
+        </div>
+      )}
+
+      <Modal open={removeId !== null} onClose={() => setRemoveId(null)} title="Retirer cet admin">
+        <div className="flex flex-col gap-4 p-3">
+          <p className="text-sm text-ink-dim">
+            Retirer <span className="font-bold text-ink">{removeId ? nameByDiscordId(removeId) : ""}</span>{" "}
+            des admins ? Il perdra l'accès au panel.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setRemoveId(null)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={() => removeId && remove.mutate(removeId)}
+              disabled={remove.isPending}
+              className="bg-loss text-white hover:bg-loss"
+            >
+              {remove.isPending ? "…" : "Retirer"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </Card>
   );
 }
 
@@ -663,7 +804,7 @@ export function Admin() {
 
       {tab === "admins" && (
         <Section icon={TbShieldCheck} title="Admins">
-          <AdminsSection />
+          <AdminsSection players={players} />
         </Section>
       )}
 
