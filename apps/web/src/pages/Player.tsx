@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { hasInAppHistory } from "../lib/nav";
 import type { IconType } from "react-icons";
 import {
   TbArrowLeft,
@@ -83,6 +84,11 @@ function SectionTitle({ icon: Icon, children }: { icon: IconType; children: Reac
 export function Player() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // « Retour » : revient en arrière s'il y a un historique in-app, sinon retombe sur
+  // le classement (atterrissage direct via lien partagé → `location.key === "default"`,
+  // pas d'entrée précédente → `navigate(-1)` sortirait du site ou ne ferait rien).
+  const goBack = () => (hasInAppHistory(location.key) ? navigate(-1) : navigate("/classement"));
   const [range, setRange] = useState<StatsRange>("all");
   const { data, isLoading, isError } = useQuery({
     queryKey: ["player", id],
@@ -115,7 +121,7 @@ export function Player() {
             {/* 1 - profil + retour */}
             <div className="order-1 flex flex-col gap-4">
               <button
-                onClick={() => navigate(-1)}
+                onClick={goBack}
                 className="inline-flex cursor-pointer items-center gap-1.5 self-start text-sm text-ink-dim transition-colors hover:text-ink"
               >
                 <TbArrowLeft size={16} /> Retour
