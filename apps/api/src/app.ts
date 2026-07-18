@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { sql } from "drizzle-orm";
 import { db } from "@4eselo/db";
-import { WEB_ORIGINS } from "./env";
+import { WEB_ORIGINS, PREMIER_ENABLED } from "./env";
+import type { ConfigResponse } from "@4eselo/types";
 import { authRoutes } from "./auth";
 import { registerRoutes } from "./register";
 import { adminRoutes } from "./admin";
@@ -27,6 +28,9 @@ app.onError((err, c) => {
   console.error(`[api] ${c.req.method} ${c.req.path} failed:`, err.message);
   return c.json({ error: "internal error" }, 500);
 });
+
+// Config publique (B18.13) : le front lit les feature flags, même anonyme.
+app.get("/config", (c) => c.json<ConfigResponse>({ premierEnabled: PREMIER_ENABLED }));
 
 app.get("/health", async (c) => {
   try {

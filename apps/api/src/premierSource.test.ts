@@ -3,7 +3,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, inArray } from "drizzle-orm";
 import { db, players, eloSnapshots } from "@4eselo/db";
-import type { EloCurveResponse, LeaderboardResponse } from "@4eselo/types";
+import type { ConfigResponse, EloCurveResponse, LeaderboardResponse } from "@4eselo/types";
 import { app } from "./app";
 
 /** Intégration : les endpoints séparent bien source=premier de source=faceit (B18.5). */
@@ -71,4 +71,11 @@ test("classement : source=premier classe sur le rating premier", { skip }, async
 
 test("source invalide → 400", { skip }, async () => {
   assert.equal((await app.request(`/players/${playerId}/elo?source=nope`)).status, 400);
+});
+
+test("GET /config expose premierEnabled (public, sans auth)", async () => {
+  const res = await app.request("/config");
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as ConfigResponse;
+  assert.equal(typeof body.premierEnabled, "boolean");
 });

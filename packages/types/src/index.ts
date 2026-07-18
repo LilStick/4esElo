@@ -602,6 +602,11 @@ export interface AdminsResponse {
   admins: AdminEntry[];
 }
 
+/** Config publique exposée au front (B18.13) : feature flags visibles même en anonyme. */
+export interface ConfigResponse {
+  premierEnabled: boolean;
+}
+
 /** Onboarding Premier (B18.2) : le membre fournit son game auth code Steam + un share code récent. */
 export interface PremierConnectRequest {
   steamAuthCode: string;
