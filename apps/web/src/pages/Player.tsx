@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type { IconType } from "react-icons";
 import {
   TbArrowLeft,
@@ -17,6 +17,7 @@ import {
 } from "react-icons/tb";
 import type { PlayerDetail, StatsRange } from "@4eselo/types";
 import { getPlayer } from "../lib/api";
+import { hasInAppHistory } from "../lib/nav";
 import { useEloSource } from "../lib/useEloSource";
 import { usePremierEnabled } from "../lib/usePremierEnabled";
 import { discordAvatarUrl } from "../lib/discord";
@@ -168,6 +169,10 @@ function IdentityCard({ data, name }: { data: PlayerDetail; name: string }) {
 export function Player() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // « Retour » : revient en arrière s'il y a un historique in-app, sinon retombe sur
+  // le classement (atterrissage direct via lien partagé → pas d'entrée précédente).
+  const goBack = () => (hasInAppHistory(location.key) ? navigate(-1) : navigate("/classement"));
   const [range, setRange] = useState<StatsRange>("all");
   const [source, setSource] = useEloSource();
   const premierEnabled = usePremierEnabled();
@@ -200,7 +205,7 @@ export function Player() {
           {/* Barre haut : retour + sélecteur de source (si Premier activé). */}
           <div className="mb-4 flex items-center justify-between gap-3">
             <button
-              onClick={() => navigate(-1)}
+              onClick={goBack}
               className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-ink-dim transition-colors hover:text-ink"
             >
               <TbArrowLeft size={16} /> Retour
