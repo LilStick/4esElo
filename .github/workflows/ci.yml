@@ -27,6 +27,8 @@ jobs:
 
     env:
       DATABASE_URL: postgres://4eselo:4eselo@localhost:5432/4eselo
+      # Le worker exige FACEIT_API_KEY à l'import de son env.ts (premier.test.ts le charge). Valeur factice suffit en test.
+      FACEIT_API_KEY: ci-dummy-key
 
     steps:
       - uses: actions/checkout@v7
@@ -81,6 +83,8 @@ jobs:
 
     env:
       DATABASE_URL: postgres://4eselo:4eselo@localhost:5432/4eselo
+      # Le worker exige FACEIT_API_KEY à l'import de son env.ts (premier.test.ts le charge). Valeur factice suffit en test.
+      FACEIT_API_KEY: ci-dummy-key
 
     steps:
       - uses: actions/checkout@v7
