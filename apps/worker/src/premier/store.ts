@@ -27,6 +27,8 @@ export interface PremierConnectedMember {
   steamId64: string;
   authCodeEnc: string;
   shareCode: string;
+  /** null = jamais synchronisé → 1er sync (on résout aussi le seed). */
+  syncedAt: Date | null;
 }
 
 /** Membres ayant connecté leur compte Premier (auth code + share code présents). */
@@ -37,10 +39,17 @@ export async function getConnectedMembers(): Promise<PremierConnectedMember[]> {
       steamId64: players.steamId64,
       enc: players.premierAuthCodeEnc,
       sc: players.premierShareCode,
+      syncedAt: players.premierSyncedAt,
     })
     .from(players)
     .where(isNotNull(players.premierAuthCodeEnc));
   return rows
     .filter((r) => r.steamId64 && r.enc && r.sc)
-    .map((r) => ({ id: r.id, steamId64: r.steamId64!, authCodeEnc: r.enc!, shareCode: r.sc! }));
+    .map((r) => ({
+      id: r.id,
+      steamId64: r.steamId64!,
+      authCodeEnc: r.enc!,
+      shareCode: r.sc!,
+      syncedAt: r.syncedAt,
+    }));
 }

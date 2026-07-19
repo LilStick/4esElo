@@ -31,6 +31,8 @@ export interface PremierPlayer {
   authCode: string;
   /** Dernier share code connu = curseur de départ du walk. */
   shareCode: string;
+  /** Jamais synchronisé → on résout aussi le match d'onboarding (le seed lui-même). */
+  firstSync: boolean;
 }
 
 export interface PremierSyncDeps {
@@ -45,18 +47,21 @@ export async function syncPlayerPremier(
   player: PremierPlayer,
   deps: PremierSyncDeps,
 ): Promise<{ newMatches: number; snapshots: number }> {
-  const codes = await deps.walker.walkFrom(player.steamId64, player.authCode, player.shareCode);
+  const walked = await deps.walker.walkFrom(player.steamId64, player.authCode, player.shareCode);
+  // Walk = forward-only (matchs postérieurs au seed). Au 1er sync on résout AUSSI le
+  // seed (le match d'onboarding), sinon il ne serait jamais compté.
+  const codes = player.firstSync ? [player.shareCode, ...walked] : walked;
   let snapshots = 0;
-  let lastCode = player.shareCode;
   for (const code of codes) {
     const result = await deps.resolver.resolve(player.steamId64, code);
-    lastCode = code; // on avance le curseur même si irrésolvable (démo expirée → on ne rebloque pas)
-    if (!result) continue;
+    if (!result) continue; // irrésolvable (démo expirée) → on ne rebloque pas
     await deps.store.recordRating(player.id, result.ratingAfter, result.playedAt);
     snapshots++;
   }
-  if (codes.length > 0) {
-    await deps.store.advanceCursor(player.id, lastCode, deps.now?.() ?? new Date());
+  // Curseur = dernier match walké (le seed reste le curseur si rien de plus récent).
+  const newCursor = walked.length > 0 ? walked[walked.length - 1]! : player.shareCode;
+  if (player.firstSync || walked.length > 0) {
+    await deps.store.advanceCursor(player.id, newCursor, deps.now?.() ?? new Date());
   }
   return { newMatches: codes.length, snapshots };
 }

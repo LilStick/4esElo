@@ -83,22 +83,23 @@ test("runPremierSync : membre connecté → walk → snapshots en base + curseur
     nextShareCode: async () => null,
     walkFrom: async () => ["CSGO-1", "CSGO-2"],
   };
-  const ratings: Record<string, number> = { "CSGO-1": 14000, "CSGO-2": 14200 };
+  // 1er sync (premierSyncedAt null) → le seed CSGO-seed est résolu aussi.
+  const ratings: Record<string, number> = { "CSGO-seed": 13900, "CSGO-1": 14000, "CSGO-2": 14200 };
   const resolver: PremierMatchResolver = {
-    resolve: async (_sid, code) => ({
-      ratingAfter: ratings[code]!,
-      playedAt: new Date("2026-07-04T00:00:00Z"),
-    }),
+    resolve: async (_sid, code) => {
+      const r = ratings[code];
+      return r === undefined ? null : { ratingAfter: r, playedAt: new Date("2026-07-04T00:00:00Z") };
+    },
   };
 
   const res = await runPremierSync({ walker, resolver, encKey: KEY });
   assert.ok(res.members >= 1);
-  assert.equal(res.snapshots, 2);
+  assert.equal(res.snapshots, 3);
 
   const snaps = await premierSnapshots();
   assert.deepEqual(
     snaps.map((s) => s.elo),
-    [14000, 14200],
+    [13900, 14000, 14200],
   );
   const [p] = await db.select({ sc: players.premierShareCode }).from(players).where(eq(players.id, playerId));
   assert.equal(p!.sc, "CSGO-2"); // curseur avancé au dernier match
