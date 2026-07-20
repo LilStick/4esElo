@@ -63,13 +63,25 @@ premierRoutes.post("/premier/connect", async (c) => {
   const parsed = connectSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: "invalid (steamAuthCode, shareCode)" }, 400);
 
-  const enc = encryptSecret(parsed.data.steamAuthCode, premierDeps.encKey);
-  const [updated] = await db
-    .update(players)
-    .set({ premierAuthCodeEnc: enc, premierShareCode: parsed.data.shareCode })
+  const [member] = await db
+    .select({ id: players.id, steamId64: players.steamId64 })
+    .from(players)
     .where(eq(players.discordId, session.discordId))
-    .returning({ id: players.id });
-  if (!updated) return c.json({ error: "membre inconnu (inscris-toi d'abord)" }, 404);
+    .limit(1);
+  if (!member) return c.json({ error: "membre inconnu (inscris-toi d'abord)" }, 404);
+  // Le walk Premier a besoin du steamId64 ; sans lui le sync filtre le membre en
+  // silence → il resterait « connecté » sans jamais de rating. On refuse tôt.
+  if (!member.steamId64)
+    return c.json({ error: "compte Steam non lié — impossible de synchroniser Premier" }, 409);
+
+  const enc = encryptSecret(parsed.data.steamAuthCode, premierDeps.encKey);
+  // Reset de syncedAt → firstSync au prochain passage : le match d'onboarding
+  // (le share code fourni) est ré-résolu. Sinon une reconnexion avec un code frais
+  // n'apparaîtrait jamais (le seed ne serait pas traité).
+  await db
+    .update(players)
+    .set({ premierAuthCodeEnc: enc, premierShareCode: parsed.data.shareCode, premierSyncedAt: null })
+    .where(eq(players.id, member.id));
   return c.json({ ok: true });
 });
 

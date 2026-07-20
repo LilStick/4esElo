@@ -24,7 +24,8 @@ const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const MEMBER = "800001";
 const RANDO = "800002";
-const TEST_IDS = [MEMBER];
+const NO_STEAM = "800003"; // inscrit mais sans steamId64 lié
+const TEST_IDS = [MEMBER, NO_STEAM];
 
 const FAKE_CONFIG = {
   clientId: "cid",
@@ -84,12 +85,21 @@ before(async () => {
   premierDeps.encKey = "0".repeat(64);
   if (DB_UP) {
     await db.delete(players).where(inArray(players.discordId, TEST_IDS));
-    await db.insert(players).values({
-      discordId: MEMBER,
-      discordName: "Member",
-      faceitId: "fc-prem-b1802",
-      faceitNickname: "prem",
-    });
+    await db.insert(players).values([
+      {
+        discordId: MEMBER,
+        discordName: "Member",
+        faceitId: "fc-prem-b1802",
+        faceitNickname: "prem",
+        steamId64: "76561199000000009",
+      },
+      {
+        discordId: NO_STEAM,
+        discordName: "NoSteam",
+        faceitId: "fc-prem-b1802-nosteam",
+        faceitNickname: "nosteam",
+      },
+    ]);
   }
 });
 beforeEach(async () => {
@@ -136,7 +146,7 @@ test("premier : connect → status connecté → disconnect", { skip }, async ()
   const [row] = await db
     .select({ enc: players.premierAuthCodeEnc, sc: players.premierShareCode })
     .from(players)
-    .where(inArray(players.discordId, TEST_IDS));
+    .where(inArray(players.discordId, [MEMBER]));
   assert.ok(row!.enc && !row!.enc.includes(GOOD.steamAuthCode));
   assert.equal(row!.sc, GOOD.shareCode);
 
@@ -153,4 +163,25 @@ test("premier : body invalide → 400", { skip }, async () => {
 test("premier : membre inconnu (pas inscrit) → 404", { skip }, async () => {
   const c = await sessionFor(RANDO);
   assert.equal((await connect(c, GOOD)).status, 404);
+});
+
+test("premier : membre sans steamId64 → 409 (le sync le filtrerait en silence)", { skip }, async () => {
+  const c = await sessionFor(NO_STEAM);
+  assert.equal((await connect(c, GOOD)).status, 409);
+});
+
+test("premier : reconnexion remet syncedAt à null → seed re-résolu au prochain sync", { skip }, async () => {
+  const c = await sessionFor(MEMBER);
+  assert.equal((await connect(c, GOOD)).status, 200);
+  await db
+    .update(players)
+    .set({ premierSyncedAt: new Date("2026-07-10T00:00:00Z") })
+    .where(inArray(players.discordId, [MEMBER]));
+
+  assert.equal((await connect(c, GOOD)).status, 200);
+  const [row] = await db
+    .select({ at: players.premierSyncedAt })
+    .from(players)
+    .where(inArray(players.discordId, [MEMBER]));
+  assert.equal(row!.at, null);
 });
