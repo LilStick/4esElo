@@ -10,9 +10,16 @@ export function createResolver(bot: GcBot, fetchImpl?: typeof fetch): PremierMat
   return {
     async resolve(steamId64: string, shareCode: string): Promise<PremierMatchResult | null> {
       const info = await bot.requestMatch(shareCode);
-      if (!info.demoUrl) return null; // pas de démo (annulé, etc.)
+      if (!info.demoUrl) {
+        console.log(`[premier] ${shareCode}: pas de démo (annulé/indispo) → ignoré`);
+        return null;
+      }
       const rating = await ratingFromDemo(info.demoUrl, steamId64, fetchImpl);
-      if (!rating) return null;
+      if (!rating) {
+        console.log(`[premier] ${shareCode}: démo illisible (expirée / pas Premier) → ignoré`);
+        return null;
+      }
+      console.log(`[premier] ${shareCode}: rating=${rating.ratingAfter}`);
       return { ratingAfter: rating.ratingAfter, playedAt: info.playedAt ?? new Date() };
     },
   };

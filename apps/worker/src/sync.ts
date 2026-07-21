@@ -17,6 +17,11 @@ export interface SnapshotStore {
     elo: number;
     level: number | null;
   }): Promise<void>;
+  /**
+   * Rattrape le steamId64 (vu dans le profil Faceit) s'il manque en base.
+   * true = une valeur a été écrite. Requis pour le sync Premier (walk).
+   */
+  backfillSteamId64(playerId: string, steamId64: string): Promise<boolean>;
 }
 
 export interface PlayerToSync {
@@ -25,8 +30,8 @@ export interface PlayerToSync {
 }
 
 export type SyncResult =
-  | { status: "recorded"; elo: number; previous: number | null; level: number }
-  | { status: "unchanged"; elo: number }
+  | { status: "recorded"; elo: number; previous: number | null; level: number; steamIdFilled: boolean }
+  | { status: "unchanged"; elo: number; steamIdFilled: boolean }
   | { status: "no-cs2" }
   | { status: "not-found" };
 
@@ -49,10 +54,11 @@ export async function syncPlayer(
 
   if (!profile.cs2) return { status: "no-cs2" };
 
-  const { elo, skillLevel } = profile.cs2;
+  const { elo, skillLevel, steamId64 } = profile.cs2;
+  const steamIdFilled = steamId64 ? await store.backfillSteamId64(player.id, steamId64) : false;
   const previous = await store.getLatestElo(player.id, "faceit");
 
-  if (previous === elo) return { status: "unchanged", elo };
+  if (previous === elo) return { status: "unchanged", elo, steamIdFilled };
 
   await store.insertSnapshot({
     playerId: player.id,
@@ -61,5 +67,5 @@ export async function syncPlayer(
     level: skillLevel,
   });
 
-  return { status: "recorded", elo, previous, level: skillLevel };
+  return { status: "recorded", elo, previous, level: skillLevel, steamIdFilled };
 }

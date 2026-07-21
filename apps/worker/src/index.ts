@@ -123,6 +123,9 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
       syncRes = await syncPlayer(faceit, dbStore, p);
       const suffix = "elo" in syncRes ? ` (elo=${syncRes.elo})` : "";
       console.log(`[worker] ${p.faceitId}: ${syncRes.status}${suffix}`);
+      if ("steamIdFilled" in syncRes && syncRes.steamIdFilled) {
+        console.log(`[worker] ${p.faceitId}: steamId64 rattrapé depuis Faceit`);
+      }
     } catch (err) {
       console.error(`[worker] ${p.faceitId} failed:`, err instanceof Error ? err.message : err);
     }

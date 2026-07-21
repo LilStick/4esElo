@@ -91,6 +91,7 @@ export function createGcBot(creds: GcBotCreds): GcBot {
     return run;
   }
 
+  console.log(`[premier-bot] connexion Steam (${creds.username})…`);
   client.logOn({
     accountName: creds.username,
     password: creds.password,

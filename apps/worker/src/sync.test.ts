@@ -13,13 +13,22 @@ function makeProfile(elo: number | null): FaceitPlayer {
   };
 }
 
-function makeStore(latest: number | null): SnapshotStore & { inserts: unknown[] } {
+function makeStore(
+  latest: number | null,
+  opts: { steamIdMissing?: boolean } = {},
+): SnapshotStore & { inserts: unknown[]; backfilled: string[] } {
   const inserts: unknown[] = [];
+  const backfilled: string[] = [];
   return {
     inserts,
+    backfilled,
     getLatestElo: async () => latest,
     insertSnapshot: async (input) => {
       inserts.push(input);
+    },
+    backfillSteamId64: async (_playerId, steamId64) => {
+      backfilled.push(steamId64);
+      return opts.steamIdMissing ?? false; // true = colonne vide → écriture
     },
   };
 }
@@ -34,7 +43,13 @@ test("records a snapshot when ELO changed", async () => {
   const store = makeStore(1800);
   const res = await syncPlayer(reader(makeProfile(1875)), store, player);
 
-  assert.deepEqual(res, { status: "recorded", elo: 1875, previous: 1800, level: 8 });
+  assert.deepEqual(res, {
+    status: "recorded",
+    elo: 1875,
+    previous: 1800,
+    level: 8,
+    steamIdFilled: false,
+  });
   assert.equal(store.inserts.length, 1);
   assert.deepEqual(store.inserts[0], {
     playerId: "p-1",
@@ -56,8 +71,22 @@ test("does NOT insert when ELO is unchanged", async () => {
   const store = makeStore(1875);
   const res = await syncPlayer(reader(makeProfile(1875)), store, player);
 
-  assert.deepEqual(res, { status: "unchanged", elo: 1875 });
+  assert.deepEqual(res, { status: "unchanged", elo: 1875, steamIdFilled: false });
   assert.equal(store.inserts.length, 0);
+});
+
+test("rattrape le steamId64 vu chez Faceit et le signale", async () => {
+  const store = makeStore(1875, { steamIdMissing: true });
+  const res = await syncPlayer(reader(makeProfile(1875)), store, player);
+
+  assert.deepEqual(store.backfilled, ["765..."]);
+  assert.equal(res.status === "unchanged" && res.steamIdFilled, true);
+});
+
+test("ne touche pas au steamId64 quand le profil Faceit n'en a pas", async () => {
+  const store = makeStore(null);
+  await syncPlayer(reader(makeProfile(null)), store, player); // no-cs2
+  assert.equal(store.backfilled.length, 0);
 });
 
 test("returns no-cs2 and inserts nothing when the player never played CS2", async () => {

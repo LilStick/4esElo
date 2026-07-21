@@ -34,6 +34,16 @@ export const dbStore: SnapshotStore = {
   async insertSnapshot(input) {
     await db.insert(eloSnapshots).values(input);
   },
+
+  async backfillSteamId64(playerId, steamId64) {
+    // On n'écrit que si la colonne est vide (le steamId64 est stable une fois posé).
+    const filled = await db
+      .update(players)
+      .set({ steamId64 })
+      .where(and(eq(players.id, playerId), isNull(players.steamId64)))
+      .returning({ id: players.id });
+    return filled.length > 0;
+  },
 };
 
 export const dbBackfillStore: BackfillStore = {
