@@ -2,7 +2,7 @@ import {
   FACEIT_API_KEY,
   STEAM_API_KEY,
   WORKER_INTERVAL_MS,
-  PREMIER_ENABLED,
+  PREMIER_BOT_ENABLED,
   STEAM_BOT_USERNAME,
   STEAM_BOT_PASSWORD,
   STEAM_BOT_SHARED_SECRET,
@@ -191,11 +191,19 @@ async function main() {
     process.exit(0);
   }
 
-  // V2 Premier (B18) : bot GC longue durée, dormant si flag off ou config incomplète.
+  // V2 Premier (B18) : bot GC longue durée. Il ne démarre QUE si PREMIER_BOT_ENABLED
+  // est "true" — une seule session Steam par compte, donc un worker local ne doit
+  // jamais éjecter l'instance hébergée par accident (off par défaut en local).
   let premierBot: GcBot | null = null;
   let premierReady = false;
+  const botConfigured =
+    STEAM_BOT_USERNAME &&
+    STEAM_BOT_PASSWORD &&
+    STEAM_BOT_SHARED_SECRET &&
+    STEAM_AUTH_ENC_KEY &&
+    STEAM_API_KEY;
   if (
-    PREMIER_ENABLED &&
+    PREMIER_BOT_ENABLED &&
     STEAM_BOT_USERNAME &&
     STEAM_BOT_PASSWORD &&
     STEAM_BOT_SHARED_SECRET &&
@@ -214,9 +222,15 @@ async function main() {
         console.log("[premier] bot GC prêt");
       })
       .catch((e) => console.error("[premier] bot GC indisponible:", e instanceof Error ? e.message : e));
-  } else if (PREMIER_ENABLED) {
+  } else if (PREMIER_BOT_ENABLED) {
     console.warn(
-      "[premier] PREMIER_ENABLED mais config incomplète (STEAM_BOT_* / STEAM_AUTH_ENC_KEY / STEAM_API_KEY) - sync sauté",
+      "[premier] PREMIER_BOT_ENABLED mais config incomplète (STEAM_BOT_* / STEAM_AUTH_ENC_KEY / STEAM_API_KEY) - bot GC non lancé",
+    );
+  } else if (botConfigured) {
+    // Creds présents mais flag off : garde-fou anti-conflit de session (une seule
+    // instance doit tenir le bot). On le dit fort pour que ce ne soit pas silencieux.
+    console.warn(
+      "[premier] bot GC NON lancé (PREMIER_BOT_ENABLED=false) alors que des creds Steam sont présents - protège l'instance hébergée d'un conflit de session",
     );
   }
 

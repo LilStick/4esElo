@@ -38,6 +38,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "dev:web": "pnpm --filter @4eselo/web dev",
+    "dev:front": "node -e \"console.log('[dev:front] front seul - worker/back NON lances en local. Renseigne VITE_API_URL vers l API hebergee (voir DEV-SETUP.md).')\" && pnpm dev:web",
     "dev:api": "pnpm --filter @4eselo/api dev",
     "dev:worker": "pnpm --filter @4eselo/worker dev",
     "sync:once": "pnpm --filter @4eselo/worker sync:once",
