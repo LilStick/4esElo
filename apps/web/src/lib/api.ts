@@ -29,6 +29,7 @@ import type {
   PostIdeaResponse,
   PremierConnectionStatus,
   PremierConnectRequest,
+  PremierMatchesResponse,
   PresenceResponse,
   RecentMatchesResponse,
   RefreshEloResponse,
@@ -188,6 +189,11 @@ export function getPlayerBenchmark(id: string, range: StatsRange = "all") {
 
 export function getPlayerMatches(id: string, limit = 10) {
   return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
+}
+
+/** Matchs Premier + stats par match (B18.15). Source démo, table dédiée. */
+export function getPlayerPremierMatches(id: string, limit = 10) {
+  return get<PremierMatchesResponse>(`/players/${id}/premier/matches?limit=${limit}`);
 }
 
 /** Flux de matchs récents du pôle, tous joueurs confondus (B15.12). */
