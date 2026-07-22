@@ -51,16 +51,42 @@ export function computeRatingAfter(
   return { ratingAfter, result };
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Download de la démo, avec retry sur erreur réseau. Les gros fichiers Valve
+ * coupent souvent en cours (`fetch failed` = ECONNRESET/socket) → sans retry on
+ * perdait des matchs. Un vrai statut d'erreur HTTP (404/502 = démo expirée) n'est
+ * PAS retenté. null = démo indisponible ; throw = réseau KO après tous les essais.
+ */
+export async function downloadDemo(
+  demoUrl: string,
+  fetchImpl: typeof fetch = fetch,
+  opts: { retries?: number; backoffMs?: number } = {},
+): Promise<Buffer | null> {
+  const retries = opts.retries ?? 3;
+  const backoffMs = opts.backoffMs ?? 500;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetchImpl(demoUrl);
+      if (!res.ok) return null; // 404/502 = démo expirée → inutile de retenter
+      const buf = Buffer.from(await res.arrayBuffer());
+      return buf.length < 1000 ? null : buf; // 200 vide = erreur déguisée
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      await sleep(backoffMs * 2 ** attempt);
+    }
+  }
+}
+
 /** Télécharge + parse une démo → CS Rating du membre après le match. null = irrésolvable (démo expirée, pas Premier). */
 export async function ratingFromDemo(
   demoUrl: string,
   steamId64: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ ratingAfter: number; result: "win" | "loss" | "tie" } | null> {
-  const res = await fetchImpl(demoUrl);
-  if (!res.ok) return null; // 502 = démo expirée
-  const compressed = Buffer.from(await res.arrayBuffer());
-  if (compressed.length < 1000) return null; // erreur déguisée en 200
+  const compressed = await downloadDemo(demoUrl, fetchImpl);
+  if (!compressed) return null;
   const dem = Bzip2.decode(compressed);
   const tmp = join(tmpdir(), `premier-${randomUUID()}.dem`);
   writeFileSync(tmp, dem);

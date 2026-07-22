@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeRatingAfter, type DemoTickRow } from "./demoRating";
+import { computeRatingAfter, downloadDemo, type DemoTickRow } from "./demoRating";
 
 const A = "76561199025088808";
 const row = (o: Partial<DemoTickRow>): DemoTickRow => ({
@@ -77,4 +77,43 @@ test("prend le dernier tick du joueur", () => {
     row({ steamid: "opp", tick: 999, rank: 15000, team_num: 3, team_rounds_total: 8 }),
   ];
   assert.equal(computeRatingAfter(rows, A)!.ratingAfter, 23052);
+});
+
+const okResponse = () => new Response(new Uint8Array(2000));
+
+test("downloadDemo : retry sur erreur réseau puis succès", async () => {
+  let calls = 0;
+  const fetchImpl = (async () => {
+    calls++;
+    if (calls < 3) throw new TypeError("fetch failed");
+    return okResponse();
+  }) as unknown as typeof fetch;
+  const buf = await downloadDemo("http://x", fetchImpl, { backoffMs: 1 });
+  assert.equal(calls, 3);
+  assert.equal(buf?.length, 2000);
+});
+
+test("downloadDemo : réseau KO persistant → throw après les retries", async () => {
+  const fetchImpl = (async () => {
+    throw new TypeError("fetch failed");
+  }) as unknown as typeof fetch;
+  await assert.rejects(
+    () => downloadDemo("http://x", fetchImpl, { retries: 2, backoffMs: 1 }),
+    /fetch failed/,
+  );
+});
+
+test("downloadDemo : 404 (démo expirée) → null sans retry", async () => {
+  let calls = 0;
+  const fetchImpl = (async () => {
+    calls++;
+    return new Response(null, { status: 404 });
+  }) as unknown as typeof fetch;
+  assert.equal(await downloadDemo("http://x", fetchImpl, { backoffMs: 1 }), null);
+  assert.equal(calls, 1);
+});
+
+test("downloadDemo : 200 vide (<1000o) → null", async () => {
+  const fetchImpl = (async () => new Response(new Uint8Array(10))) as unknown as typeof fetch;
+  assert.equal(await downloadDemo("http://x", fetchImpl, { backoffMs: 1 }), null);
 });
