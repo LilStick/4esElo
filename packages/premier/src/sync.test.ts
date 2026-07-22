@@ -11,12 +11,13 @@ const player = (firstSync: boolean) => ({
   firstSync,
 });
 
-function fakes(opts: { walked: string[]; ratings?: Record<string, number | null> }) {
+function fakes(opts: { walked: string[]; ratings?: Record<string, number | null>; throwOn?: string }) {
   const recorded: number[] = [];
   const state = { cursor: null as string | null, advanced: false };
   const walker: MatchWalker = { nextShareCode: async () => null, walkFrom: async () => opts.walked };
   const resolver: PremierMatchResolver = {
     resolve: async (_sid, code) => {
+      if (opts.throwOn === code) throw new Error("GC non connecté");
       const r = opts.ratings?.[code];
       return r === null || r === undefined ? null : { ratingAfter: r, playedAt: new Date("2026-07-01") };
     },
@@ -72,6 +73,25 @@ test("match irrésolvable (démo expirée) → pas de snapshot, curseur avance q
 test("firstSync=false, aucun nouveau match → rien, pas d'avancée de curseur", async () => {
   const f = fakes({ walked: [] });
   const res = await syncPlayerPremier(player(false), f);
+  assert.equal(res.snapshots, 0);
+  assert.equal(f.state.advanced, false);
+});
+
+test("resolve qui plante (GC coupé) → arrêt propre, curseur au dernier traité, rien de sauté", async () => {
+  const f = fakes({
+    walked: ["CSGO-1", "CSGO-2", "CSGO-3"],
+    ratings: { "CSGO-1": 14000 },
+    throwOn: "CSGO-2",
+  });
+  const res = await syncPlayerPremier(player(false), f);
+  assert.equal(res.snapshots, 1);
+  assert.deepEqual(f.recorded, [14000]);
+  assert.equal(f.state.cursor, "CSGO-1"); // avancé au dernier OK, pas au-delà du plantage
+});
+
+test("firstSync : seed qui plante d'emblée → aucun curseur posé (seed rejoué au prochain cycle)", async () => {
+  const f = fakes({ walked: [], throwOn: "CSGO-seed" });
+  const res = await syncPlayerPremier(player(true), f);
   assert.equal(res.snapshots, 0);
   assert.equal(f.state.advanced, false);
 });

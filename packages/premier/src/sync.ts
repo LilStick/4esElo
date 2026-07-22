@@ -52,16 +52,29 @@ export async function syncPlayerPremier(
   // seed (le match d'onboarding), sinon il ne serait jamais compté.
   const codes = player.firstSync ? [player.shareCode, ...walked] : walked;
   let snapshots = 0;
+  // Dernier code RÉELLEMENT traité (résolu ou irrésolvable, mais pas planté) : c'est
+  // lui le nouveau curseur. On l'avance au fil de l'eau → si le sync s'arrête en cours
+  // (ex. session GC coupée sur un match lourd), le progrès est sauvegardé et on ne
+  // rejoue pas les matchs déjà traités au cycle suivant.
+  let lastProcessed: string | null = null;
   for (const code of codes) {
-    const result = await deps.resolver.resolve(player.steamId64, code);
-    if (!result) continue; // irrésolvable (démo expirée) → on ne rebloque pas
+    let result;
+    try {
+      result = await deps.resolver.resolve(player.steamId64, code);
+    } catch {
+      // Erreur transitoire (GC coupé, réseau) : on arrête proprement, on garde le
+      // progrès acquis, et on reprendra après `lastProcessed` au prochain cycle.
+      break;
+    }
+    lastProcessed = code;
+    if (!result) continue; // irrésolvable (démo expirée) → sauté, mais curseur avance
     await deps.store.recordRating(player.id, result.ratingAfter, result.playedAt);
     snapshots++;
   }
-  // Curseur = dernier match walké (le seed reste le curseur si rien de plus récent).
-  const newCursor = walked.length > 0 ? walked[walked.length - 1]! : player.shareCode;
-  if (player.firstSync || walked.length > 0) {
-    await deps.store.advanceCursor(player.id, newCursor, deps.now?.() ?? new Date());
+  // On n'avance QUE jusqu'au dernier code traité (jamais au-delà) → aucun match sauté
+  // par un arrêt anticipé. Si rien n'a été traité, on ne bouge pas (on réessaiera).
+  if (lastProcessed) {
+    await deps.store.advanceCursor(player.id, lastProcessed, deps.now?.() ?? new Date());
   }
   return { newMatches: codes.length, snapshots };
 }
