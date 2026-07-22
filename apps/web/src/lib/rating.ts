@@ -1,4 +1,4 @@
-import { hltvRating, type FaceitMatchStats } from "@4eselo/types";
+import { hltvRating, type FaceitMatchStats, type PremierMatchStats } from "@4eselo/types";
 
 /**
  * Rating façon HLTV 1.0 d'un match - délègue à la formule partagée `hltvRating`
@@ -10,6 +10,23 @@ export function matchRating(s: FaceitMatchStats): number | null {
     kills: s.kills,
     deaths: s.deaths,
     rounds: s.kr > 0 ? s.kills / s.kr : 0,
+    doubleKills: s.doubleKills,
+    tripleKills: s.tripleKills,
+    quadroKills: s.quadroKills,
+    pentaKills: s.pentaKills,
+  });
+}
+
+/**
+ * Rating façon HLTV 1.0 d'un match Premier - même formule partagée, mais `rounds`
+ * est fourni directement par la démo (pas besoin de le dériver de `kr`). Null si
+ * non calculable.
+ */
+export function premierMatchRating(s: PremierMatchStats): number | null {
+  return hltvRating({
+    kills: s.kills,
+    deaths: s.deaths,
+    rounds: s.rounds,
     doubleKills: s.doubleKills,
     tripleKills: s.tripleKills,
     quadroKills: s.quadroKills,

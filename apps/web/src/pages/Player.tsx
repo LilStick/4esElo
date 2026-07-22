@@ -30,6 +30,7 @@ import { RadarPerf } from "../components/RadarPerf";
 import { PlayerBenchmark } from "../components/PlayerBenchmark";
 import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
+import { PremierMatchesList } from "../components/PremierMatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
 import { AchievementsSummary } from "../components/AchievementsSummary";
 import { ProfileRoast } from "../components/ProfileRoast";
@@ -268,6 +269,14 @@ export function Player() {
                   <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
                 )}
               </div>
+              {premier && (
+                <div className="order-4 min-w-0">
+                  <div className="mb-3">
+                    <SectionTitle icon={TbSwords}>Matchs Premier</SectionTitle>
+                  </div>
+                  <PremierMatchesList id={id} />
+                </div>
+              )}
               {!premier && (
                 <>
                   <div className="order-4 min-w-0">
