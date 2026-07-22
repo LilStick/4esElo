@@ -1,10 +1,10 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import type { PremierMatchResolver, PremierMatchResult } from "@4eselo/premier";
+import type { PremierMatchResolver, PremierMatchResult, DemoMatchResult } from "@4eselo/premier";
 import type { GcBot } from "./gcBot";
 
 /**
- * Résout un share code → CS Rating du membre après ce match (B18.3).
+ * Résout un share code → rating + stats du membre après ce match (B18.3/B18.14).
  * GC (bot) → URL démo, puis download+parse délégué à un PROCESS ENFANT : le parse
  * est synchrone et bloquerait l'event loop (→ le GC coupe la session). En l'isolant,
  * le worker reste réactif et le bot garde sa session GC pendant qu'on parse.
@@ -13,13 +13,8 @@ import type { GcBot } from "./gcBot";
 const CHILD = fileURLToPath(new URL("./ratingChild.ts", import.meta.url));
 const PARSE_TIMEOUT_MS = 180_000;
 
-interface DemoRating {
-  ratingAfter: number;
-  result: "win" | "loss" | "tie";
-}
-
 /** Parse la démo dans un enfant `node --import tsx` → l'event loop du worker reste libre. */
-function ratingViaChild(demoUrl: string, steamId64: string): Promise<DemoRating | null> {
+function ratingViaChild(demoUrl: string, steamId64: string): Promise<DemoMatchResult | null> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["--import", "tsx", CHILD, demoUrl, steamId64], {
       stdio: ["ignore", "pipe", "pipe"],
@@ -57,9 +52,9 @@ export function createResolver(bot: GcBot): PremierMatchResolver {
         console.log(`[premier] ${shareCode}: pas de démo (annulé/indispo) → ignoré`);
         return null;
       }
-      let rating: DemoRating | null;
+      let match: DemoMatchResult | null;
       try {
-        rating = await ratingViaChild(info.demoUrl, steamId64);
+        match = await ratingViaChild(info.demoUrl, steamId64);
       } catch (e) {
         // Échec de parse (démo corrompue, timeout) : on saute CE match, pas tout le sync.
         console.log(
@@ -67,12 +62,22 @@ export function createResolver(bot: GcBot): PremierMatchResolver {
         );
         return null;
       }
-      if (!rating) {
+      if (!match) {
         console.log(`[premier] ${shareCode}: démo illisible (expirée / pas Premier) → ignoré`);
         return null;
       }
-      console.log(`[premier] ${shareCode}: rating=${rating.ratingAfter}`);
-      return { ratingAfter: rating.ratingAfter, playedAt: info.playedAt ?? new Date() };
+      console.log(
+        `[premier] ${shareCode}: rating=${match.ratingAfter} (${match.map}, ${match.stats.kills}/${match.stats.deaths}/${match.stats.assists})`,
+      );
+      return {
+        ratingAfter: match.ratingAfter,
+        playedAt: info.playedAt ?? new Date(),
+        map: match.map,
+        result: match.result,
+        myScore: match.myScore,
+        oppScore: match.oppScore,
+        stats: match.stats,
+      };
     },
   };
 }

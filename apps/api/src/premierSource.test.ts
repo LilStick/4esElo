@@ -2,8 +2,14 @@ import "./env";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, inArray } from "drizzle-orm";
-import { db, players, eloSnapshots } from "@4eselo/db";
-import type { ConfigResponse, EloCurveResponse, LeaderboardResponse } from "@4eselo/types";
+import { db, players, eloSnapshots, premierMatchStats } from "@4eselo/db";
+import type {
+  ConfigResponse,
+  EloCurveResponse,
+  LeaderboardResponse,
+  PremierMatchesResponse,
+  PremierMatchStats,
+} from "@4eselo/types";
 import { app } from "./app";
 
 /** Intégration : les endpoints séparent bien source=premier de source=faceit (B18.5). */
@@ -36,6 +42,49 @@ before(async () => {
     { playerId, source: "faceit", elo: 1100, capturedAt: new Date("2026-07-02T00:00:00Z") },
     { playerId, source: "premier", elo: 14000, capturedAt: new Date("2026-07-03T00:00:00Z") },
     { playerId, source: "premier", elo: 14200, capturedAt: new Date("2026-07-04T00:00:00Z") },
+  ]);
+  const s = (k: number): PremierMatchStats => ({
+    kills: k,
+    deaths: 10,
+    assists: 3,
+    kd: k / 10,
+    kr: 0.8,
+    adr: 85,
+    damage: 1700,
+    hsPercent: 50,
+    rounds: 20,
+    mvps: 2,
+    doubleKills: 1,
+    tripleKills: 0,
+    quadroKills: 0,
+    pentaKills: 0,
+    firstKills: 2,
+    firstDeaths: 1,
+    utilityDamage: 60,
+  });
+  await db.insert(premierMatchStats).values([
+    {
+      shareCode: "CSGO-a",
+      playerId,
+      map: "de_ancient",
+      playedAt: new Date("2026-07-03T00:00:00Z"),
+      result: "win",
+      ratingAfter: 14000,
+      myScore: 13,
+      oppScore: 7,
+      stats: s(18),
+    },
+    {
+      shareCode: "CSGO-b",
+      playerId,
+      map: "de_nuke",
+      playedAt: new Date("2026-07-04T00:00:00Z"),
+      result: "loss",
+      ratingAfter: 14200,
+      myScore: 9,
+      oppScore: 13,
+      stats: s(22),
+    },
   ]);
 });
 after(async () => {
@@ -71,6 +120,29 @@ test("classement : source=premier classe sur le rating premier", { skip }, async
 
 test("source invalide → 400", { skip }, async () => {
   assert.equal((await app.request(`/players/${playerId}/elo?source=nope`)).status, 400);
+});
+
+test(
+  "GET /players/:id/premier/matches renvoie les matchs Premier + stats, triés récents d'abord",
+  { skip },
+  async () => {
+    const res = await app.request(`/players/${playerId}/premier/matches`);
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as PremierMatchesResponse;
+    assert.equal(body.total, 2);
+    assert.deepEqual(
+      body.items.map((m) => m.shareCode),
+      ["CSGO-b", "CSGO-a"], // playedAt desc
+    );
+    assert.equal(body.items[0]!.result, "loss");
+    assert.equal(body.items[0]!.stats.kills, 22);
+    assert.equal(body.items[0]!.map, "de_nuke");
+  },
+);
+
+test("premier/matches : joueur inconnu → 404", { skip }, async () => {
+  const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/premier/matches`);
+  assert.equal(res.status, 404);
 });
 
 test("GET /config expose premierEnabled (public, sans auth)", async () => {

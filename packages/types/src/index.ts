@@ -180,6 +180,32 @@ export interface FaceitMatchStats {
   sniperKills: number;
 }
 
+/**
+ * Stats d'un match Premier, calculées depuis la démo (B18.14). Sous-ensemble
+ * honnête de ce qu'on sort proprement des events demoparser2 ; les champs plus
+ * durs (clutch multi, KAST) viendront quand le calcul sera fiable.
+ */
+export interface PremierMatchStats {
+  kills: number;
+  deaths: number;
+  assists: number;
+  kd: number;
+  kr: number;
+  adr: number;
+  damage: number;
+  hsPercent: number;
+  rounds: number;
+  mvps: number;
+  doubleKills: number;
+  tripleKills: number;
+  quadroKills: number;
+  pentaKills: number;
+  /** Entry : premier kill / première mort du round. */
+  firstKills: number;
+  firstDeaths: number;
+  utilityDamage: number;
+}
+
 /** Composants nécessaires au calcul du rating HLTV 1.0 (par match ou agrégés). */
 export interface HltvRatingInput {
   kills: number;
@@ -285,6 +311,23 @@ export interface MatchSummary {
 
 export interface MatchesResponse {
   items: MatchSummary[];
+  total: number;
+}
+
+/** Un match Premier avec ses stats (B18.14). */
+export interface PremierMatchSummary {
+  shareCode: string;
+  map: string;
+  playedAt: string; // ISO
+  result: "win" | "loss" | "tie";
+  ratingAfter: number | null;
+  myScore: number | null;
+  oppScore: number | null;
+  stats: PremierMatchStats;
+}
+
+export interface PremierMatchesResponse {
+  items: PremierMatchSummary[];
   total: number;
 }
 

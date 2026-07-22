@@ -2,7 +2,7 @@ import "../env"; // charge .env (DATABASE_URL) avant @4eselo/db
 import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { sql, and, eq, inArray } from "drizzle-orm";
-import { db, players, eloSnapshots } from "@4eselo/db";
+import { db, players, eloSnapshots, premierMatchStats } from "@4eselo/db";
 import { encryptSecret, type MatchWalker, type PremierMatchResolver } from "@4eselo/premier";
 import { dbPremierStore, getConnectedMembers } from "./store";
 import { runPremierSync } from "./runSync";
@@ -21,6 +21,25 @@ const DB_UP = await dbReachable();
 const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 const KEY = "0".repeat(64);
+const ZERO_STATS = {
+  kills: 0,
+  deaths: 0,
+  assists: 0,
+  kd: 0,
+  kr: 0,
+  adr: 0,
+  damage: 0,
+  hsPercent: 0,
+  rounds: 0,
+  mvps: 0,
+  doubleKills: 0,
+  tripleKills: 0,
+  quadroKills: 0,
+  pentaKills: 0,
+  firstKills: 0,
+  firstDeaths: 0,
+  utilityDamage: 0,
+};
 const STEAM_ID = "76561199000000001";
 const FACEIT_ID = "fc-premier-b1804";
 let playerId = "";
@@ -88,7 +107,17 @@ test("runPremierSync : membre connecté → walk → snapshots en base + curseur
   const resolver: PremierMatchResolver = {
     resolve: async (_sid, code) => {
       const r = ratings[code];
-      return r === undefined ? null : { ratingAfter: r, playedAt: new Date("2026-07-04T00:00:00Z") };
+      return r === undefined
+        ? null
+        : {
+            ratingAfter: r,
+            playedAt: new Date("2026-07-04T00:00:00Z"),
+            map: "de_ancient",
+            result: "win",
+            myScore: 13,
+            oppScore: 7,
+            stats: { ...ZERO_STATS, kills: 20, deaths: 15, adr: 80 },
+          };
     },
   };
 
@@ -103,6 +132,20 @@ test("runPremierSync : membre connecté → walk → snapshots en base + curseur
   );
   const [p] = await db.select({ sc: players.premierShareCode }).from(players).where(eq(players.id, playerId));
   assert.equal(p!.sc, "CSGO-2"); // curseur avancé au dernier match
+
+  // B18.14 : une ligne de stats par match résolu (seed + 2 walkés).
+  const countStats = async () =>
+    (
+      await db
+        .select({ sc: premierMatchStats.shareCode })
+        .from(premierMatchStats)
+        .where(eq(premierMatchStats.playerId, playerId))
+    ).length;
+  assert.equal(await countStats(), 3);
+
+  // Idempotent : un 2e passage ne crée pas de doublon (upsert sur (shareCode, player)).
+  await runPremierSync({ walker, resolver, encKey: KEY });
+  assert.equal(await countStats(), 3);
 });
 
 test("getConnectedMembers : ne renvoie que les membres avec auth code + share code", { skip }, async () => {

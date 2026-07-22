@@ -1,12 +1,21 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
-import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots, achievements } from "@4eselo/db";
+import {
+  db,
+  players,
+  eloSnapshots,
+  faceitMatchStats,
+  premierMatchStats,
+  playtimeSnapshots,
+  achievements,
+} from "@4eselo/db";
 import type {
   EloSource,
   EloCurveResponse,
   MatchSummary,
   MatchesResponse,
+  PremierMatchesResponse,
   PlayerDetail,
   PlayerStatsResponse,
   PlayerBenchmarkResponse,
@@ -167,6 +176,57 @@ playersRoutes.get("/players/:id/matches", async (c) => {
   }));
 
   return c.json<MatchesResponse>({ items, total: counted?.total ?? 0 });
+});
+
+/** Matchs Premier + stats par match (B18.14). Table dédiée, source démo. */
+playersRoutes.get("/players/:id/premier/matches", async (c) => {
+  const id = readPlayerId(c);
+  if (!id) return badRequest(c, "invalid player id (uuid)");
+  const parsed = paginationSchema.safeParse({
+    limit: c.req.query("limit"),
+    offset: c.req.query("offset"),
+  });
+  if (!parsed.success) return c.json({ error: "invalid pagination" }, 400);
+  const { limit, offset } = parsed.data;
+
+  const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
+  if (!player) return c.json({ error: "player not found" }, 404);
+
+  const [counted] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(premierMatchStats)
+    .where(eq(premierMatchStats.playerId, id));
+
+  const rows = await db
+    .select({
+      shareCode: premierMatchStats.shareCode,
+      map: premierMatchStats.map,
+      playedAt: premierMatchStats.playedAt,
+      result: premierMatchStats.result,
+      ratingAfter: premierMatchStats.ratingAfter,
+      myScore: premierMatchStats.myScore,
+      oppScore: premierMatchStats.oppScore,
+      stats: premierMatchStats.stats,
+    })
+    .from(premierMatchStats)
+    .where(eq(premierMatchStats.playerId, id))
+    .orderBy(desc(premierMatchStats.playedAt))
+    .limit(limit)
+    .offset(offset);
+
+  return c.json<PremierMatchesResponse>({
+    items: rows.map((r) => ({
+      shareCode: r.shareCode,
+      map: r.map,
+      playedAt: r.playedAt.toISOString(),
+      result: r.result,
+      ratingAfter: r.ratingAfter,
+      myScore: r.myScore,
+      oppScore: r.oppScore,
+      stats: r.stats,
+    })),
+    total: counted?.total ?? 0,
+  });
 });
 
 const rangeSchema = z.enum(RANGES).default("all");

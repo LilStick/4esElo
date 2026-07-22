@@ -1,3 +1,4 @@
+import type { PremierMatchStats } from "@4eselo/types";
 import type { MatchWalker } from "./walk";
 
 /**
@@ -11,6 +12,12 @@ export interface PremierMatchResult {
   /** CS Rating du membre après ce match (échelle 0-35000). */
   ratingAfter: number;
   playedAt: Date;
+  map: string;
+  result: "win" | "loss" | "tie";
+  myScore: number;
+  oppScore: number;
+  /** Stats du membre pour ce match (B18.14). */
+  stats: PremierMatchStats;
 }
 
 export interface PremierMatchResolver {
@@ -21,6 +28,8 @@ export interface PremierMatchResolver {
 export interface PremierSyncStore {
   /** Point de courbe Premier ; l'impl n'insère que si le rating a changé (snapshot-on-change). */
   recordRating(playerId: string, rating: number, at: Date): Promise<void>;
+  /** Ligne de stats du match (B18.14) ; upsert idempotent sur (shareCode, player). */
+  recordMatchStats(playerId: string, shareCode: string, match: PremierMatchResult): Promise<void>;
   /** Avance le curseur (dernier share code traité) + horodate la sync. */
   advanceCursor(playerId: string, shareCode: string, syncedAt: Date): Promise<void>;
 }
@@ -69,6 +78,7 @@ export async function syncPlayerPremier(
     lastProcessed = code;
     if (!result) continue; // irrésolvable (démo expirée) → sauté, mais curseur avance
     await deps.store.recordRating(player.id, result.ratingAfter, result.playedAt);
+    await deps.store.recordMatchStats(player.id, code, result);
     snapshots++;
   }
   // On n'avance QUE jusqu'au dernier code traité (jamais au-delà) → aucun match sauté

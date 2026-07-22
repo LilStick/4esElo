@@ -7,7 +7,8 @@ export {
   type DecodedShareCode,
 } from "./walk";
 export { encryptSecret, decryptSecret } from "./crypto";
-export { ratingFromDemo, computeRatingAfter, type DemoTickRow } from "./demoRating";
+export { parseDemoMatch, computeRatingAfter, type DemoTickRow, type DemoMatchResult } from "./demoRating";
+export { computeMatchStats } from "./demoStats";
 export {
   syncPlayerPremier,
   type PremierMatchResult,

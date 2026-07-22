@@ -11,27 +11,61 @@ const player = (firstSync: boolean) => ({
   firstSync,
 });
 
+const ZERO_STATS = {
+  kills: 0,
+  deaths: 0,
+  assists: 0,
+  kd: 0,
+  kr: 0,
+  adr: 0,
+  damage: 0,
+  hsPercent: 0,
+  rounds: 0,
+  mvps: 0,
+  doubleKills: 0,
+  tripleKills: 0,
+  quadroKills: 0,
+  pentaKills: 0,
+  firstKills: 0,
+  firstDeaths: 0,
+  utilityDamage: 0,
+};
+
 function fakes(opts: { walked: string[]; ratings?: Record<string, number | null>; throwOn?: string }) {
   const recorded: number[] = [];
+  const statsRecorded: string[] = [];
   const state = { cursor: null as string | null, advanced: false };
   const walker: MatchWalker = { nextShareCode: async () => null, walkFrom: async () => opts.walked };
   const resolver: PremierMatchResolver = {
     resolve: async (_sid, code) => {
       if (opts.throwOn === code) throw new Error("GC non connecté");
       const r = opts.ratings?.[code];
-      return r === null || r === undefined ? null : { ratingAfter: r, playedAt: new Date("2026-07-01") };
+      return r === null || r === undefined
+        ? null
+        : {
+            ratingAfter: r,
+            playedAt: new Date("2026-07-01"),
+            map: "de_ancient",
+            result: "win",
+            myScore: 13,
+            oppScore: 5,
+            stats: ZERO_STATS,
+          };
     },
   };
   const store: PremierSyncStore = {
     recordRating: async (_pid, rating) => {
       recorded.push(rating);
     },
+    recordMatchStats: async (_pid, code) => {
+      statsRecorded.push(code);
+    },
     advanceCursor: async (_pid, code) => {
       state.cursor = code;
       state.advanced = true;
     },
   };
-  return { walker, resolver, store, recorded, state };
+  return { walker, resolver, store, recorded, statsRecorded, state };
 }
 
 test("firstSync=false : ne résout que les matchs postérieurs (pas le seed)", async () => {

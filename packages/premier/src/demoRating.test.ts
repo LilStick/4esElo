@@ -28,7 +28,12 @@ test("win → rank_if_win (valeurs réelles d'Arthur : 22672 → 23052)", () => 
     }),
     row({ steamid: "opp", tick: 153000, rank: 15000, team_num: 3, team_rounds_total: 8 }),
   ];
-  assert.deepEqual(computeRatingAfter(rows, A), { ratingAfter: 23052, result: "win" });
+  assert.deepEqual(computeRatingAfter(rows, A), {
+    ratingAfter: 23052,
+    result: "win",
+    myScore: 13,
+    oppScore: 8,
+  });
 });
 
 test("loss → rank_if_loss", () => {

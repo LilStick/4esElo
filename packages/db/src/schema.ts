@@ -10,7 +10,7 @@ import {
   primaryKey,
   jsonb,
 } from "drizzle-orm/pg-core";
-import type { FaceitMatchStats, MatchTeam } from "@4eselo/types";
+import type { FaceitMatchStats, MatchTeam, PremierMatchStats } from "@4eselo/types";
 
 export const eloSource = pgEnum("elo_source", ["faceit", "premier"]);
 
@@ -82,6 +82,36 @@ export const faceitMatchStats = pgTable(
     index("faceit_match_stats_player_map_idx").on(t.playerId, t.map),
     // tri global par date (flux récents B15.11)
     index("faceit_match_stats_played_idx").on(t.playedAt),
+  ],
+);
+
+/**
+ * Stats par match Premier (B18.14) — parsées depuis la démo. Table dédiée : source,
+ * identité de match (share code) et champs dispos diffèrent de Faceit. Clé = share
+ * code du match + membre. Colonnes clés indexées, détail variable en JSONB.
+ */
+export const premierMatchStats = pgTable(
+  "premier_match_stats",
+  {
+    /** Share code du match Premier (identité unique côté Valve). */
+    shareCode: text("share_code").notNull(),
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    map: text("map").notNull(),
+    playedAt: timestamp("played_at", { withTimezone: true }).notNull(),
+    /** Issue du match du point de vue du membre. */
+    result: text("result", { enum: ["win", "loss", "tie"] }).notNull(),
+    /** CS Rating du membre après ce match (relie la ligne au point de courbe). */
+    ratingAfter: integer("rating_after"),
+    myScore: integer("my_score"),
+    oppScore: integer("opp_score"),
+    stats: jsonb("stats").$type<PremierMatchStats>().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.shareCode, t.playerId] }),
+    index("premier_match_stats_player_played_idx").on(t.playerId, t.playedAt),
+    index("premier_match_stats_played_idx").on(t.playedAt),
   ],
 );
 
@@ -178,6 +208,8 @@ export type NewPlayer = typeof players.$inferInsert;
 export type EloSnapshot = typeof eloSnapshots.$inferSelect;
 export type FaceitMatchStat = typeof faceitMatchStats.$inferSelect;
 export type NewFaceitMatchStat = typeof faceitMatchStats.$inferInsert;
+export type PremierMatchStat = typeof premierMatchStats.$inferSelect;
+export type NewPremierMatchStat = typeof premierMatchStats.$inferInsert;
 export type PlaytimeSnapshot = typeof playtimeSnapshots.$inferSelect;
 export type Announcement = typeof announcements.$inferSelect;
 export type NewAnnouncement = typeof announcements.$inferInsert;

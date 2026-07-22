@@ -1,4 +1,4 @@
-import { ratingFromDemo } from "@4eselo/premier";
+import { parseDemoMatch } from "@4eselo/premier";
 
 /**
  * Process enfant : parse une démo hors du thread principal du worker.
@@ -14,9 +14,9 @@ if (!demoUrl || !steamId64) {
   process.exit(2);
 }
 
-ratingFromDemo(demoUrl, steamId64)
-  .then((rating) => {
-    process.stdout.write(JSON.stringify(rating ?? null));
+parseDemoMatch(demoUrl, steamId64)
+  .then((match) => {
+    process.stdout.write(JSON.stringify(match ?? null));
     process.exit(0);
   })
   .catch((err) => {

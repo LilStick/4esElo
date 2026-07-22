@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
-import { db, players, eloSnapshots } from "@4eselo/db";
-import type { PremierSyncStore } from "@4eselo/premier";
+import { db, players, eloSnapshots, premierMatchStats } from "@4eselo/db";
+import type { PremierSyncStore, PremierMatchResult } from "@4eselo/premier";
 
 /** Store DB du sync Premier : courbe via elo_snapshots(source=premier), curseur sur players. */
 export const dbPremierStore: PremierSyncStore = {
@@ -14,6 +14,27 @@ export const dbPremierStore: PremierSyncStore = {
     if (last?.elo === rating) return; // snapshot-on-change
     await db.insert(eloSnapshots).values({ playerId, source: "premier", elo: rating, capturedAt: at });
   },
+  async recordMatchStats(playerId: string, shareCode: string, match: PremierMatchResult) {
+    const row = {
+      shareCode,
+      playerId,
+      map: match.map,
+      playedAt: match.playedAt,
+      result: match.result,
+      ratingAfter: match.ratingAfter,
+      myScore: match.myScore,
+      oppScore: match.oppScore,
+      stats: match.stats,
+    };
+    await db
+      .insert(premierMatchStats)
+      .values(row)
+      .onConflictDoUpdate({
+        target: [premierMatchStats.shareCode, premierMatchStats.playerId],
+        set: row,
+      });
+  },
+
   async advanceCursor(playerId, shareCode, syncedAt) {
     await db
       .update(players)

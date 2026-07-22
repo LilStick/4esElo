@@ -3,7 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
-import { parseTicks } from "@laihoe/demoparser2";
+import { parseTicks, parseEvents, parseHeader } from "@laihoe/demoparser2";
+import type { PremierMatchStats } from "@4eselo/types";
+import { computeMatchStats, type DeathEvent, type HurtEvent, type MvpEvent } from "./demoStats";
 
 // seek-bzip n'a pas de types → require typé inline (marche cross-package sans shim).
 const Bzip2: { decode(buf: Buffer): Buffer } = createRequire(import.meta.url)("seek-bzip");
@@ -29,11 +31,15 @@ export interface DemoTickRow {
   team_rounds_total: number;
 }
 
+export interface RatingResult {
+  ratingAfter: number;
+  result: "win" | "loss" | "tie";
+  myScore: number;
+  oppScore: number;
+}
+
 /** Rating du membre après le match, ou null si ce n'est pas du Premier. Pur, testable. */
-export function computeRatingAfter(
-  rows: DemoTickRow[],
-  steamId64: string,
-): { ratingAfter: number; result: "win" | "loss" | "tie" } | null {
+export function computeRatingAfter(rows: DemoTickRow[], steamId64: string): RatingResult | null {
   const lastByPlayer = new Map<string, DemoTickRow>();
   for (const r of [...rows].sort((a, b) => a.tick - b.tick)) lastByPlayer.set(String(r.steamid), r);
   const me = lastByPlayer.get(steamId64);
@@ -48,7 +54,7 @@ export function computeRatingAfter(
   const result = myScore > oppScore ? "win" : myScore < oppScore ? "loss" : "tie";
   const ratingAfter =
     result === "win" ? me.rank_if_win : result === "loss" ? me.rank_if_loss : me.rank_if_tie;
-  return { ratingAfter, result };
+  return { ratingAfter, result, myScore, oppScore };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -79,20 +85,51 @@ export async function downloadDemo(
   }
 }
 
-/** Télécharge + parse une démo → CS Rating du membre après le match. null = irrésolvable (démo expirée, pas Premier). */
-export async function ratingFromDemo(
+export interface DemoMatchResult {
+  ratingAfter: number;
+  result: "win" | "loss" | "tie";
+  myScore: number;
+  oppScore: number;
+  map: string;
+  stats: PremierMatchStats;
+}
+
+/**
+ * Télécharge + parse une démo → rating + stats du membre, en UN download et 2
+ * passes de parse (ticks pour le rank, events pour les stats). null = irrésolvable
+ * (démo expirée, pas Premier). Réutilisé par le worker via un process enfant.
+ */
+export async function parseDemoMatch(
   demoUrl: string,
   steamId64: string,
   fetchImpl: typeof fetch = fetch,
-): Promise<{ ratingAfter: number; result: "win" | "loss" | "tie" } | null> {
+): Promise<DemoMatchResult | null> {
   const compressed = await downloadDemo(demoUrl, fetchImpl);
   if (!compressed) return null;
   const dem = Bzip2.decode(compressed);
   const tmp = join(tmpdir(), `premier-${randomUUID()}.dem`);
   writeFileSync(tmp, dem);
   try {
-    const rows = parseTicks(tmp, RANK_FIELDS) as unknown as DemoTickRow[];
-    return computeRatingAfter(rows, steamId64);
+    const rating = computeRatingAfter(parseTicks(tmp, RANK_FIELDS) as unknown as DemoTickRow[], steamId64);
+    if (!rating) return null; // pas Premier (rank < 1000) → on n'ingère pas
+    const events = parseEvents(
+      tmp,
+      ["player_death", "player_hurt", "round_mvp"],
+      [],
+      ["total_rounds_played"],
+    ) as Array<Record<string, unknown> & { event_name: string }>;
+    const deaths = events.filter((e) => e.event_name === "player_death") as unknown as DeathEvent[];
+    const hurts = events.filter((e) => e.event_name === "player_hurt") as unknown as HurtEvent[];
+    const mvps = events.filter((e) => e.event_name === "round_mvp") as unknown as MvpEvent[];
+    const stats = computeMatchStats({
+      steamId64,
+      rounds: rating.myScore + rating.oppScore,
+      deaths,
+      hurts,
+      mvps,
+    });
+    const header = parseHeader(tmp) as { map_name?: string };
+    return { ...rating, map: header.map_name ?? "unknown", stats };
   } finally {
     try {
       unlinkSync(tmp);

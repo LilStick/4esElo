@@ -248,6 +248,9 @@ importers:
 
   packages/premier:
     dependencies:
+      '@4eselo/types':
+        specifier: workspace:*
+        version: link:../types
       '@laihoe/demoparser2':
         specifier: ^0.41.3
         version: 0.41.3
