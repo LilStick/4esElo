@@ -63,11 +63,12 @@ export function createResolver(bot: GcBot): PremierMatchResolver {
         return null;
       }
       if (!match) {
-        console.log(`[premier] ${shareCode}: démo illisible (expirée / pas Premier) → ignoré`);
+        // DIAGNOSTIC B18.14 : on loggue gameType pour distinguer Premier-non-classé du compétitif.
+        console.log(`[premier] ${shareCode}: démo illisible/sans rank (gameType=${info.gameType}) → ignoré`);
         return null;
       }
       console.log(
-        `[premier] ${shareCode}: rating=${match.ratingAfter} (${match.map}, ${match.stats.kills}/${match.stats.deaths}/${match.stats.assists})`,
+        `[premier] ${shareCode}: rating=${match.ratingAfter} (gameType=${info.gameType}, ${match.map}, ${match.stats.kills}/${match.stats.deaths}/${match.stats.assists})`,
       );
       return {
         ratingAfter: match.ratingAfter,
