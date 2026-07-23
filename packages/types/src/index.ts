@@ -131,6 +131,8 @@ export interface OvertakePlayer {
 export interface OvertakeEntry {
   passer: OvertakePlayer;
   passed: OvertakePlayer;
+  /** Quand le croisement a eu lieu (ISO). Historique = events des N derniers jours. */
+  at: string;
 }
 
 export interface OvertakesResponse {
