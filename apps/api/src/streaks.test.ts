@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeStreak, computeOvertakes, type OvertakeInput } from "./streaks";
+import { computeStreak, computeOvertakeEvents, type OvertakeInput } from "./streaks";
 
 test("streak: aucun match → current null, records à 0", () => {
   assert.deepEqual(computeStreak([]), { current: null, bestWinStreak: 0, worstLossStreak: 0 });
@@ -29,7 +29,12 @@ test("streak: un seul match", () => {
   });
 });
 
-function p(id: string, elo: number | null, baselineElo: number | null): OvertakeInput {
+function p(
+  id: string,
+  elo: number | null,
+  baselineElo: number | null,
+  history: { at: number; elo: number }[] = [],
+): OvertakeInput {
   return {
     id,
     discordId: null,
@@ -38,30 +43,35 @@ function p(id: string, elo: number | null, baselineElo: number | null): Overtake
     discordAvatar: null,
     elo,
     baselineElo,
+    history,
   };
 }
 
-test("overtakes: B passe devant A quand les ELO se croisent", () => {
-  const out = computeOvertakes([p("a", 1100, 1200), p("b", 1150, 1000)]);
+test("overtakes: un croisement dans la fenêtre = 1 event horodaté", () => {
+  // a démarre au-dessus (1200 vs 1000), b monte à 1250 à t=100 → b passe a.
+  const out = computeOvertakeEvents([p("a", 1200, 1200), p("b", 1250, 1000, [{ at: 100, elo: 1250 }])]);
   assert.equal(out.length, 1);
   assert.equal(out[0]!.passer.id, "b");
   assert.equal(out[0]!.passed.id, "a");
+  assert.equal(out[0]!.at, new Date(100).toISOString());
 });
 
-test("overtakes: pas de croisement → vide", () => {
-  assert.deepEqual(computeOvertakes([p("a", 1300, 1200), p("b", 1100, 1000)]), []);
+test("overtakes: aucun croisement (ordre inchangé) → vide", () => {
+  assert.deepEqual(computeOvertakeEvents([p("a", 1300, 1200), p("b", 1100, 1000)]), []);
 });
 
-test("overtakes: joueur sans baseline (arrivé en cours de fenêtre) ignoré", () => {
-  const out = computeOvertakes([p("a", 1100, 1200), p("nouveau", 1500, null)]);
-  assert.deepEqual(out, []);
+test("overtakes: joueur sans baseline (arrivé en cours) → paire ignorée", () => {
+  assert.deepEqual(computeOvertakeEvents([p("a", 1100, 1200), p("x", 1500, null)]), []);
 });
 
-test("overtakes: un joueur peut en dépasser plusieurs, triés par rang actuel", () => {
-  const out = computeOvertakes([p("a", 1000, 1300), p("b", 1010, 1200), p("c", 1400, 1100)]);
-  // c passe devant a et b ; b (1010) finit aussi devant a (1000) alors qu'il partait derrière
+test("overtakes: re-dépassement = 2 events, le plus récent d'abord", () => {
+  // b au-dessus au départ ; a passe à t=100, b repasse à t=200.
+  const out = computeOvertakeEvents([
+    p("a", 1200, 1000, [{ at: 100, elo: 1200 }]),
+    p("b", 1300, 1100, [{ at: 200, elo: 1300 }]),
+  ]);
   assert.deepEqual(
-    out.map((o) => `${o.passer.id}>${o.passed.id}`),
-    ["c>a", "c>b", "b>a"],
+    out.map((o) => `${o.passer.id}>${o.passed.id}@${new Date(o.at).getTime()}`),
+    ["b>a@200", "a>b@100"],
   );
 });
