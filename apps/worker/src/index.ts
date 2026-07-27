@@ -120,8 +120,9 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
           `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
         );
       }
-      // Sur tout changement d'ELO enregistré, elo_after va sur le dernier match
-      // (l'ELO ne bouge que sur un match), sans exiger un ingest ce tick-ci.
+      // À chaque passage, on (ré)attribue l'ELO courant au dernier match s'il n'a
+      // pas encore de elo_after (l'ELO courant EST son elo_after) → rattrape la
+      // game dont le ±ELO avait été perdu quand ses stats Faceit ont tardé à sortir.
       const elo = syncRes ? eloToAttribute(syncRes) : null;
       if (elo !== null) {
         const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(p.id, elo);
