@@ -9,8 +9,8 @@ import type { MatchWalker } from "./walk";
  */
 
 export interface PremierMatchResult {
-  /** CS Rating du membre après ce match (échelle 0-35000). */
-  ratingAfter: number;
+  /** CS Rating du membre après ce match (échelle 1000-35000), null en placement. */
+  ratingAfter: number | null;
   playedAt: Date;
   map: string;
   result: "win" | "loss" | "tie";
@@ -77,9 +77,13 @@ export async function syncPlayerPremier(
     }
     lastProcessed = code;
     if (!result) continue; // irrésolvable (démo expirée) → sauté, mais curseur avance
-    await deps.store.recordRating(player.id, result.ratingAfter, result.playedAt);
+    // Le match est toujours enregistré (y compris en placement) ; le point de courbe
+    // n'est posé QUE si un rating est attribué (null = placement, pas encore classé).
     await deps.store.recordMatchStats(player.id, code, result);
-    snapshots++;
+    if (result.ratingAfter !== null) {
+      await deps.store.recordRating(player.id, result.ratingAfter, result.playedAt);
+      snapshots++;
+    }
   }
   // On n'avance QUE jusqu'au dernier code traité (jamais au-delà) → aucun match sauté
   // par un arrêt anticipé. Si rien n'a été traité, on ne bouge pas (on réessaiera).

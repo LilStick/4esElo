@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-27
+
+- 2026-07-27 · Premier : les games de placement (sans rank) sont désormais comptées comme matchs — la courbe ne pose un point qu'une fois classé — et un refresh Premier (`POST /premier/refresh`) relance le sync sans délink/relink des codes. (#401)
+
 ## 2026-07-18
 
 - 2026-07-18 · Web : gestion des admins dans le panel — liste (avatar + pseudo, badge Root non-retirable), le root promeut un membre ou retire un admin ; non-root en lecture seule, 404 « jamais connecté » géré. (#425)

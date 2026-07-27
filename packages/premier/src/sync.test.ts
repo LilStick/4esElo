@@ -31,26 +31,35 @@ const ZERO_STATS = {
   utilityDamage: 0,
 };
 
-function fakes(opts: { walked: string[]; ratings?: Record<string, number | null>; throwOn?: string }) {
+/**
+ * `ratings` : code → rating. `null` = irrésolvable (résolveur renvoie null, ex. démo
+ * expirée). `placements` : codes RÉSOLUS mais sans rating attribué (ratingAfter null).
+ */
+function fakes(opts: {
+  walked: string[];
+  ratings?: Record<string, number | null>;
+  placements?: string[];
+  throwOn?: string;
+}) {
   const recorded: number[] = [];
   const statsRecorded: string[] = [];
   const state = { cursor: null as string | null, advanced: false };
   const walker: MatchWalker = { nextShareCode: async () => null, walkFrom: async () => opts.walked };
+  const result = (ratingAfter: number | null) => ({
+    ratingAfter,
+    playedAt: new Date("2026-07-01"),
+    map: "de_ancient",
+    result: "win" as const,
+    myScore: 13,
+    oppScore: 5,
+    stats: ZERO_STATS,
+  });
   const resolver: PremierMatchResolver = {
     resolve: async (_sid, code) => {
       if (opts.throwOn === code) throw new Error("GC non connecté");
+      if (opts.placements?.includes(code)) return result(null); // placement : résolu, pas de rating
       const r = opts.ratings?.[code];
-      return r === null || r === undefined
-        ? null
-        : {
-            ratingAfter: r,
-            playedAt: new Date("2026-07-01"),
-            map: "de_ancient",
-            result: "win",
-            myScore: 13,
-            oppScore: 5,
-            stats: ZERO_STATS,
-          };
+      return r === null || r === undefined ? null : result(r);
     },
   };
   const store: PremierSyncStore = {
@@ -101,6 +110,19 @@ test("match irrésolvable (démo expirée) → pas de snapshot, curseur avance q
   const res = await syncPlayerPremier(player(false), f);
   assert.equal(res.snapshots, 1);
   assert.deepEqual(f.recorded, [15000]);
+  assert.equal(f.state.cursor, "CSGO-2");
+});
+
+test("placement (résolu, ratingAfter null) → match enregistré, PAS de point de courbe", async () => {
+  const f = fakes({
+    walked: ["CSGO-1", "CSGO-2"],
+    placements: ["CSGO-1"], // game de placement : pas encore de rating
+    ratings: { "CSGO-2": 8500 }, // placement complété → 1er rating
+  });
+  const res = await syncPlayerPremier(player(false), f);
+  assert.equal(res.snapshots, 1); // seul CSGO-2 pose un snapshot
+  assert.deepEqual(f.statsRecorded, ["CSGO-1", "CSGO-2"]); // les DEUX matchs comptent
+  assert.deepEqual(f.recorded, [8500]); // seul le match classé va sur la courbe
   assert.equal(f.state.cursor, "CSGO-2");
 });
 

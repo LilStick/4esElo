@@ -32,6 +32,14 @@ const connectSchema = z
 const disabled = (c: Context) => c.json({ error: "premier disabled" }, 503);
 const needsAuth = (c: Context) => c.json({ error: "authentication required" }, 401);
 
+// Cooldown du refresh : un clic replanifie une ré-résolution côté worker. On évite
+// qu'un membre relance le walk en boucle (l'endpoint Steam est sensible au burst → 429).
+const REFRESH_COOLDOWN_MS = 30_000;
+const lastRefresh = new Map<string, number>();
+export function resetPremierRefreshCooldown(): void {
+  lastRefresh.clear();
+}
+
 export const premierRoutes = new Hono();
 
 premierRoutes.get("/premier/status", async (c) => {
@@ -82,6 +90,31 @@ premierRoutes.post("/premier/connect", async (c) => {
     .update(players)
     .set({ premierAuthCodeEnc: enc, premierShareCode: parsed.data.shareCode, premierSyncedAt: null })
     .where(eq(players.id, member.id));
+  return c.json({ ok: true });
+});
+
+premierRoutes.post("/premier/refresh", async (c) => {
+  if (!premierDeps.enabled) return disabled(c);
+  const session = await readSession(c);
+  if (!session) return needsAuth(c);
+  const [p] = await db
+    .select({ id: players.id, enc: players.premierAuthCodeEnc })
+    .from(players)
+    .where(eq(players.discordId, session.discordId))
+    .limit(1);
+  if (!p) return c.json({ error: "membre inconnu (inscris-toi d'abord)" }, 404);
+  if (!p.enc) return c.json({ error: "compte Premier non connecté" }, 409);
+
+  const now = Date.now();
+  const last = lastRefresh.get(session.discordId);
+  if (last !== undefined && now - last < REFRESH_COOLDOWN_MS) {
+    return c.json({ error: "déjà demandé, réessaie dans un instant" }, 429);
+  }
+  lastRefresh.set(session.discordId, now);
+
+  // Re-check sans délink/relink : syncedAt → null force firstSync au prochain passage
+  // worker (le curseur est ré-résolu). Auth code + share code restent intacts.
+  await db.update(players).set({ premierSyncedAt: null }).where(eq(players.id, p.id));
   return c.json({ ok: true });
 });
 
