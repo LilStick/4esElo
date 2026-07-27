@@ -68,7 +68,7 @@ export function createResolver(bot: GcBot): PremierMatchResolver {
         return null;
       }
       console.log(
-        `[premier] ${shareCode}: rating=${match.ratingAfter} (gameType=${info.gameType}, ${match.map}, ${match.stats.kills}/${match.stats.deaths}/${match.stats.assists})`,
+        `[premier] ${shareCode}: rating=${match.ratingAfter ?? "placement"} (gameType=${info.gameType}, ${match.map}, ${match.stats.kills}/${match.stats.deaths}/${match.stats.assists})`,
       );
       return {
         ratingAfter: match.ratingAfter,

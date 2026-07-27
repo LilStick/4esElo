@@ -18,7 +18,10 @@ const Bzip2: { decode(buf: Buffer): Buffer } = createRequire(import.meta.url)("s
  */
 
 const RANK_FIELDS = ["rank", "rank_if_win", "rank_if_loss", "rank_if_tie", "team_num", "team_rounds_total"];
+// Seuil sous lequel une valeur n'est pas un CS Rating Premier (qui vit dans les milliers).
 const PREMIER_MIN_RATING = 1000;
+// Tiers Compétitif / Wingman : rank ∈ 1..18 (≠ Premier). Un rank à 0 = placement.
+const COMP_TIER_MAX = 18;
 
 export interface DemoTickRow {
   steamid: string;
@@ -32,18 +35,30 @@ export interface DemoTickRow {
 }
 
 export interface RatingResult {
-  ratingAfter: number;
+  /** CS Rating après le match, ou null en placement (pas encore de rating attribué). */
+  ratingAfter: number | null;
   result: "win" | "loss" | "tie";
   myScore: number;
   oppScore: number;
 }
 
-/** Rating du membre après le match, ou null si ce n'est pas du Premier. Pur, testable. */
+/**
+ * Rating du membre après le match. null = à ignorer (joueur absent, ou match
+ * Compétitif/Wingman). Le Premier en placement (rank 0, pas encore classé) est
+ * RETOURNÉ avec `ratingAfter: null` : le match compte, mais il ne pose pas de
+ * point de courbe tant qu'un rating n'est pas attribué (10e game de placement).
+ * NB : un placement Premier et un placement Compétitif ont tous deux rank 0 →
+ * indiscernables ici ; c'est `reservation.game_type` (resolver) qui tranche en amont.
+ * Pur, testable.
+ */
 export function computeRatingAfter(rows: DemoTickRow[], steamId64: string): RatingResult | null {
   const lastByPlayer = new Map<string, DemoTickRow>();
   for (const r of [...rows].sort((a, b) => a.tick - b.tick)) lastByPlayer.set(String(r.steamid), r);
   const me = lastByPlayer.get(steamId64);
-  if (!me || !me.rank || me.rank < PREMIER_MIN_RATING) return null;
+  if (!me) return null;
+  // Compétitif / Wingman : rank est un tier 1-18, pas un CS Rating → on écarte.
+  const rank = me.rank ?? 0;
+  if (rank >= 1 && rank <= COMP_TIER_MAX) return null;
   const oppScore = Math.max(
     0,
     ...[...lastByPlayer.values()]
@@ -52,8 +67,9 @@ export function computeRatingAfter(rows: DemoTickRow[], steamId64: string): Rati
   );
   const myScore = me.team_rounds_total ?? 0;
   const result = myScore > oppScore ? "win" : myScore < oppScore ? "loss" : "tie";
-  const ratingAfter =
-    result === "win" ? me.rank_if_win : result === "loss" ? me.rank_if_loss : me.rank_if_tie;
+  const projected = result === "win" ? me.rank_if_win : result === "loss" ? me.rank_if_loss : me.rank_if_tie;
+  // Placement : rank courant + rating projeté encore sous le seuil → pas de rating.
+  const ratingAfter = projected >= PREMIER_MIN_RATING ? projected : null;
   return { ratingAfter, result, myScore, oppScore };
 }
 
@@ -86,7 +102,8 @@ export async function downloadDemo(
 }
 
 export interface DemoMatchResult {
-  ratingAfter: number;
+  /** null = placement (pas encore de CS Rating) ; le match compte quand même. */
+  ratingAfter: number | null;
   result: "win" | "loss" | "tie";
   myScore: number;
   oppScore: number;
@@ -111,7 +128,7 @@ export async function parseDemoMatch(
   writeFileSync(tmp, dem);
   try {
     const rating = computeRatingAfter(parseTicks(tmp, RANK_FIELDS) as unknown as DemoTickRow[], steamId64);
-    if (!rating) return null; // pas Premier (rank < 1000) → on n'ingère pas
+    if (!rating) return null; // Compétitif/Wingman ou joueur absent → on n'ingère pas (placement = non-null)
     const events = parseEvents(
       tmp,
       ["player_death", "player_hurt", "round_mvp"],

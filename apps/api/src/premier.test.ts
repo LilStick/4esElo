@@ -7,7 +7,7 @@ import type { DiscordOAuth } from "@4eselo/discord";
 import type { PremierConnectionStatus } from "@4eselo/types";
 import { app } from "./app";
 import { authDeps } from "./auth";
-import { premierDeps } from "./premier";
+import { premierDeps, resetPremierRefreshCooldown } from "./premier";
 
 /** Intégration onboarding Premier (B18.2) - OAuth Discord mocké, vraie DB. */
 
@@ -69,6 +69,7 @@ const connect = (cookie: string, body: unknown) =>
   });
 const disconnect = (cookie: string) =>
   app.request("/premier/connect", { method: "DELETE", headers: { cookie } });
+const refresh = (cookie: string) => app.request("/premier/refresh", { method: "POST", headers: { cookie } });
 
 const GOOD = { steamAuthCode: "8T6K-AH6HB-JM2R", shareCode: "CSGO-VGAOZ-Fukap-pA46K-3nszD-FdcNE" };
 
@@ -168,6 +169,45 @@ test("premier : membre inconnu (pas inscrit) → 404", { skip }, async () => {
 test("premier : membre sans steamId64 → 409 (le sync le filtrerait en silence)", { skip }, async () => {
   const c = await sessionFor(NO_STEAM);
   assert.equal((await connect(c, GOOD)).status, 409);
+});
+
+test("premier refresh : 401 anonyme, 503 flag off", { skip }, async () => {
+  resetPremierRefreshCooldown();
+  assert.equal((await refresh("")).status, 401);
+  const c = await sessionFor(MEMBER);
+  premierDeps.enabled = false;
+  try {
+    assert.equal((await refresh(c)).status, 503);
+  } finally {
+    premierDeps.enabled = true;
+  }
+});
+
+test("premier refresh : 409 si pas connecté", { skip }, async () => {
+  resetPremierRefreshCooldown();
+  const c = await sessionFor(MEMBER);
+  assert.equal((await refresh(c)).status, 409);
+});
+
+test("premier refresh : remet syncedAt à null, garde les codes, puis cooldown 429", { skip }, async () => {
+  resetPremierRefreshCooldown();
+  const c = await sessionFor(MEMBER);
+  assert.equal((await connect(c, GOOD)).status, 200);
+  await db
+    .update(players)
+    .set({ premierSyncedAt: new Date("2026-07-10T00:00:00Z") })
+    .where(inArray(players.discordId, [MEMBER]));
+
+  assert.equal((await refresh(c)).status, 200);
+  const [row] = await db
+    .select({ at: players.premierSyncedAt, enc: players.premierAuthCodeEnc, sc: players.premierShareCode })
+    .from(players)
+    .where(inArray(players.discordId, [MEMBER]));
+  assert.equal(row!.at, null); // re-check demandé
+  assert.ok(row!.enc); // auth code conservé
+  assert.equal(row!.sc, GOOD.shareCode); // share code conservé (pas de délink)
+
+  assert.equal((await refresh(c)).status, 429); // 2e clic immédiat → cooldown
 });
 
 test("premier : reconnexion remet syncedAt à null → seed re-résolu au prochain sync", { skip }, async () => {

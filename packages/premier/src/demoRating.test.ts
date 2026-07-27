@@ -67,8 +67,38 @@ test("égalité → rank_if_tie", () => {
   assert.equal(computeRatingAfter(rows, A)!.result, "tie");
 });
 
-test("rating < 1000 (Compétitif, tier) → null", () => {
+test("rating tier 1-18 (Compétitif/Wingman) → null", () => {
   assert.equal(computeRatingAfter([row({ rank: 13, team_rounds_total: 13 })], A), null);
+  assert.equal(computeRatingAfter([row({ rank: 1, team_rounds_total: 13 })], A), null);
+  assert.equal(computeRatingAfter([row({ rank: 18, team_rounds_total: 13 })], A), null);
+});
+
+test("placement Premier (rank 0, pas encore classé) → match compté, ratingAfter null", () => {
+  const rows = [
+    row({ rank: 0, rank_if_win: 0, rank_if_loss: 0, rank_if_tie: 0, team_num: 2, team_rounds_total: 13 }),
+    row({ steamid: "opp", rank: 0, team_num: 3, team_rounds_total: 8 }),
+  ];
+  assert.deepEqual(computeRatingAfter(rows, A), {
+    ratingAfter: null,
+    result: "win",
+    myScore: 13,
+    oppScore: 8,
+  });
+});
+
+test("placement complété (rank 0 mais projeté ≥ 1000) → 1er rating attribué", () => {
+  const rows = [
+    row({
+      rank: 0,
+      rank_if_win: 8500,
+      rank_if_loss: 7800,
+      rank_if_tie: 8100,
+      team_num: 2,
+      team_rounds_total: 13,
+    }),
+    row({ steamid: "opp", rank: 0, team_num: 3, team_rounds_total: 10 }),
+  ];
+  assert.equal(computeRatingAfter(rows, A)!.ratingAfter, 8500);
 });
 
 test("joueur absent → null", () => {
