@@ -8,8 +8,12 @@ test("attribue l'ELO dès qu'un changement est enregistré", () => {
   assert.equal(eloToAttribute(recorded), 2092);
 });
 
-test("pas d'attribution si l'ELO n'a pas changé", () => {
-  assert.equal(eloToAttribute({ status: "unchanged", elo: 2067 }), null);
+// Non-régression : le ±ELO du dernier match était perdu quand les stats Faceit du
+// match sortaient APRÈS le changement d'ELO (attribution ratée, jamais rejouée).
+// L'ELO courant reste l'elo_after du dernier match même sans changement ce tick → on
+// le renvoie pour le rattraper (setNewestMatchEloAfter ne remplit que si c'est vide).
+test("réattribue l'ELO courant même si inchangé (rattrape le dernier match)", () => {
+  assert.equal(eloToAttribute({ status: "unchanged", elo: 2067 }), 2067);
 });
 
 test("pas d'attribution sur no-cs2 / not-found", () => {
