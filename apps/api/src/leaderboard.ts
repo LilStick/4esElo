@@ -10,7 +10,7 @@ import type {
   MoversResponse,
   OvertakesResponse,
 } from "@4eselo/types";
-import { computeOvertakes } from "./streaks";
+import { computeOvertakeEvents } from "./streaks";
 import { computeBadges, computeBadgeTiers, type BadgeMatch } from "./badges";
 import {
   computeMapLeaderboard,
@@ -126,7 +126,21 @@ leaderboardRoutes.get("/leaderboard/overtakes", async (c) => {
     ) base on true
   `);
 
-  const overtakes = computeOvertakes(
+  // Snapshots DANS la fenêtre (un event de dépassement = un croisement à un de ces instants).
+  const histRows = await db.execute<{ player_id: string; elo: number; at_ms: string }>(sql`
+    select player_id, elo, (extract(epoch from captured_at) * 1000)::bigint as at_ms
+    from elo_snapshots
+    where source = ${source} and captured_at > ${windowStart.toISOString()}::timestamptz
+    order by player_id, captured_at asc
+  `);
+  const historyByPlayer = new Map<string, { at: number; elo: number }[]>();
+  for (const h of histRows) {
+    const list = historyByPlayer.get(h.player_id) ?? [];
+    list.push({ at: Number(h.at_ms), elo: h.elo });
+    historyByPlayer.set(h.player_id, list);
+  }
+
+  const overtakes = computeOvertakeEvents(
     rows.map((r) => ({
       id: r.id,
       discordId: r.discord_id,
@@ -135,6 +149,7 @@ leaderboardRoutes.get("/leaderboard/overtakes", async (c) => {
       discordAvatar: r.discord_avatar,
       elo: r.elo,
       baselineElo: r.baseline_elo,
+      history: historyByPlayer.get(r.id) ?? [],
     })),
   );
 

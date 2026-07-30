@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-07-23
+
+- 2026-07-23 · API : widget « Dépassements récents » en historique event-based — chaque croisement d'ELO est un event horodaté sur la fenêtre (7j), affiché qu'on monte OU que l'autre chute, avec re-dépassements distincts. Corrige les dépassements récents qui n'apparaissaient pas. (#435)
+
 ## 2026-07-18
 
 - 2026-07-18 · Web : bouton « Retour » du profil corrigé en atterrissage direct (lien partagé, favori, reload) — retombe sur le classement au lieu de ne rien faire. (#421)
