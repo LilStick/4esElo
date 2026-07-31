@@ -51,11 +51,16 @@ export interface PremierSyncDeps {
   now?: () => Date;
 }
 
-/** Sync d'un membre : renvoie le nb de nouveaux matchs vus et de snapshots posés. */
+/**
+ * Sync d'un membre : nb de nouveaux matchs vus, de snapshots posés, et l'erreur
+ * qui a interrompu le passage le cas échéant (`abortError`). On REMONTE cette
+ * erreur au lieu de l'avaler : un GC durablement HS gèle sinon tous les curseurs
+ * en se faisant passer pour un « 1 match, +0 snapshot » anodin (bug vécu).
+ */
 export async function syncPlayerPremier(
   player: PremierPlayer,
   deps: PremierSyncDeps,
-): Promise<{ newMatches: number; snapshots: number }> {
+): Promise<{ newMatches: number; snapshots: number; abortError: Error | null }> {
   const walked = await deps.walker.walkFrom(player.steamId64, player.authCode, player.shareCode);
   // Walk = forward-only (matchs postérieurs au seed). Au 1er sync on résout AUSSI le
   // seed (le match d'onboarding), sinon il ne serait jamais compté.
@@ -66,13 +71,16 @@ export async function syncPlayerPremier(
   // (ex. session GC coupée sur un match lourd), le progrès est sauvegardé et on ne
   // rejoue pas les matchs déjà traités au cycle suivant.
   let lastProcessed: string | null = null;
+  let abortError: Error | null = null;
   for (const code of codes) {
     let result;
     try {
       result = await deps.resolver.resolve(player.steamId64, code);
-    } catch {
-      // Erreur transitoire (GC coupé, réseau) : on arrête proprement, on garde le
-      // progrès acquis, et on reprendra après `lastProcessed` au prochain cycle.
+    } catch (err) {
+      // Erreur (GC coupé, réseau) : on arrête proprement, on garde le progrès
+      // acquis, on reprendra après `lastProcessed` au prochain cycle — et on
+      // remonte l'erreur pour que le run la loggue fort (curseur figé = visible).
+      abortError = err instanceof Error ? err : new Error(String(err));
       break;
     }
     lastProcessed = code;
@@ -90,5 +98,5 @@ export async function syncPlayerPremier(
   if (lastProcessed) {
     await deps.store.advanceCursor(player.id, lastProcessed, deps.now?.() ?? new Date());
   }
-  return { newMatches: codes.length, snapshots };
+  return { newMatches: codes.length, snapshots, abortError };
 }
