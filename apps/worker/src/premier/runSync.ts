@@ -35,10 +35,19 @@ export async function runPremierSync(
         { walker: deps.walker, resolver: deps.resolver, store },
       );
       snapshots += res.snapshots;
-      // Toujours logger (même à 0) pour la visibilité.
-      console.log(
-        `[premier] ${m.steamId64}: ${res.newMatches} match(s), +${res.snapshots} snapshot(s)${m.syncedAt ? "" : " (1er sync)"}`,
-      );
+      if (res.abortError) {
+        // Passage interrompu (typiquement GC HS) : curseur figé, les matchs vus
+        // restent en attente. On le crie fort — sinon ça passe pour un banal
+        // « N match, +0 snapshot » alors que plus rien ne remonte (bug vécu).
+        console.error(
+          `[premier] ${m.steamId64}: sync interrompu (${res.abortError.message}) - curseur figé, ${res.newMatches} match(s) en attente`,
+        );
+      } else {
+        // Toujours logger (même à 0) pour la visibilité.
+        console.log(
+          `[premier] ${m.steamId64}: ${res.newMatches} match(s), +${res.snapshots} snapshot(s)${m.syncedAt ? "" : " (1er sync)"}`,
+        );
+      }
     } catch (err) {
       console.error(`[premier] sync ${m.steamId64} échec:`, err instanceof Error ? err.message : err);
     }

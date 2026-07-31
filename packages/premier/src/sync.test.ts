@@ -143,6 +143,7 @@ test("resolve qui plante (GC coupé) → arrêt propre, curseur au dernier trait
   assert.equal(res.snapshots, 1);
   assert.deepEqual(f.recorded, [14000]);
   assert.equal(f.state.cursor, "CSGO-1"); // avancé au dernier OK, pas au-delà du plantage
+  assert.match(res.abortError?.message ?? "", /GC non connecté/); // erreur remontée, pas avalée
 });
 
 test("firstSync : seed qui plante d'emblée → aucun curseur posé (seed rejoué au prochain cycle)", async () => {
@@ -150,4 +151,11 @@ test("firstSync : seed qui plante d'emblée → aucun curseur posé (seed rejou�
   const res = await syncPlayerPremier(player(true), f);
   assert.equal(res.snapshots, 0);
   assert.equal(f.state.advanced, false);
+  assert.match(res.abortError?.message ?? "", /GC non connecté/); // erreur remontée
+});
+
+test("passage normal (rien ne plante) → abortError null", async () => {
+  const f = fakes({ walked: ["CSGO-1"], ratings: { "CSGO-1": 14000 } });
+  const res = await syncPlayerPremier(player(false), f);
+  assert.equal(res.abortError, null);
 });

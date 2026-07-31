@@ -2,6 +2,7 @@ import SteamUser from "steam-user";
 import SteamTotp from "steam-totp";
 // globaloffensive n'expose pas de types → import CommonJS typé localement.
 import GlobalOffensive from "globaloffensive";
+import { createGcWatchdog, type GcWatchdog } from "./gcWatchdog";
 
 /**
  * Bot Steam headless à session longue durée : reste connecté au Game Coordinator
@@ -32,10 +33,32 @@ export interface GcBot {
   shutdown(): void;
 }
 
-export function createGcBot(creds: GcBotCreds): GcBot {
+export interface GcBotOptions {
+  /**
+   * Watchdog : si le GC reste déconnecté au-delà, on abandonne (défaut : exit
+   * process → redémarrage à froid par l'orchestrateur, qui lui est fiable).
+   * Défaut 5 min. Une déco brève se répare seule bien avant.
+   */
+  gcDownExitMs?: number;
+  /** Injectable pour tests : watchdog déjà construit (sinon défaut = exit process). */
+  watchdog?: GcWatchdog;
+}
+
+export function createGcBot(creds: GcBotCreds, opts: GcBotOptions = {}): GcBot {
   const client = new SteamUser();
   const csgo = new GlobalOffensive(client);
   let gcReady = false;
+  const watchdog =
+    opts.watchdog ??
+    createGcWatchdog({
+      downMs: opts.gcDownExitMs ?? 5 * 60_000,
+      onTimeout: (ms) => {
+        console.error(
+          `[premier-bot] GC déconnecté depuis > ${Math.round(ms / 1000)}s sans reprise - abandon du process pour un redémarrage à froid`,
+        );
+        process.exit(1);
+      },
+    });
   let resolveReady!: () => void;
   let rejectReady!: (e: Error) => void;
   const readyP = new Promise<void>((res, rej) => {
@@ -58,11 +81,13 @@ export function createGcBot(creds: GcBotCreds): GcBot {
   csgo.on("connectedToGC", () => {
     console.log("[premier-bot] connecté au GC");
     gcReady = true;
+    watchdog.markUp(); // reconnexion : on désarme le compte à rebours d'abandon
     resolveReady();
   });
   csgo.on("disconnectedFromGC", () => {
     gcReady = false;
     console.warn("[premier-bot] déconnecté du GC, relance…");
+    watchdog.markDown(); // arme l'abandon si la reconnexion ne revient pas
     client.gamesPlayed([730]);
   });
 
