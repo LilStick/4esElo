@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-08-07
+
+- 2026-08-07 · Back : un joueur Faceit en placement (Season 8+ : non classé, ELO caché) ne casse plus le sync — l'ingestion tolère l'ELO/level absents, ne pose pas de point de courbe tant que non classé, et l'état « en placement » est exposé à l'API (refresh). (#444)
+
 ## 2026-07-18
 
 - 2026-07-18 · Web : bouton « Retour » du profil corrigé en atterrissage direct (lien partagé, favori, reload) — retombe sur le classement au lieu de ne rien faire. (#421)

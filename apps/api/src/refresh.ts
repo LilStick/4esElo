@@ -54,7 +54,10 @@ refreshRoutes.post("/players/:id/refresh", async (c) => {
     if (err instanceof FaceitNotFoundError) return c.json({ error: "compte Faceit introuvable" }, 404);
     throw err; // 5xx/réseau → onError → 500 structuré, pas de crash
   }
-  if (!profile.cs2) return c.json<RefreshEloResponse>({ elo: null, changed: false });
+  if (!profile.cs2) return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: false });
+  // Placement (Season 8+) : ELO caché → pas de snapshot (ne pollue pas la courbe).
+  if (profile.cs2.elo === null)
+    return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: true });
 
   const { elo, skillLevel } = profile.cs2;
   const [latest] = await db
@@ -69,5 +72,5 @@ refreshRoutes.post("/players/:id/refresh", async (c) => {
   if (changed) {
     await db.insert(eloSnapshots).values({ playerId: id, source: "faceit", elo, level: skillLevel });
   }
-  return c.json<RefreshEloResponse>({ elo, changed });
+  return c.json<RefreshEloResponse>({ elo, changed, unranked: false });
 });

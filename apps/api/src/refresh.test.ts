@@ -23,6 +23,7 @@ const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 
 let pid = "";
 let currentElo = 1500; // ce que le faux Faceit renvoie (mutable par test)
+let unranked = false; // simule un joueur en placement (Season 8+)
 
 const fakeFaceit = {
   async getPlayerById(): Promise<FaceitPlayer> {
@@ -31,7 +32,9 @@ const fakeFaceit = {
       nickname: "iref",
       avatar: null,
       country: "fr",
-      cs2: { elo: currentElo, skillLevel: 8, steamId64: "765_iref" },
+      cs2: unranked
+        ? { elo: null, skillLevel: null, steamId64: "765_iref", unranked: true }
+        : { elo: currentElo, skillLevel: 8, steamId64: "765_iref", unranked: false },
     };
   },
 };
@@ -52,6 +55,7 @@ before(async () => {
 beforeEach(() => {
   resetRefreshCooldown();
   currentElo = 1500;
+  unranked = false;
 });
 
 after(async () => {
@@ -91,6 +95,18 @@ test("refresh : ELO inchangé → changed:false, aucun nouveau snapshot", { skip
   const body = (await (await post(pid)).json()) as RefreshEloResponse;
   assert.equal(body.changed, false);
   assert.equal(await snapCount(), before); // pas d'insert
+});
+
+test("refresh : joueur en placement → elo null, unranked true, aucun snapshot", { skip }, async () => {
+  unranked = true;
+  const before = await snapCount();
+  const res = await post(pid);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as RefreshEloResponse;
+  assert.equal(body.elo, null);
+  assert.equal(body.changed, false);
+  assert.equal(body.unranked, true);
+  assert.equal(await snapCount(), before); // ELO caché → pas de point de courbe
 });
 
 test("refresh : 2e appel dans le cooldown → 429", { skip }, async () => {

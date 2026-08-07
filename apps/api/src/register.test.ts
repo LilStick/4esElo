@@ -41,7 +41,7 @@ const KNOWN: FaceitPlayer = {
   nickname: "iRegNick",
   avatar: "https://cdn.faceit.test/a.png",
   country: "fr",
-  cs2: { elo: 2001, skillLevel: 10, steamId64: "765_ireg" },
+  cs2: { elo: 2001, skillLevel: 10, steamId64: "765_ireg", unranked: false },
 };
 
 const fakeFaceit = {

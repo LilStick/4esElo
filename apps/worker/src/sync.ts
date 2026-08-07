@@ -27,6 +27,7 @@ export interface PlayerToSync {
 export type SyncResult =
   | { status: "recorded"; elo: number; previous: number | null; level: number }
   | { status: "unchanged"; elo: number }
+  | { status: "unranked" } // en placement (Season 8+) : ELO caché, pas de point de courbe
   | { status: "no-cs2" }
   | { status: "not-found" };
 
@@ -50,6 +51,9 @@ export async function syncPlayer(
   if (!profile.cs2) return { status: "no-cs2" };
 
   const { elo, skillLevel } = profile.cs2;
+  // Placement (Season 8+) : ELO caché → on ne pose PAS de snapshot (ne pollue pas la
+  // courbe, comme les games de placement Premier). On reprendra une fois classé.
+  if (elo === null || skillLevel === null) return { status: "unranked" };
   const previous = await store.getLatestElo(player.id, "faceit");
 
   if (previous === elo) return { status: "unchanged", elo };
