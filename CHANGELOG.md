@@ -8,6 +8,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 ## 2026-08-07
 
 - 2026-08-07 · Back : un joueur Faceit en placement (Season 8+ : non classé, ELO caché) ne casse plus le sync — l'ingestion tolère l'ELO/level absents, ne pose pas de point de courbe tant que non classé, et l'état « en placement » est exposé à l'API (refresh). (#444)
+- 2026-08-07 · API : filtre par saison Faceit — `GET /seasons` (liste des saisons, bornes dérivées des dates) + `?season=` sur la courbe ELO, la liste de matchs et les stats (le soft reset rend la courbe discontinue → lecture saison par saison). (#445)
 
 ## 2026-07-18
 
