@@ -22,14 +22,21 @@ import { computeAggregate, computeMapStats, rangeCutoff, RANGES, type MatchForSt
 import { computeBenchmark, type PlayerAggregate } from "./benchmark";
 import { readSource, readPlayerId, badRequest } from "./http";
 import { effectiveEloDelta } from "./eloDelta";
+import { parseSeason, seasonConds, type SeasonRange } from "./seasons";
 
 export const playersRoutes = new Hono();
 
-async function eloHistory(playerId: string, source: EloSource) {
+async function eloHistory(playerId: string, source: EloSource, season: SeasonRange | null = null) {
   const rows = await db
     .select({ elo: eloSnapshots.elo, capturedAt: eloSnapshots.capturedAt })
     .from(eloSnapshots)
-    .where(and(eq(eloSnapshots.playerId, playerId), eq(eloSnapshots.source, source)))
+    .where(
+      and(
+        eq(eloSnapshots.playerId, playerId),
+        eq(eloSnapshots.source, source),
+        ...seasonConds(eloSnapshots.capturedAt, season),
+      ),
+    )
     .orderBy(asc(eloSnapshots.capturedAt));
   return rows.map((r) => ({ elo: r.elo, capturedAt: r.capturedAt.toISOString() }));
 }
@@ -109,7 +116,9 @@ playersRoutes.get("/players/:id/elo", async (c) => {
   if (!id) return badRequest(c, "invalid player id (uuid)");
   const source = readSource(c);
   if (!source) return badRequest(c, "invalid source (faceit|premier)");
-  return c.json<EloCurveResponse>({ source, points: await eloHistory(id, source) });
+  const season = parseSeason(c.req.query("season"));
+  if (!season.ok) return badRequest(c, "invalid season");
+  return c.json<EloCurveResponse>({ source, points: await eloHistory(id, source, season.range) });
 });
 
 const paginationSchema = z.object({
@@ -126,14 +135,17 @@ playersRoutes.get("/players/:id/matches", async (c) => {
   });
   if (!parsed.success) return c.json({ error: "invalid pagination" }, 400);
   const { limit, offset } = parsed.data;
+  const season = parseSeason(c.req.query("season"));
+  if (!season.ok) return badRequest(c, "invalid season");
 
   const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
 
+  const seasonMatch = seasonConds(faceitMatchStats.playedAt, season.range);
   const [counted] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(faceitMatchStats)
-    .where(eq(faceitMatchStats.playerId, id));
+    .where(and(eq(faceitMatchStats.playerId, id), ...seasonMatch));
 
   const rows = await db
     .select({
@@ -151,7 +163,9 @@ playersRoutes.get("/players/:id/matches", async (c) => {
       >`lag(${faceitMatchStats.eloAfter}) over (partition by ${faceitMatchStats.playerId} order by ${faceitMatchStats.playedAt} asc, ${faceitMatchStats.matchId} asc)`,
     })
     .from(faceitMatchStats)
-    .where(eq(faceitMatchStats.playerId, id))
+    // Filtre saison : la fenêtre lag() ne porte alors que sur la saison → le 1er match
+    // de la saison n'hérite pas d'un ±ELO d'avant le reset (cohérent avec le soft reset).
+    .where(and(eq(faceitMatchStats.playerId, id), ...seasonMatch))
     .orderBy(desc(faceitMatchStats.playedAt))
     .limit(limit)
     .offset(offset);
@@ -177,11 +191,20 @@ playersRoutes.get("/players/:id/stats", async (c) => {
   const parsed = rangeSchema.safeParse(c.req.query("range"));
   if (!parsed.success) return c.json({ error: "invalid range (7d|30d|3m|all)" }, 400);
   const range = parsed.data;
+  const season = parseSeason(c.req.query("season"));
+  if (!season.ok) return badRequest(c, "invalid season");
 
   const [player] = await db.select({ id: players.id }).from(players).where(eq(players.id, id)).limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
 
+  // Une saison borne le jeu de matchs (les stats « de la saison ») et prend le pas sur
+  // la fenêtre roulante ; sans saison, on garde le range roulant (7d/30d/…).
   const cutoff = rangeCutoff(range, new Date());
+  const timeConds = season.range
+    ? seasonConds(faceitMatchStats.playedAt, season.range)
+    : cutoff
+      ? [gte(faceitMatchStats.playedAt, cutoff)]
+      : [];
   const rows = await db
     .select({
       map: faceitMatchStats.map,
@@ -189,11 +212,7 @@ playersRoutes.get("/players/:id/stats", async (c) => {
       stats: faceitMatchStats.stats,
     })
     .from(faceitMatchStats)
-    .where(
-      cutoff
-        ? and(eq(faceitMatchStats.playerId, id), gte(faceitMatchStats.playedAt, cutoff))
-        : eq(faceitMatchStats.playerId, id),
-    );
+    .where(and(eq(faceitMatchStats.playerId, id), ...timeConds));
 
   return c.json<PlayerStatsResponse>({
     range,

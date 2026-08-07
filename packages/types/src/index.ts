@@ -298,6 +298,21 @@ export interface RefreshEloResponse {
   unranked: boolean;
 }
 
+/**
+ * Saison Faceit (B19.2). L'API FACEIT ne donne aucun id de saison → on dérive la
+ * saison de la date. `endsAt` = début de la saison suivante (null = saison courante).
+ */
+export interface Season {
+  id: string;
+  label: string;
+  startsAt: string; // ISO
+  endsAt: string | null; // ISO, null = saison en cours
+}
+
+export interface SeasonsResponse {
+  seasons: Season[];
+}
+
 /** Flux de matchs récents du pôle (B15.11), tous joueurs confondus.
  *  Un même match apparaît une fois par membre y ayant joué (chacun son eloDelta). */
 export interface RecentMatchEntry {

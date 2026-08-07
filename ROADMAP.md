@@ -93,6 +93,7 @@ _Issu de la recherche (Leetify, csstats.gg, scope.gg, Faceit, Calibrum). Tout es
 - **Stats mécaniques (façon Leetify)** — placement de viseur, temps de réaction, spray, counter-strafe. **Nécessite de parser les démos** (pipeline lourd, séparé). Gros effort, à évaluer si un jour on veut ce niveau.
 - **Highlights** — clips CS2 (allstar.gg / Medal). Zone grise ToS → viser l'embed officiel `allstar.gg/iframe` ou la Partner API. Voir bloc B8.
 - **Audit de sécurité** — à faire **avant l'ouverture publique** (pendant/juste avant B12) : surfaces API, secrets, deps. Le skill natif `/security-review` de Claude Code fait le gros du travail en une session ; à ticketer au moment de B12.
+- **FACEIT Rating (piste V2)** — Season 8 a introduit une métrique **FACEIT Rating** à côté de l'ELO. **Non exposée** dans `games.cs2` de la Data API v4 publique (vérifié 2026-08-07 sur nos membres) → pas récupérable pour l'instant. À ré-évaluer si FACEIT l'ajoute à l'API (ou via un endpoint dédié). Contexte : epic B19 (Saisons Faceit).
 - _(ajoute tes idées ici…)_
 
 > Déploiement / hébergement : ticketé → **bloc B12** (epic #59).
