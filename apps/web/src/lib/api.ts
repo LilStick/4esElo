@@ -105,6 +105,8 @@ export const getPremierStatus = () => get<PremierConnectionStatus>("/premier/sta
 export const premierConnect = (body: PremierConnectRequest) =>
   post<{ ok: boolean }>("/premier/connect", body);
 export const premierDisconnect = () => send<{ ok: boolean }>("DELETE", "/premier/connect");
+/** Relance le sync Premier de la session sans délink/relink (B18.16). Cooldown 30 s → 429. */
+export const premierRefresh = () => post<{ ok: boolean }>("/premier/refresh");
 
 export function getLeaderboard(source: EloSource = "faceit", sparkline?: number) {
   const spark = sparkline ? `&sparkline=${sparkline}` : "";
