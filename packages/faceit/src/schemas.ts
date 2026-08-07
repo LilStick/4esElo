@@ -7,8 +7,11 @@ const cs2GameSchema = z.object({
   region: z.string().optional(),
   game_player_id: z.string().optional(), // Steam ID64
   game_player_name: z.string().optional(),
-  skill_level: z.number(),
-  faceit_elo: z.number(),
+  // Optionnels depuis Season 8 : pendant les 10 matchs de placement le profil est
+  // Unranked et l'ELO/level sont cachés → l'API peut les omettre ou renvoyer 0.
+  // Les rendre requis ferait planter le parse (donc le sync) d'un joueur en placement.
+  skill_level: z.number().optional(),
+  faceit_elo: z.number().optional(),
 });
 
 export const rawPlayerSchema = z.object({
@@ -38,9 +41,13 @@ export const rawHistorySchema = z.object({
 });
 
 export interface FaceitCs2Profile {
-  elo: number;
-  skillLevel: number;
+  /** ELO courant ; null en placement (Season 8+ : Unranked, ELO caché). */
+  elo: number | null;
+  /** Skill level 1-10 ; null en placement. */
+  skillLevel: number | null;
   steamId64: string | null;
+  /** true = 10 matchs de placement en cours (non classé, ELO/level cachés). */
+  unranked: boolean;
 }
 
 export interface FaceitPlayer {
@@ -60,18 +67,26 @@ export interface FaceitMatchRef {
 
 export function normalizePlayer(raw: z.infer<typeof rawPlayerSchema>): FaceitPlayer {
   const cs2 = raw.games.cs2;
+  // `games.cs2` absent = n'a jamais joué CS2 (cs2 null, distinct du placement).
+  // Sinon, convention Faceit : skill_level 0 (ou ELO/level absents) = Unranked, en
+  // placement → on ne fabrique pas d'ELO à partir de rien (elo/skillLevel null).
+  let cs2Profile: FaceitCs2Profile | null = null;
+  if (cs2) {
+    const ranked =
+      typeof cs2.faceit_elo === "number" && typeof cs2.skill_level === "number" && cs2.skill_level > 0;
+    cs2Profile = {
+      elo: ranked ? cs2.faceit_elo! : null,
+      skillLevel: ranked ? cs2.skill_level! : null,
+      steamId64: cs2.game_player_id ?? null,
+      unranked: !ranked,
+    };
+  }
   return {
     playerId: raw.player_id,
     nickname: raw.nickname,
     avatar: raw.avatar || null,
     country: raw.country || null,
-    cs2: cs2
-      ? {
-          elo: cs2.faceit_elo,
-          skillLevel: cs2.skill_level,
-          steamId64: cs2.game_player_id ?? null,
-        }
-      : null,
+    cs2: cs2Profile,
   };
 }
 
