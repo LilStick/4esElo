@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TbRefresh } from "react-icons/tb";
 import type { EloPoint, EloSource } from "@4eselo/types";
-import { ApiError, getPlayerMatches, refreshPlayerElo } from "../lib/api";
+import { ApiError, getPlayerMatches, premierRefresh, refreshPlayerElo } from "../lib/api";
 import { mapScreen } from "../lib/mapScreens";
 import { premierTier } from "../lib/premierTier";
+import { useMe } from "../lib/useMe";
 import { cn } from "../lib/cn";
 import { Card, CountUp, LevelBadge, PremierBadge } from "../ui";
 
@@ -37,6 +38,9 @@ export function EloSummaryCard({
 }) {
   const premier = source === "premier";
   const qc = useQueryClient();
+  const { player } = useMe();
+  // Le refresh Premier relance le sync de la session → réservé à son propre profil.
+  const isOwnPremier = premier && player?.id === id;
   const [msg, setMsg] = useState<{ text: string; tone: "ok" | "warn" } | null>(null);
   const { data } = useQuery({
     queryKey: ["matches", id, 50],
@@ -54,6 +58,27 @@ export function EloSummaryCard({
       const status = e instanceof ApiError ? e.status : 0;
       setMsg({
         text: status === 429 ? "Déjà à jour, réessaie dans 1 min" : "Échec, réessaie plus tard",
+        tone: "warn",
+      });
+    },
+    onSettled: () => {
+      window.setTimeout(() => setMsg(null), 3500);
+    },
+  });
+
+  // Premier (B18.16) : relance le sync côté worker sans délink/relink. Le rating
+  // n'est pas frais dans la seconde → toast « demandé », on invalide pour recharger.
+  const premierResync = useMutation({
+    mutationFn: () => premierRefresh(),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["player", id] });
+      await qc.invalidateQueries({ queryKey: ["premierMatches", id] });
+      setMsg({ text: "Resync demandé, reviens dans un instant", tone: "ok" });
+    },
+    onError: (e) => {
+      const status = e instanceof ApiError ? e.status : 0;
+      setMsg({
+        text: status === 429 ? "Déjà demandé, réessaie dans un instant" : "Échec, réessaie plus tard",
         tone: "warn",
       });
     },
@@ -113,15 +138,30 @@ export function EloSummaryCard({
         style={{ background: color }}
       />
 
-      {/* Rafraîchir l'ELO à la demande (B16.10). En Premier : synchro auto (worker) → bouton inactif. */}
+      {/* Rafraîchir à la demande. Faceit (B16.10) : resync direct. Premier (B18.16) :
+          relance le sync worker, réservé à son propre profil (sinon synchro auto). */}
       <button
-        onClick={() => !premier && refresh.mutate()}
-        disabled={premier || refresh.isPending}
-        aria-label={premier ? "Synchro automatique" : "Rafraîchir l'ELO"}
-        title={premier ? "Premier : synchro automatique" : "Rafraîchir l'ELO"}
+        onClick={() => {
+          if (premier) {
+            if (isOwnPremier) premierResync.mutate();
+          } else {
+            refresh.mutate();
+          }
+        }}
+        disabled={(premier && !isOwnPremier) || refresh.isPending || premierResync.isPending}
+        aria-label={
+          !premier ? "Rafraîchir l'ELO" : isOwnPremier ? "Rafraîchir Premier" : "Synchro automatique"
+        }
+        title={
+          !premier
+            ? "Rafraîchir l'ELO"
+            : isOwnPremier
+              ? "Rafraîchir Premier"
+              : "Premier : synchro automatique"
+        }
         className="absolute top-3 right-3 z-10 grid size-9 cursor-pointer place-items-center rounded-lg border border-white/[0.12] bg-white/[0.04] text-ink-dim transition-colors hover:border-brand hover:text-brand-hi focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:outline-none disabled:cursor-default disabled:opacity-50"
       >
-        <TbRefresh size={16} className={refresh.isPending ? "animate-spin" : ""} />
+        <TbRefresh size={16} className={refresh.isPending || premierResync.isPending ? "animate-spin" : ""} />
       </button>
       {msg && (
         <div
