@@ -108,6 +108,12 @@ test("effectiveEloDelta : dérive de eloAfter − eloAfter précédent quand col
   assert.equal(effectiveEloDelta(null, 1560, 1500), 60);
   assert.equal(effectiveEloDelta(null, 1480, 1500), -20);
 });
+test("effectiveEloDelta : dérivé == 0 → null (B19.3 : un vrai match Faceit ne fait jamais 0)", () => {
+  // Cas prod : deux relevés identiques de part et d'autre du soft reset (Linkraft- 1099→1099).
+  assert.equal(effectiveEloDelta(null, 1099, 1099), null);
+  // Mais une colonne backfill (source fiable) est prise telle quelle, 0 compris.
+  assert.equal(effectiveEloDelta(0, 1099, 1099), 0);
+});
 test("effectiveEloDelta : null si eloAfter ou son prédécesseur manque", () => {
   assert.equal(effectiveEloDelta(null, 1560, null), null);
   assert.equal(effectiveEloDelta(null, null, 1500), null);

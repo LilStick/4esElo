@@ -21,25 +21,37 @@ export interface SeasonRange {
   end: Date | null;
 }
 
-/** Liste exposée au front (bornes ISO ; endsAt dérivé de la saison suivante). */
-export function listSeasons(): Season[] {
-  return STARTS.map((s, i) => ({
+type SeasonStart = { id: string; label: string; startsAt: string };
+
+/** Dérivation pure (testable avec une liste synthétique) : endsAt = début de la suivante. */
+export function deriveSeasons(starts: readonly SeasonStart[]): Season[] {
+  return starts.map((s, i) => ({
     id: s.id,
     label: s.label,
     startsAt: s.startsAt,
-    endsAt: STARTS[i + 1]?.startsAt ?? null,
+    endsAt: starts[i + 1]?.startsAt ?? null,
   }));
+}
+
+/** Plage [start, end) d'une saison dans une liste donnée, ou null si l'id est inconnu. */
+export function deriveSeasonRange(starts: readonly SeasonStart[], id: string): SeasonRange | null {
+  const i = starts.findIndex((s) => s.id === id);
+  if (i < 0) return null;
+  return {
+    id,
+    start: new Date(starts[i]!.startsAt),
+    end: starts[i + 1] ? new Date(starts[i + 1]!.startsAt) : null,
+  };
+}
+
+/** Liste exposée au front (bornes ISO ; endsAt dérivé de la saison suivante). */
+export function listSeasons(): Season[] {
+  return deriveSeasons(STARTS);
 }
 
 /** Plage [start, end) d'une saison, ou null si l'id est inconnu. */
 export function seasonRange(id: string): SeasonRange | null {
-  const i = STARTS.findIndex((s) => s.id === id);
-  if (i < 0) return null;
-  return {
-    id,
-    start: new Date(STARTS[i]!.startsAt),
-    end: STARTS[i + 1] ? new Date(STARTS[i + 1]!.startsAt) : null,
-  };
+  return deriveSeasonRange(STARTS, id);
 }
 
 export type SeasonParse =

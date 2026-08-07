@@ -72,8 +72,14 @@ export function normalizePlayer(raw: z.infer<typeof rawPlayerSchema>): FaceitPla
   // placement → on ne fabrique pas d'ELO à partir de rien (elo/skillLevel null).
   let cs2Profile: FaceitCs2Profile | null = null;
   if (cs2) {
+    // Classé = ELO ET level présents et > 0. On exige `faceit_elo > 0` (pas seulement
+    // skill_level) : l'API peut renvoyer 0 pour l'ELO caché en placement → sans ça un
+    // 0 s'insérerait dans la courbe (la pollution que B19 veut éviter).
     const ranked =
-      typeof cs2.faceit_elo === "number" && typeof cs2.skill_level === "number" && cs2.skill_level > 0;
+      typeof cs2.faceit_elo === "number" &&
+      cs2.faceit_elo > 0 &&
+      typeof cs2.skill_level === "number" &&
+      cs2.skill_level > 0;
     cs2Profile = {
       elo: ranked ? cs2.faceit_elo! : null,
       skillLevel: ranked ? cs2.skill_level! : null,

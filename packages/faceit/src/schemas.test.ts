@@ -29,6 +29,17 @@ test("placement : faceit_elo et skill_level absents → parse OK (plus de throw)
   assert.equal(p.cs2?.steamId64, "765");
 });
 
+test("placement : payloads partiels/asymétriques → unranked (jamais de faux classé)", () => {
+  // level présent seul → unranked
+  assert.equal(parse({ ...base, games: { cs2: { skill_level: 7 } } }).cs2?.unranked, true);
+  // elo présent seul → unranked
+  assert.equal(parse({ ...base, games: { cs2: { faceit_elo: 1500 } } }).cs2?.unranked, true);
+  // level > 0 mais elo caché à 0 → unranked (sinon un 0 polluerait la courbe)
+  const zeroElo = parse({ ...base, games: { cs2: { skill_level: 7, faceit_elo: 0 } } });
+  assert.equal(zeroElo.cs2?.unranked, true);
+  assert.equal(zeroElo.cs2?.elo, null);
+});
+
 test("games.cs2 absent → cs2 null (jamais joué CS2, distinct du placement)", () => {
   const p = parse({ ...base, games: {} });
   assert.equal(p.cs2, null);

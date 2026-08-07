@@ -50,9 +50,12 @@ export async function syncPlayer(
 
   if (!profile.cs2) return { status: "no-cs2" };
 
-  const { elo, skillLevel } = profile.cs2;
   // Placement (Season 8+) : ELO caché → on ne pose PAS de snapshot (ne pollue pas la
   // courbe, comme les games de placement Premier). On reprendra une fois classé.
+  // On lit le drapeau `unranked` (source de vérité du provider), pas `elo === null`.
+  if (profile.cs2.unranked) return { status: "unranked" };
+  const { elo, skillLevel } = profile.cs2;
+  // Invariant provider : non-unranked ⇒ elo/skillLevel non null. Garde défensive typée.
   if (elo === null || skillLevel === null) return { status: "unranked" };
   const previous = await store.getLatestElo(player.id, "faceit");
 

@@ -56,10 +56,11 @@ refreshRoutes.post("/players/:id/refresh", async (c) => {
   }
   if (!profile.cs2) return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: false });
   // Placement (Season 8+) : ELO caché → pas de snapshot (ne pollue pas la courbe).
-  if (profile.cs2.elo === null)
-    return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: true });
+  // Drapeau `unranked` du provider (source de vérité), pas `elo === null`.
+  if (profile.cs2.unranked) return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: true });
 
   const { elo, skillLevel } = profile.cs2;
+  if (elo === null) return c.json<RefreshEloResponse>({ elo: null, changed: false, unranked: true });
   const [latest] = await db
     .select({ elo: eloSnapshots.elo })
     .from(eloSnapshots)
