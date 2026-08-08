@@ -12,3 +12,5 @@ export type {
   FaceitMatchPlayer,
   FaceitMatchTeam,
 } from "./schemas";
+export { ingestPlayerMatches } from "./ingest";
+export type { MatchReader, MatchStatsStore, PlayerToIngest, IngestOptions, IngestResult } from "./ingest";

@@ -38,6 +38,29 @@ test("react : PUT sur l'emoji URL-encodé + /@me", async () => {
   assert.match(calls[0]!.url, /\/channels\/chan-1\/messages\/msg-1\/reactions\/%E2%9C%85\/@me$/);
 });
 
+test("getUserAvatar : GET /users/:id (auth bot) → renvoie le hash", async () => {
+  const { fetchImpl, calls } = recordingFetch(
+    () => new Response(JSON.stringify({ id: "u1", avatar: "abc123" }), { status: 200 }),
+  );
+  const bot = new DiscordBotClient("tok", { fetchImpl });
+  const hash = await bot.getUserAvatar("u1");
+  assert.equal(hash, "abc123");
+  assert.match(calls[0]!.url, /\/users\/u1$/);
+  assert.equal((calls[0]!.init.headers as Record<string, string>).Authorization, "Bot tok");
+});
+
+test("getUserAvatar : avatar null (défaut) → null ; 404 → null", async () => {
+  const noAvatar = new DiscordBotClient("tok", {
+    fetchImpl: (async () =>
+      new Response(JSON.stringify({ id: "u1", avatar: null }), { status: 200 })) as unknown as typeof fetch,
+  });
+  assert.equal(await noAvatar.getUserAvatar("u1"), null);
+  const gone = new DiscordBotClient("tok", {
+    fetchImpl: (async () => new Response(null, { status: 404 })) as unknown as typeof fetch,
+  });
+  assert.equal(await gone.getUserAvatar("u1"), null);
+});
+
 test("réponse non-ok → DiscordError", async () => {
   const { fetchImpl } = recordingFetch(() => new Response("nope", { status: 403 }));
   const bot = new DiscordBotClient("tok", { fetchImpl });

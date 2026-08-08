@@ -174,7 +174,17 @@ export function renderCrawlerHtml(d: CrawlerHtmlData): string {
 
 /** Carte depuis la DB (source faceit) ; null si joueur inconnu. */
 async function loadCardData(id: string): Promise<OgCardData | null> {
-  const [player] = await db.select().from(players).where(eq(players.id, id)).limit(1);
+  // Colonnes explicites (B11.19) : pas de SELECT * (robustesse au drift de schéma).
+  const [player] = await db
+    .select({
+      faceitNickname: players.faceitNickname,
+      discordName: players.discordName,
+      discordId: players.discordId,
+      discordAvatar: players.discordAvatar,
+    })
+    .from(players)
+    .where(eq(players.id, id))
+    .limit(1);
   if (!player) return null;
 
   const [latest] = await db

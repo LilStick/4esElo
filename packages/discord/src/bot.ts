@@ -1,4 +1,8 @@
+import { z } from "zod";
 import { DiscordError } from "./oauth";
+
+// Réponse GET /users/{id} : on ne consomme que l'avatar (règle 2 : validé aux frontières).
+const userSchema = z.object({ avatar: z.string().nullable().optional() });
 
 /**
  * Client bot Discord (REST v10). Poste une idée dans un salon PUIS amorce les réactions
@@ -16,6 +20,8 @@ export interface DiscordBotMessage {
 export interface DiscordBot {
   postMessage(channelId: string, msg: DiscordBotMessage): Promise<string>;
   react(channelId: string, messageId: string, emoji: string): Promise<void>;
+  /** Hash de l'avatar courant d'un utilisateur, ou null (pas d'avatar / introuvable). */
+  getUserAvatar(userId: string): Promise<string | null>;
 }
 
 export interface DiscordBotOptions {
@@ -68,5 +74,15 @@ export class DiscordBotClient implements DiscordBot {
       },
     );
     if (!res.ok) throw new DiscordError(res.status, "/reactions");
+  }
+
+  async getUserAvatar(userId: string): Promise<string | null> {
+    const res = await this.fetchImpl(`${API}/users/${userId}`, {
+      headers: { Authorization: `Bot ${this.token}` },
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    if (res.status === 404) return null; // utilisateur inconnu / a quitté
+    if (!res.ok) throw new DiscordError(res.status, "/users");
+    return userSchema.parse(await res.json()).avatar ?? null;
   }
 }

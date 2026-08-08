@@ -1,6 +1,7 @@
 import {
   FACEIT_API_KEY,
   STEAM_API_KEY,
+  DISCORD_BOT_TOKEN,
   WORKER_INTERVAL_MS,
   PREMIER_BOT_ENABLED,
   STEAM_BOT_USERNAME,
@@ -8,12 +9,14 @@ import {
   STEAM_BOT_SHARED_SECRET,
   STEAM_AUTH_ENC_KEY,
 } from "./env";
-import { db, players } from "@4eselo/db";
+import { db, players, runMigrations, shouldMigrateOnBoot } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
 import { SteamClient } from "@4eselo/steam";
+import { DiscordBotClient } from "@4eselo/discord";
+import { refreshDiscordAvatars } from "./refreshAvatars";
 import { syncPlayer, type PlayerToSync } from "./sync";
-import { ingestPlayerMatches } from "./ingest";
+import { ingestPlayerMatches } from "@4eselo/faceit";
 import { ingestMatches } from "./ingestMatches";
 import { deepIngestPlayers } from "./deepIngest";
 import { eloToAttribute } from "./eloAfter";
@@ -35,10 +38,14 @@ import {
   dbPlaytimeStore,
   dbBackfillStore,
   dbAnnouncementStore,
+  dbAvatarStore,
 } from "./store";
 
 // curl passe parfois le mur Cloudflare que Node non - pari opportuniste.
 const eloHistory = new UnofficialEloHistory({ fetchImpl: curlFetch() });
+
+// Bot Discord (avatars, B11.20) : optionnel → sauté si pas de token.
+const discordBot = DISCORD_BOT_TOKEN ? new DiscordBotClient(DISCORD_BOT_TOKEN) : null;
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
@@ -136,8 +143,9 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
           `[worker] ${p.faceitId}: matches +${ing.inserted} (skipped ${ing.skipped}, failed ${ing.failed})`,
         );
       }
-      // Sur tout changement d'ELO enregistré, elo_after va sur le dernier match
-      // (l'ELO ne bouge que sur un match), sans exiger un ingest ce tick-ci.
+      // À chaque passage, on (ré)attribue l'ELO courant au dernier match s'il n'a
+      // pas encore de elo_after (l'ELO courant EST son elo_after) → rattrape la
+      // game dont le ±ELO avait été perdu quand ses stats Faceit ont tardé à sortir.
       const elo = syncRes ? eloToAttribute(syncRes) : null;
       if (elo !== null) {
         const matchId = await dbMatchStatsStore.setNewestMatchEloAfter(p.id, elo);
@@ -180,9 +188,26 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
   } catch (err) {
     console.error("[worker] match-level ingest failed:", err instanceof Error ? err.message : err);
   }
+
+  // Avatars Discord à jour (B11.20) : sinon un membre qui change sa pdp Discord la voit
+  // périmée sur le site (ancien hash → 404). Best-effort ; sauté sans bot token.
+  if (discordBot) {
+    try {
+      const av = await refreshDiscordAvatars(discordBot, dbAvatarStore);
+      if (av.updated > 0) console.log(`[worker] avatars Discord: ${av.updated}/${av.checked} mis à jour`);
+    } catch (err) {
+      console.error("[worker] refresh avatars failed:", err instanceof Error ? err.message : err);
+    }
+  }
 }
 
 async function main() {
+  // Schéma à jour avant tout (B11.18) — fail fast si échec (main().catch → exit 1).
+  // Gaté par DB_MIGRATE_ON_BOOT (on en prod ; off en dev/CI = db:push).
+  if (shouldMigrateOnBoot()) {
+    await runMigrations();
+    console.log("[db] migrations à jour");
+  }
   if (!FACEIT_API_KEY) throw new Error("FACEIT_API_KEY is not set");
   const faceit = new FaceitClient(FACEIT_API_KEY);
 
