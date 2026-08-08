@@ -2,6 +2,7 @@ import SteamUser from "steam-user";
 import SteamTotp from "steam-totp";
 // globaloffensive n'expose pas de types → import CommonJS typé localement.
 import GlobalOffensive from "globaloffensive";
+import { decodeShareCode } from "@4eselo/premier";
 import { createGcWatchdog, type GcWatchdog } from "./gcWatchdog";
 
 /**
@@ -40,6 +41,13 @@ export interface GcBotOptions {
    * Défaut 5 min. Une déco brève se répare seule bien avant.
    */
   gcDownExitMs?: number;
+  /**
+   * Nb de timeouts `requestMatch` consécutifs au-delà duquel on considère le GC
+   * « gelé » (socket vivant, `gcReady=true`, mais `requestGame` muet → aucun event
+   * `disconnectedFromGC` ne l'aurait détecté) et on arme l'abandon via le watchdog.
+   * Défaut 3.
+   */
+  gcMaxTimeouts?: number;
   /** Injectable pour tests : watchdog déjà construit (sinon défaut = exit process). */
   watchdog?: GcWatchdog;
 }
@@ -59,6 +67,16 @@ export function createGcBot(creds: GcBotCreds, opts: GcBotOptions = {}): GcBot {
         process.exit(1);
       },
     });
+  // Gel « socket vivant » : le watchdog ci-dessus n'écoute que les events de
+  // connexion ; si la session reste gcReady=true mais que requestGame ne répond
+  // plus, aucun markDown n'est émis. On arme donc l'abandon après N timeouts d'affilée.
+  const timeoutTracker = createTimeoutTracker(opts.gcMaxTimeouts ?? 3, () => {
+    console.error(
+      "[premier-bot] GC gelé : trop de timeouts requestMatch consécutifs (socket vivant, requestGame muet) - armement de l'abandon",
+    );
+    watchdog.markDown();
+  });
+
   let resolveReady!: () => void;
   let rejectReady!: (e: Error) => void;
   const readyP = new Promise<void>((res, rej) => {
@@ -95,17 +113,24 @@ export function createGcBot(creds: GcBotCreds, opts: GcBotOptions = {}): GcBot {
 
   function requestMatch(shareCode: string, timeoutMs = 30000): Promise<GcMatchInfo> {
     // sérialise : un requestGame à la fois (l'event matchList est global).
+    const expectedMatchId = decodeMatchId(shareCode);
     const run = chain.then(
       () =>
         new Promise<GcMatchInfo>((resolve, reject) => {
           if (!gcReady) return reject(new Error("GC non connecté"));
           const timer = setTimeout(() => {
             csgo.removeListener("matchList", onList);
+            timeoutTracker.recordTimeout();
             reject(new Error(`timeout GC pour ${shareCode}`));
           }, timeoutMs);
           const onList = (matches: unknown) => {
+            // matchList est un event GLOBAL non corrélé : un event en retard d'une
+            // requête précédente (qui a timeout) peut arriver pendant celle-ci. On
+            // l'ignore s'il concerne un autre match (corrélation par matchid).
+            if (isStaleMatchList(expectedMatchId, matches)) return;
             clearTimeout(timer);
             csgo.removeListener("matchList", onList);
+            timeoutTracker.recordSuccess();
             resolve(extractMatchInfo(matches));
           };
           csgo.on("matchList", onList);
@@ -142,4 +167,60 @@ export function extractMatchInfo(matches: unknown): GcMatchInfo {
   const gameType = typeof reservation?.game_type === "number" ? reservation.game_type : null;
   const matchtime = typeof m.matchtime === "number" ? m.matchtime : null;
   return { demoUrl, gameType, playedAt: matchtime ? new Date(matchtime * 1000) : null };
+}
+
+/** matchId attendu d'un share code ; null si le code est illisible (pas de corrélation). */
+export function decodeMatchId(shareCode: string): bigint | null {
+  try {
+    return decodeShareCode(shareCode).matchId;
+  } catch {
+    return null; // share code invalide → on ne peut pas corréler, on n'exclut rien
+  }
+}
+
+/** matchId porté par une réponse matchList du GC ; null si absent/illisible. */
+export function matchListMatchId(matches: unknown): bigint | null {
+  const m = Array.isArray(matches) ? (matches[0] as Record<string, unknown> | undefined) : undefined;
+  const raw = m?.matchid;
+  if (raw == null) return null;
+  try {
+    return BigInt(String(raw));
+  } catch {
+    return null; // format inattendu → on ne conclut pas
+  }
+}
+
+/**
+ * Un event matchList est « périmé » (d'une requête précédente qui a timeout) si on
+ * peut lire les DEUX matchid et qu'ils diffèrent. Défensif : si l'un des deux est
+ * illisible, on ne conclut PAS (on accepte) pour ne pas casser le chemin heureux.
+ */
+export function isStaleMatchList(expected: bigint | null, matches: unknown): boolean {
+  const got = matchListMatchId(matches);
+  return expected !== null && got !== null && got !== expected;
+}
+
+export interface TimeoutTracker {
+  recordTimeout(): void;
+  recordSuccess(): void;
+}
+
+/**
+ * Compte les timeouts consécutifs ; au `threshold`-ième d'affilée, appelle `onTrip`
+ * et se réarme. Un succès remet le compteur à zéro. Pur, testable.
+ */
+export function createTimeoutTracker(threshold: number, onTrip: () => void): TimeoutTracker {
+  let count = 0;
+  return {
+    recordTimeout() {
+      count++;
+      if (count >= threshold) {
+        count = 0;
+        onTrip();
+      }
+    },
+    recordSuccess() {
+      count = 0;
+    },
+  };
 }
