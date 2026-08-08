@@ -1,5 +1,6 @@
 export { db } from "./client";
 export type { DB } from "./client";
+export { runMigrations, shouldMigrateOnBoot } from "./migrate";
 export * as schema from "./schema";
 export {
   players,
