@@ -14,6 +14,8 @@ const env = loadEnv(
     DATABASE_URL: z.string().url({ message: "URL Postgres attendue (voir .env.example)" }),
     FACEIT_API_KEY: z.string().min(1, "clé server-side requise - https://developers.faceit.com"),
     STEAM_API_KEY: z.string().optional(),
+    // Optionnel : sans lui le rafraîchissement des avatars Discord (B11.20) est sauté.
+    DISCORD_BOT_TOKEN: z.string().optional(),
     WORKER_INTERVAL_MS: z.coerce
       .number()
       .int()
@@ -34,6 +36,7 @@ const env = loadEnv(
 
 export const FACEIT_API_KEY = env.FACEIT_API_KEY;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
+export const DISCORD_BOT_TOKEN = env.DISCORD_BOT_TOKEN;
 export const WORKER_INTERVAL_MS = env.WORKER_INTERVAL_MS;
 export const PREMIER_ENABLED = env.PREMIER_ENABLED.toLowerCase() === "true";
 export const PREMIER_BOT_ENABLED = env.PREMIER_BOT_ENABLED.toLowerCase() === "true";

@@ -41,6 +41,7 @@ test("getPlayerByNickname normalizes the CS2 profile", async () => {
     elo: 1875,
     skillLevel: 8,
     steamId64: "76561198000000000",
+    unranked: false,
   });
 
   assert.equal(calls[0]!.headers.Authorization, "Bearer key-xyz");

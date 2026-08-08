@@ -32,6 +32,7 @@ export interface PlayerToSync {
 export type SyncResult =
   | { status: "recorded"; elo: number; previous: number | null; level: number; steamIdFilled: boolean }
   | { status: "unchanged"; elo: number; steamIdFilled: boolean }
+  | { status: "unranked"; steamIdFilled: boolean } // placement (Season 8+) : ELO caché, pas de snapshot
   | { status: "no-cs2" }
   | { status: "not-found" };
 
@@ -54,8 +55,14 @@ export async function syncPlayer(
 
   if (!profile.cs2) return { status: "no-cs2" };
 
+  // steamId64 rattrapé D'ABORD (dispo même en placement) → le sync Premier en a besoin.
   const { elo, skillLevel, steamId64 } = profile.cs2;
   const steamIdFilled = steamId64 ? await store.backfillSteamId64(player.id, steamId64) : false;
+  // Placement (Season 8+) : ELO caché → on ne pose PAS de snapshot (ne pollue pas la
+  // courbe, comme les placements Premier). Drapeau `unranked` = source de vérité provider.
+  if (profile.cs2.unranked || elo === null || skillLevel === null) {
+    return { status: "unranked", steamIdFilled };
+  }
   const previous = await store.getLatestElo(player.id, "faceit");
 
   if (previous === elo) return { status: "unchanged", elo, steamIdFilled };

@@ -180,7 +180,10 @@ Enforced par ESLint/hooks quand c'est possible (voir #79) ; le reste se rejette 
 - **Valider chaque incrément** : `pnpm typecheck` + `pnpm test` doivent rester verts.
 - **Formater avant chaque commit** : `pnpm format` (la CI bloque sur `format:check`).
 - **Migrations Drizzle** : modifier `packages/db/src/schema.ts` puis `pnpm db:generate`
-  (SQL versionné) ; `pnpm db:push` en dev.
+  (SQL versionné) ; `pnpm db:push` en dev. **Prod : migrations appliquées au boot** de
+  l'API/worker (B11.18) via l'env **`DB_MIGRATE_ON_BOOT=true`** (à laisser ON en prod ;
+  off en dev/CI qui utilisent `db:push`) → un deploy applique toujours son schéma, plus
+  de drift (cf. incident is_admin 08/08).
 - **Ne jamais commit `.env`** (déjà gitignoré). La clé Faceit est une _server-side key_.
 - **Types partagés** : toute forme échangée API↔front vit dans `packages/types`.
 - **Auteurs** : seuls **LilStick** et **Arthur** signent les commits. **Jamais** de trailer `Co-Authored-By: Claude` ni de mention Claude.

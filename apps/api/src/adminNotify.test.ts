@@ -11,6 +11,7 @@ function fakeBot() {
       return "msg-id";
     },
     react: async () => {},
+    getUserAvatar: async () => null,
   };
   return { calls, bot };
 }
@@ -39,6 +40,7 @@ test("notifyAdminAction : une erreur Discord ne remonte pas (best-effort)", asyn
       throw new Error("discord down");
     },
     react: async () => {},
+    getUserAvatar: async () => null,
   };
   adminNotifyDeps.channelId = "chan-123";
   await assert.doesNotReject(notifyAdminAction("🔨 Ban", "test"));

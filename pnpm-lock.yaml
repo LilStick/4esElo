@@ -172,6 +172,9 @@ importers:
       '@4eselo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@4eselo/discord':
+        specifier: workspace:*
+        version: link:../../packages/discord
       '@4eselo/env':
         specifier: workspace:*
         version: link:../../packages/env

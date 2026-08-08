@@ -14,11 +14,15 @@ test("attribue l'ELO dès qu'un changement est enregistré", () => {
   assert.equal(eloToAttribute(recorded), 2092);
 });
 
-test("pas d'attribution si l'ELO n'a pas changé", () => {
-  assert.equal(eloToAttribute({ status: "unchanged", elo: 2067, steamIdFilled: false }), null);
+// Non-régression (#439) : le ±ELO du dernier match était perdu quand les stats Faceit
+// sortaient APRÈS le changement d'ELO. L'ELO courant reste l'elo_after du dernier match
+// même sans changement ce tick → on le renvoie pour le rattraper.
+test("réattribue l'ELO courant même si inchangé (rattrape le dernier match)", () => {
+  assert.equal(eloToAttribute({ status: "unchanged", elo: 2067, steamIdFilled: false }), 2067);
 });
 
-test("pas d'attribution sur no-cs2 / not-found", () => {
+test("pas d'attribution en placement (unranked), no-cs2 ou not-found", () => {
+  assert.equal(eloToAttribute({ status: "unranked", steamIdFilled: false }), null);
   assert.equal(eloToAttribute({ status: "no-cs2" }), null);
   assert.equal(eloToAttribute({ status: "not-found" }), null);
 });

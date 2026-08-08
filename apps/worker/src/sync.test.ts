@@ -9,7 +9,18 @@ function makeProfile(elo: number | null): FaceitPlayer {
     nickname: "noe",
     avatar: null,
     country: "fr",
-    cs2: elo === null ? null : { elo, skillLevel: 8, steamId64: "765..." },
+    cs2: elo === null ? null : { elo, skillLevel: 8, steamId64: "765...", unranked: false },
+  };
+}
+
+/** Profil en placement (Season 8+) : cs2 présent mais non classé, ELO/level cachés. */
+function unrankedProfile(): FaceitPlayer {
+  return {
+    playerId: "fc-1",
+    nickname: "noe",
+    avatar: null,
+    country: "fr",
+    cs2: { elo: null, skillLevel: null, steamId64: "765...", unranked: true },
   };
 }
 
@@ -95,6 +106,14 @@ test("returns no-cs2 and inserts nothing when the player never played CS2", asyn
 
   assert.deepEqual(res, { status: "no-cs2" });
   assert.equal(store.inserts.length, 0);
+});
+
+test("returns unranked and inserts nothing when the player is in placement", async () => {
+  const store = makeStore(null);
+  const res = await syncPlayer(reader(unrankedProfile()), store, player);
+
+  assert.deepEqual(res, { status: "unranked", steamIdFilled: false });
+  assert.equal(store.inserts.length, 0); // ELO caché → pas de point de courbe
 });
 
 test("returns not-found when Faceit 404s", async () => {

@@ -41,12 +41,23 @@ const KNOWN: FaceitPlayer = {
   nickname: "iRegNick",
   avatar: "https://cdn.faceit.test/a.png",
   country: "fr",
-  cs2: { elo: 2001, skillLevel: 10, steamId64: "765_ireg" },
+  cs2: { elo: 2001, skillLevel: 10, steamId64: "765_ireg", unranked: false },
+};
+
+// Inscrit en placement (Season 8) : profil non classé, ELO/level cachés (B19.1).
+const UNRANKED: FaceitPlayer = {
+  playerId: "faceit-ireg-placement",
+  nickname: "iPlacement",
+  avatar: null,
+  country: "fr",
+  cs2: { elo: null, skillLevel: null, steamId64: "765_iplacement", unranked: true },
 };
 
 const fakeFaceit = {
   async getPlayerByNickname(nickname: string): Promise<FaceitPlayer> {
-    if (nickname.toLowerCase() === KNOWN.nickname.toLowerCase()) return KNOWN;
+    const n = nickname.toLowerCase();
+    if (n === KNOWN.nickname.toLowerCase()) return KNOWN;
+    if (n === UNRANKED.nickname.toLowerCase()) return UNRANKED;
     throw new FaceitNotFoundError(404, "/players");
   },
 };
@@ -86,7 +97,10 @@ after(async () => {
   authDeps.config = saved.config;
   authDeps.oauth = saved.oauth;
   registerDeps.faceit = saved.faceit;
-  if (DB_UP) await db.delete(players).where(eq(players.faceitId, KNOWN.playerId));
+  if (DB_UP) {
+    await db.delete(players).where(eq(players.faceitId, KNOWN.playerId));
+    await db.delete(players).where(eq(players.faceitId, UNRANKED.playerId));
+  }
 });
 
 const postRegister = (cookie: string, body: unknown) =>
@@ -122,6 +136,26 @@ test("lookup : préviusalisation du pseudo, 404 clair si introuvable", { skip },
   const missing = await app.request("/register/lookup?nickname=nope", { headers: { cookie } });
   assert.equal(missing.status, 404);
   assert.match(((await missing.json()) as { error: string }).error, /introuvable/);
+});
+
+test("inscrit en placement (Season 8) : lookup elo null + register OK (pas de crash)", { skip }, async () => {
+  const cookie = await sessionFor("reg-placement-1");
+  const look = await app.request("/register/lookup?nickname=iPlacement", { headers: { cookie } });
+  assert.equal(look.status, 200);
+  const body = (await look.json()) as RegisterLookupResponse;
+  assert.equal(body.nickname, "iPlacement");
+  assert.equal(body.elo, null); // ELO caché en placement → null, pas 0
+
+  const res = await postRegister(cookie, {
+    faceitNickname: "iPlacement",
+    formation: "Licence",
+    promoStart: 2026,
+    promoEnd: 2029,
+  });
+  assert.equal(res.status, 201); // inscription possible même non classé
+  const [row] = await db.select().from(players).where(eq(players.faceitId, UNRANKED.playerId));
+  assert.ok(row);
+  assert.equal(row.steamId64, "765_iplacement");
 });
 
 test("register de bout en bout : insert complet, puis doublons refusés proprement", { skip }, async () => {

@@ -333,10 +333,27 @@ export interface PremierMatchesResponse {
 
 /** Refresh ELO à la demande (B16.6) : resync d'un joueur depuis Faceit. */
 export interface RefreshEloResponse {
-  /** ELO courant Faceit, null si le joueur n'a pas de profil CS2. */
+  /** ELO courant Faceit, null si pas de profil CS2 OU en placement (ELO caché). */
   elo: number | null;
   /** true si l'ELO a changé (un snapshot a été inséré). */
   changed: boolean;
+  /** true = joueur en placement (Season 8+) : non classé, ELO caché, pas de snapshot. */
+  unranked: boolean;
+}
+
+/**
+ * Saison Faceit (B19.2). L'API FACEIT ne donne aucun id de saison → on dérive la
+ * saison de la date. `endsAt` = début de la saison suivante (null = saison courante).
+ */
+export interface Season {
+  id: string;
+  label: string;
+  startsAt: string; // ISO
+  endsAt: string | null; // ISO, null = saison en cours
+}
+
+export interface SeasonsResponse {
+  seasons: Season[];
 }
 
 /** Flux de matchs récents du pôle (B15.11), tous joueurs confondus.

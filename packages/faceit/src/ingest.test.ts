@@ -1,11 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  FaceitError,
-  FaceitNotFoundError,
-  type FaceitMatchRef,
-  type FaceitMatchDetail,
-} from "@4eselo/faceit";
+import { FaceitError, FaceitNotFoundError } from "./client";
+import type { FaceitMatchRef, FaceitMatchDetail } from "./schemas";
 import type { FaceitMatchStats } from "@4eselo/types";
 import { ingestPlayerMatches, type MatchReader, type MatchStatsStore } from "./ingest";
 
