@@ -3,6 +3,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { sql, eq, inArray } from "drizzle-orm";
 import { db, players, eloSnapshots, faceitMatchStats, playtimeSnapshots } from "@4eselo/db";
+import { premierDeps } from "./premier";
 import type {
   ActivityResponse,
   AnnouncementsResponse,
@@ -79,6 +80,7 @@ let moverId = "";
 const HOUR = 60 * 60 * 1000;
 
 before(async () => {
+  premierDeps.enabled = true; // le gate B18.21 ferme source=premier flag off ; ici on teste la surface Premier
   if (!DB_UP) return;
   const [p] = await db
     .insert(players)

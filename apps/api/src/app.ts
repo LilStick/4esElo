@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { sql } from "drizzle-orm";
 import { db } from "@4eselo/db";
-import { WEB_ORIGINS, PREMIER_ENABLED } from "./env";
+import { WEB_ORIGINS } from "./env";
 import type { ConfigResponse } from "@4eselo/types";
 import { authRoutes } from "./auth";
 import { registerRoutes } from "./register";
@@ -19,7 +19,7 @@ import { ideasRoutes } from "./ideas";
 import { refreshRoutes } from "./refresh";
 import { seasonsRoutes } from "./seasons";
 import { ogRoutes } from "./og";
-import { premierRoutes } from "./premier";
+import { premierRoutes, premierDeps } from "./premier";
 
 export const app = new Hono();
 app.use("*", cors({ origin: WEB_ORIGINS, credentials: true }));
@@ -30,8 +30,19 @@ app.onError((err, c) => {
   return c.json({ error: "internal error" }, 500);
 });
 
+// Gate serveur de la surface Premier en LECTURE (B18.21) : quand le flag est off, on
+// FERME vraiment `?source=premier` et `/premier/matches` (403), au lieu de compter sur
+// le seul masquage front. `premierDeps.enabled` = flag runtime unique (aussi flippé en
+// test). Les routes d'onboarding gardent leur propre garde 503 (non concernées ici).
+app.use("*", async (c, next) => {
+  if (premierDeps.enabled) return next();
+  const wantsPremier = c.req.query("source") === "premier" || /\/premier\/matches$/.test(c.req.path);
+  if (wantsPremier) return c.json({ error: "premier disabled" }, 403);
+  return next();
+});
+
 // Config publique (B18.13) : le front lit les feature flags, même anonyme.
-app.get("/config", (c) => c.json<ConfigResponse>({ premierEnabled: PREMIER_ENABLED }));
+app.get("/config", (c) => c.json<ConfigResponse>({ premierEnabled: premierDeps.enabled }));
 
 app.get("/health", async (c) => {
   try {

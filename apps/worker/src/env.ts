@@ -21,11 +21,10 @@ const env = loadEnv(
       .int()
       .positive()
       .default(10 * 60 * 1000),
-    // V2 Premier (B18) - optionnels : dormant tant que PREMIER_ENABLED != "true".
-    PREMIER_ENABLED: z.string().default("false"),
-    // Le bot GC ne démarre QUE si ce flag est "true" (une seule session Steam
-    // possible → évite qu'un worker local éjecte l'instance hébergée). Off par
-    // défaut : local = pas de bot ; seule l'instance hébergée le met à "true".
+    // V2 Premier (B18). Le bot GC ne démarre QUE si ce flag est "true" (une seule
+    // session Steam possible → évite qu'un worker local éjecte l'instance hébergée).
+    // Off par défaut : local = pas de bot ; seule l'instance hébergée le met à "true".
+    // NB : c'est le SEUL gate du Premier côté worker (le sync tourne avec le bot).
     PREMIER_BOT_ENABLED: z.string().default("false"),
     STEAM_BOT_USERNAME: z.string().optional(),
     STEAM_BOT_PASSWORD: z.string().optional(),
@@ -38,7 +37,6 @@ export const FACEIT_API_KEY = env.FACEIT_API_KEY;
 export const STEAM_API_KEY = env.STEAM_API_KEY;
 export const DISCORD_BOT_TOKEN = env.DISCORD_BOT_TOKEN;
 export const WORKER_INTERVAL_MS = env.WORKER_INTERVAL_MS;
-export const PREMIER_ENABLED = env.PREMIER_ENABLED.toLowerCase() === "true";
 export const PREMIER_BOT_ENABLED = env.PREMIER_BOT_ENABLED.toLowerCase() === "true";
 export const STEAM_BOT_USERNAME = env.STEAM_BOT_USERNAME;
 export const STEAM_BOT_PASSWORD = env.STEAM_BOT_PASSWORD;
