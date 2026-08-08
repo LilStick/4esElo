@@ -221,24 +221,19 @@ async function main() {
   // jamais éjecter l'instance hébergée par accident (off par défaut en local).
   let premierBot: GcBot | null = null;
   let premierReady = false;
-  const botConfigured =
+  const botConfigured = Boolean(
     STEAM_BOT_USERNAME &&
     STEAM_BOT_PASSWORD &&
     STEAM_BOT_SHARED_SECRET &&
     STEAM_AUTH_ENC_KEY &&
-    STEAM_API_KEY;
-  if (
-    PREMIER_BOT_ENABLED &&
-    STEAM_BOT_USERNAME &&
-    STEAM_BOT_PASSWORD &&
-    STEAM_BOT_SHARED_SECRET &&
-    STEAM_AUTH_ENC_KEY &&
-    STEAM_API_KEY
-  ) {
+    STEAM_API_KEY,
+  );
+  if (PREMIER_BOT_ENABLED && botConfigured) {
+    // botConfigured garantit la présence des creds (le narrowing ne traverse pas Boolean()).
     premierBot = createGcBot({
-      username: STEAM_BOT_USERNAME,
-      password: STEAM_BOT_PASSWORD,
-      sharedSecret: STEAM_BOT_SHARED_SECRET,
+      username: STEAM_BOT_USERNAME!,
+      password: STEAM_BOT_PASSWORD!,
+      sharedSecret: STEAM_BOT_SHARED_SECRET!,
     });
     premierBot
       .ready()

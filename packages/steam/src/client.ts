@@ -99,6 +99,8 @@ export class SteamClient implements PresenceReader {
         const cs2 = response.games?.find((g) => String(g.appid) === CS2_APP_ID);
         out.push({ steamId64: id, minutesForever: cs2?.playtime_forever ?? null });
       } catch {
+        // Best-effort par joueur : profil privé, 429/5xx Steam ou parse KO → playtime
+        // inconnu (null), on ne casse pas le batch. null = « indisponible », pas 0.
         out.push({ steamId64: id, minutesForever: null });
       }
     }
@@ -155,6 +157,8 @@ export class SteamClient implements PresenceReader {
           onCommunityServer: null, // the XML never exposes the server
         });
       } catch {
+        // Best-effort par joueur : profil privé, réseau ou XML illisible → présence
+        // inconnue (online:null), on ne casse pas le batch. null ≠ hors-ligne.
         out.push({ steamId64: id, online: null, inGameCs2: false, onCommunityServer: null });
       }
     }
