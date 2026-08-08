@@ -1,5 +1,5 @@
 {
-  "id": "7955ae00-6d7e-4f30-9623-32fda4c7c685",
+  "id": "19f0956e-b361-4aaa-8391-a7ce8587878c",
   "prevId": "9d8d8bd2-93db-48ac-a0cb-3a49bd180a4d",
   "version": "7",
   "dialect": "postgresql",
@@ -650,23 +650,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "premier_auth_code_enc": {
-          "name": "premier_auth_code_enc",
-          "type": "text",
+        "faceit_unranked": {
+          "name": "faceit_unranked",
+          "type": "boolean",
           "primaryKey": false,
-          "notNull": false
-        },
-        "premier_share_code": {
-          "name": "premier_share_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "premier_synced_at": {
-          "name": "premier_synced_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
