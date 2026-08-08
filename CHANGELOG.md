@@ -5,6 +5,10 @@ Une PR non liée à un ticket (infra, docs, chore) porte `[NO-CHANGELOG]` dans s
 
 Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
+## 2026-08-08
+
+- 2026-08-08 · API : le bouton « rafraîchir » du profil re-fetch désormais **tout** le membre — ELO, **photo de profil Discord** (fini les pdp périmées) et matchs/stats récents — au lieu du seul ELO. (#460)
+
 ## 2026-08-07
 
 - 2026-08-07 · Back : un joueur Faceit en placement (Season 8+ : non classé, ELO caché) ne casse plus le sync — l'ingestion tolère l'ELO/level absents, ne pose pas de point de courbe tant que non classé, et l'état « en placement » est exposé à l'API (refresh). (#444)

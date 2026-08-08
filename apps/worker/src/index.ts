@@ -6,7 +6,7 @@ import { SteamClient } from "@4eselo/steam";
 import { DiscordBotClient } from "@4eselo/discord";
 import { refreshDiscordAvatars } from "./refreshAvatars";
 import { syncPlayer, type PlayerToSync } from "./sync";
-import { ingestPlayerMatches } from "./ingest";
+import { ingestPlayerMatches } from "@4eselo/faceit";
 import { ingestMatches } from "./ingestMatches";
 import { deepIngestPlayers } from "./deepIngest";
 import { eloToAttribute } from "./eloAfter";

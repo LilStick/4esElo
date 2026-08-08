@@ -9,7 +9,7 @@ import {
 } from "@4eselo/db";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import type { SnapshotStore } from "./sync";
-import type { MatchStatsStore } from "./ingest";
+import type { MatchStatsStore } from "@4eselo/faceit";
 import type { MatchLevelStore } from "./ingestMatches";
 import type { DeepIngestStore } from "./deepIngest";
 import type { EloAfterStore } from "./eloAfter";

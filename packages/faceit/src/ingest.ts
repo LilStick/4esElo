@@ -1,10 +1,6 @@
 import type { FaceitMatchStats } from "@4eselo/types";
-import {
-  FaceitError,
-  FaceitNotFoundError,
-  type FaceitMatchRef,
-  type FaceitMatchDetail,
-} from "@4eselo/faceit";
+import { FaceitError, FaceitNotFoundError } from "./client";
+import type { FaceitMatchRef, FaceitMatchDetail } from "./schemas";
 
 /**
  * Ingestion des matchs (B2.3) : pour un membre, on parcourt son historique borné
