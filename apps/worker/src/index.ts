@@ -1,5 +1,5 @@
 import { FACEIT_API_KEY, STEAM_API_KEY, WORKER_INTERVAL_MS } from "./env";
-import { db, players } from "@4eselo/db";
+import { db, players, runMigrations, shouldMigrateOnBoot } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
 import { SteamClient } from "@4eselo/steam";
@@ -168,6 +168,12 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
 }
 
 async function main() {
+  // Schéma à jour avant tout (B11.18) — fail fast si échec (main().catch → exit 1).
+  // Gaté par DB_MIGRATE_ON_BOOT (on en prod ; off en dev/CI = db:push).
+  if (shouldMigrateOnBoot()) {
+    await runMigrations();
+    console.log("[db] migrations à jour");
+  }
   if (!FACEIT_API_KEY) throw new Error("FACEIT_API_KEY is not set");
   const faceit = new FaceitClient(FACEIT_API_KEY);
 
