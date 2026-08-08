@@ -13,6 +13,7 @@ import type { MatchStatsStore } from "./ingest";
 import type { MatchLevelStore } from "./ingestMatches";
 import type { DeepIngestStore } from "./deepIngest";
 import type { EloAfterStore } from "./eloAfter";
+import type { AvatarStore } from "./refreshAvatars";
 import type { PlaytimeStore } from "./playtime";
 import type { BackfillStore } from "./backfillElo";
 import type { AnnouncementStore, MonthActivityReader } from "./announceWrapped";
@@ -239,5 +240,20 @@ export const dbDeepIngestStore: DeepIngestStore = {
 
   async markDeepIngested(playerId, at) {
     await db.update(players).set({ deepIngestedAt: at }).where(eq(players.id, playerId));
+  },
+};
+
+export const dbAvatarStore: AvatarStore = {
+  async membersWithDiscord() {
+    const rows = await db
+      .select({ id: players.id, discordId: players.discordId, discordAvatar: players.discordAvatar })
+      .from(players)
+      .where(isNotNull(players.discordId));
+    return rows
+      .filter((r) => r.discordId)
+      .map((r) => ({ id: r.id, discordId: r.discordId!, discordAvatar: r.discordAvatar }));
+  },
+  async setDiscordAvatar(playerId, avatar) {
+    await db.update(players).set({ discordAvatar: avatar }).where(eq(players.id, playerId));
   },
 };

@@ -1,8 +1,10 @@
-import { FACEIT_API_KEY, STEAM_API_KEY, WORKER_INTERVAL_MS } from "./env";
+import { FACEIT_API_KEY, STEAM_API_KEY, DISCORD_BOT_TOKEN, WORKER_INTERVAL_MS } from "./env";
 import { db, players, runMigrations, shouldMigrateOnBoot } from "@4eselo/db";
 import { isNotNull } from "drizzle-orm";
 import { FaceitClient, UnofficialEloHistory } from "@4eselo/faceit";
 import { SteamClient } from "@4eselo/steam";
+import { DiscordBotClient } from "@4eselo/discord";
+import { refreshDiscordAvatars } from "./refreshAvatars";
 import { syncPlayer, type PlayerToSync } from "./sync";
 import { ingestPlayerMatches } from "./ingest";
 import { ingestMatches } from "./ingestMatches";
@@ -22,10 +24,14 @@ import {
   dbPlaytimeStore,
   dbBackfillStore,
   dbAnnouncementStore,
+  dbAvatarStore,
 } from "./store";
 
 // curl passe parfois le mur Cloudflare que Node non - pari opportuniste.
 const eloHistory = new UnofficialEloHistory({ fetchImpl: curlFetch() });
+
+// Bot Discord (avatars, B11.20) : optionnel → sauté si pas de token.
+const discordBot = DISCORD_BOT_TOKEN ? new DiscordBotClient(DISCORD_BOT_TOKEN) : null;
 
 const INTERVAL_MS = WORKER_INTERVAL_MS;
 const DELAY_BETWEEN_PLAYERS_MS = 2000;
@@ -164,6 +170,17 @@ async function runOnce(faceit: FaceitClient): Promise<void> {
     }
   } catch (err) {
     console.error("[worker] match-level ingest failed:", err instanceof Error ? err.message : err);
+  }
+
+  // Avatars Discord à jour (B11.20) : sinon un membre qui change sa pdp Discord la voit
+  // périmée sur le site (ancien hash → 404). Best-effort ; sauté sans bot token.
+  if (discordBot) {
+    try {
+      const av = await refreshDiscordAvatars(discordBot, dbAvatarStore);
+      if (av.updated > 0) console.log(`[worker] avatars Discord: ${av.updated}/${av.checked} mis à jour`);
+    } catch (err) {
+      console.error("[worker] refresh avatars failed:", err instanceof Error ? err.message : err);
+    }
   }
 }
 

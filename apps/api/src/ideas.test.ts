@@ -166,6 +166,9 @@ test(
       async react(_channelId, messageId, emoji) {
         reactions.push({ messageId, emoji });
       },
+      async getUserAvatar() {
+        return null;
+      },
     };
 
     const cookie = await sessionFor("idea-bot");
