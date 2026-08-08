@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeRatingAfter, downloadDemo, type DemoTickRow } from "./demoRating";
+import {
+  computeRatingAfter,
+  downloadDemo,
+  demoTicksSchema,
+  demoEventsSchema,
+  type DemoTickRow,
+} from "./demoRating";
 
 const A = "76561199025088808";
 const row = (o: Partial<DemoTickRow>): DemoTickRow => ({
@@ -151,4 +157,32 @@ test("downloadDemo : 404 (démo expirée) → null sans retry", async () => {
 test("downloadDemo : 200 vide (<1000o) → null", async () => {
   const fetchImpl = (async () => new Response(new Uint8Array(10))) as unknown as typeof fetch;
   assert.equal(await downloadDemo("http://x", fetchImpl, { backoffMs: 1 }), null);
+});
+
+// --- Validation zod de la sortie demoparser2 (B18.19) ----------------------
+
+test("demoTicksSchema : payload valide → rows typés ; rank absent → 0", () => {
+  const rows = demoTicksSchema.parse([{ steamid: A, tick: 5, rank: 22672, rank_if_win: 23052 }]);
+  assert.equal(rows[0]!.steamid, A);
+  assert.equal(rows[0]!.rank, 22672);
+  assert.equal(rows[0]!.rank_if_loss, 0); // absent → défaut, pas de NaN
+  assert.equal(rows[0]!.team_rounds_total, 0);
+});
+
+test("demoTicksSchema : steamid en number → throw (garde la précision steam64)", () => {
+  // Un steam64 en number a déjà perdu sa précision (> 2^53) → on refuse le shape.
+  assert.throws(() => demoTicksSchema.parse([{ steamid: Number(A), tick: 1 }]));
+});
+
+test("demoTicksSchema : champ numérique driftté (string) → throw", () => {
+  assert.throws(() => demoTicksSchema.parse([{ steamid: A, tick: 1, rank: "22672" }]));
+});
+
+test("demoTicksSchema : pas un tableau → throw", () => {
+  assert.throws(() => demoTicksSchema.parse({ steamid: A, tick: 1 }));
+});
+
+test("demoEventsSchema : objets nommés OK ; sans event_name → throw", () => {
+  assert.equal(demoEventsSchema.parse([{ event_name: "player_death", tick: 1 }]).length, 1);
+  assert.throws(() => demoEventsSchema.parse([{ tick: 1 }]));
 });

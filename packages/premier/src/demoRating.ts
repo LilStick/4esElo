@@ -3,14 +3,21 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
+import { z } from "zod";
 import { parseTicks, parseEvents, parseHeader } from "@laihoe/demoparser2";
 import type { PremierMatchStats } from "@4eselo/types";
-import { computeMatchStats, type DeathEvent, type HurtEvent, type MvpEvent } from "./demoStats";
+import { computeMatchStats } from "./demoStats";
 
 // seek-bzip n'a pas de types → require typé inline (marche cross-package sans shim).
 const Bzip2: { decode(buf: Buffer): Buffer } = createRequire(import.meta.url)("seek-bzip");
 
 /**
+ * ⚠️ NON OFFICIEL / FRAGILE — download démo Valve + décompression bz2 + parse via
+ * la lib native `demoparser2`. Le format démo comme le CDN Valve peuvent changer du
+ * jour au lendemain (cf. ROADMAP → Décisions 2026-07-03, endpoint ELO mort). La
+ * sortie de demoparser2 est donc validée en zod (RANK/events/header) AVANT usage :
+ * un drift de shape échoue bruyamment ici au lieu de calculer un rating faux.
+ *
  * Extraction du CS Rating depuis une démo Premier (B18.3). I/O isolée dans le
  * package provider (download + décompression bz2 + parse demoparser2).
  * Le rating vit dans la démo : `rank` (avant) + `rank_if_win|loss|tie` (selon le
@@ -111,6 +118,56 @@ export interface DemoMatchResult {
   stats: PremierMatchStats;
 }
 
+// --- Validation zod de la sortie demoparser2 (frontière externe non fiable) -----
+
+// Champ entier tolérant : absent/null → 0 (comme le faisait `?? 0`), mais un type
+// non-numérique (drift de shape) échoue.
+const intField = z
+  .number()
+  .nullish()
+  .transform((v) => v ?? 0);
+
+// steamid en STRING STRICT : demoparser2 sérialise les u64 en string pour éviter la
+// perte de précision JS (un steam64 > 2^53). S'il renvoyait un jour un number, on
+// échoue ICI plutôt que de corrompre silencieusement l'identité du joueur.
+const demoTickRowSchema = z.object({
+  steamid: z.string().min(1),
+  tick: z.number(),
+  rank: intField,
+  rank_if_win: intField,
+  rank_if_loss: intField,
+  rank_if_tie: intField,
+  team_num: intField,
+  team_rounds_total: intField,
+});
+export const demoTicksSchema = z.array(demoTickRowSchema);
+
+// Events : steamids tolérants (string|number|null, comme l'exige demoStats via son
+// helper `sid`), mais la forme « tableau d'objets nommés » est validée.
+const eventSteamId = z.union([z.string(), z.number()]).nullish();
+const deathEventSchema = z
+  .object({
+    attacker_steamid: eventSteamId,
+    user_steamid: eventSteamId,
+    assister_steamid: eventSteamId,
+    headshot: z.boolean().nullish(),
+    total_rounds_played: z.number().nullish(),
+    tick: z.number(),
+  })
+  .passthrough();
+const hurtEventSchema = z
+  .object({
+    attacker_steamid: eventSteamId,
+    user_steamid: eventSteamId,
+    dmg_health: z.number().nullish(),
+    weapon: z.string().nullish(),
+  })
+  .passthrough();
+const mvpEventSchema = z.object({ user_steamid: eventSteamId }).passthrough();
+export const demoEventsSchema = z.array(z.object({ event_name: z.string() }).passthrough());
+
+const demoHeaderSchema = z.object({ map_name: z.string().optional() }).passthrough();
+
 /**
  * Télécharge + parse une démo → rating + stats du membre, en UN download et 2
  * passes de parse (ticks pour le rank, events pour les stats). null = irrésolvable
@@ -127,17 +184,16 @@ export async function parseDemoMatch(
   const tmp = join(tmpdir(), `premier-${randomUUID()}.dem`);
   writeFileSync(tmp, dem);
   try {
-    const rating = computeRatingAfter(parseTicks(tmp, RANK_FIELDS) as unknown as DemoTickRow[], steamId64);
+    const rating = computeRatingAfter(demoTicksSchema.parse(parseTicks(tmp, RANK_FIELDS)), steamId64);
     if (!rating) return null; // Compétitif/Wingman ou joueur absent → on n'ingère pas (placement = non-null)
-    const events = parseEvents(
-      tmp,
-      ["player_death", "player_hurt", "round_mvp"],
-      [],
-      ["total_rounds_played"],
-    ) as Array<Record<string, unknown> & { event_name: string }>;
-    const deaths = events.filter((e) => e.event_name === "player_death") as unknown as DeathEvent[];
-    const hurts = events.filter((e) => e.event_name === "player_hurt") as unknown as HurtEvent[];
-    const mvps = events.filter((e) => e.event_name === "round_mvp") as unknown as MvpEvent[];
+    const events = demoEventsSchema.parse(
+      parseEvents(tmp, ["player_death", "player_hurt", "round_mvp"], [], ["total_rounds_played"]),
+    );
+    const deaths = events
+      .filter((e) => e.event_name === "player_death")
+      .map((e) => deathEventSchema.parse(e));
+    const hurts = events.filter((e) => e.event_name === "player_hurt").map((e) => hurtEventSchema.parse(e));
+    const mvps = events.filter((e) => e.event_name === "round_mvp").map((e) => mvpEventSchema.parse(e));
     const stats = computeMatchStats({
       steamId64,
       rounds: rating.myScore + rating.oppScore,
@@ -145,7 +201,7 @@ export async function parseDemoMatch(
       hurts,
       mvps,
     });
-    const header = parseHeader(tmp) as { map_name?: string };
+    const header = demoHeaderSchema.parse(parseHeader(tmp));
     return { ...rating, map: header.map_name ?? "unknown", stats };
   } finally {
     try {
