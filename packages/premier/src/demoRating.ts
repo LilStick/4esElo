@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import { z } from "zod";
-import { parseTicks, parseEvents, parseHeader } from "@laihoe/demoparser2";
 import type { PremierMatchStats } from "@4eselo/types";
 import { computeMatchStats } from "./demoStats";
 
@@ -17,6 +16,11 @@ const Bzip2: { decode(buf: Buffer): Buffer } = createRequire(import.meta.url)("s
  * jour au lendemain (cf. ROADMAP → Décisions 2026-07-03, endpoint ELO mort). La
  * sortie de demoparser2 est donc validée en zod (RANK/events/header) AVANT usage :
  * un drift de shape échoue bruyamment ici au lieu de calculer un rating faux.
+ *
+ * `demoparser2` (binaire natif) est importé PARESSEUSEMENT dans parseDemoMatch : le
+ * barrel `@4eselo/premier` réexporte cette fonction, et l'API n'a besoin que de
+ * `encryptSecret` → sans le lazy import, importer le barrel chargerait le binaire
+ * natif dans le process API au boot (fuite de couche + risque de portabilité).
  *
  * Extraction du CS Rating depuis une démo Premier (B18.3). I/O isolée dans le
  * package provider (download + décompression bz2 + parse demoparser2).
@@ -180,6 +184,8 @@ export async function parseDemoMatch(
 ): Promise<DemoMatchResult | null> {
   const compressed = await downloadDemo(demoUrl, fetchImpl);
   if (!compressed) return null;
+  // Import paresseux du binaire natif : voir l'en-tête (l'API ne doit pas le charger au boot).
+  const { parseTicks, parseEvents, parseHeader } = await import("@laihoe/demoparser2");
   const dem = Bzip2.decode(compressed);
   const tmp = join(tmpdir(), `premier-${randomUUID()}.dem`);
   writeFileSync(tmp, dem);

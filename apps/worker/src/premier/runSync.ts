@@ -1,5 +1,6 @@
 import {
   decryptSecret,
+  ShareCodeExpiredError,
   type MatchWalker,
   type PremierMatchResolver,
   type PremierSyncStore,
@@ -49,6 +50,16 @@ export async function runPremierSync(
         );
       }
     } catch (err) {
+      if (err instanceof ShareCodeExpiredError) {
+        // Share code de départ > 30j (Steam 412) : le walk ne peut plus repartir.
+        // Ce n'est PAS transitoire — le membre doit re-fournir un code récent
+        // (re-onboarding). On le distingue de l'échec générique pour qu'il soit
+        // actionnable. TODO(B18.x): poser un état lu par /premier/status côté front.
+        console.warn(
+          `[premier] ${m.steamId64}: share code de départ expiré (>30j) - re-onboarding requis (nouveau share code)`,
+        );
+        continue;
+      }
       console.error(`[premier] sync ${m.steamId64} échec:`, err instanceof Error ? err.message : err);
     }
   }

@@ -8,6 +8,14 @@ import { db, players, eloSnapshots } from "@4eselo/db";
  *   pnpm --filter @4eselo/worker premier:seed <faceitNickname|steamId64> [count]
  */
 
+// Garde-fou : ce seed fait DELETE+INSERT de données factices sur la DB pointée par
+// DATABASE_URL → jamais en prod (il effacerait la vraie courbe Premier du joueur).
+// eslint-disable-next-line no-restricted-properties -- CLI de dev, garde-fou prod (pas de config applicative)
+if (process.env.NODE_ENV === "production") {
+  console.error("premier:seed est un outil de DEV — refus en NODE_ENV=production");
+  process.exit(1);
+}
+
 const ident = process.argv[2];
 const count = Number(process.argv[3]) || 8;
 if (!ident) {
