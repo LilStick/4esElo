@@ -1,6 +1,6 @@
 {
-  "id": "d2f33190-1013-4340-96be-c6cb5dc96a70",
-  "prevId": "7955ae00-6d7e-4f30-9623-32fda4c7c685",
+  "id": "222e9bc7-5483-4ad7-9fc6-2c2d1f59b6df",
+  "prevId": "19f0956e-b361-4aaa-8391-a7ce8587878c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -667,6 +667,13 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "faceit_unranked": {
+          "name": "faceit_unranked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
