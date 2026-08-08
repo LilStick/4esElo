@@ -35,6 +35,10 @@ export const dbStore: SnapshotStore = {
   async insertSnapshot(input) {
     await db.insert(eloSnapshots).values(input);
   },
+
+  async setUnranked(playerId, unranked) {
+    await db.update(players).set({ faceitUnranked: unranked }).where(eq(players.id, playerId));
+  },
 };
 
 export const dbBackfillStore: BackfillStore = {

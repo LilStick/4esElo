@@ -36,6 +36,9 @@ export const players = pgTable("players", {
   eloBackfillDoneAt: timestamp("elo_backfill_done_at", { withTimezone: true }),
   /** Pull profond de l'historique fait (B17.11) ; null = à deep-ingérer (nouvel inscrit ou roster à rattraper). */
   deepIngestedAt: timestamp("deep_ingested_at", { withTimezone: true }),
+  /** Placement FACEIT (Season 8+) : true = ELO caché en calibration, écrit par le worker (B19.5).
+   *  Sert le badge/logo « en placement » du classement & profil ; repasse false au re-rank. */
+  faceitUnranked: boolean("faceit_unranked").notNull().default(false),
 });
 
 /** Série temporelle d'ELO (une ligne par capture) → la courbe. */
