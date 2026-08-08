@@ -22,6 +22,9 @@ export interface SnapshotStore {
    * true = une valeur a été écrite. Requis pour le sync Premier (walk).
    */
   backfillSteamId64(playerId: string, steamId64: string): Promise<boolean>;
+  /** Persiste l'état placement FACEIT (B19.5) : true en calibration, false une fois classé.
+   *  Servi par /leaderboard & /players/:id pour le logo « en placement » du front. */
+  setUnranked(playerId: string, unranked: boolean): Promise<void>;
 }
 
 export interface PlayerToSync {
@@ -61,8 +64,11 @@ export async function syncPlayer(
   // Placement (Season 8+) : ELO caché → on ne pose PAS de snapshot (ne pollue pas la
   // courbe, comme les placements Premier). Drapeau `unranked` = source de vérité provider.
   if (profile.cs2.unranked || elo === null || skillLevel === null) {
+    await store.setUnranked(player.id, true);
     return { status: "unranked", steamIdFilled };
   }
+  // Classé : lève le drapeau (re-rank → le front réaffiche l'ELO au prochain sync).
+  await store.setUnranked(player.id, false);
   const previous = await store.getLatestElo(player.id, "faceit");
 
   if (previous === elo) return { status: "unchanged", elo, steamIdFilled };

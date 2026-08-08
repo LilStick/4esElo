@@ -45,6 +45,10 @@ export const dbStore: SnapshotStore = {
       .returning({ id: players.id });
     return filled.length > 0;
   },
+
+  async setUnranked(playerId, unranked) {
+    await db.update(players).set({ faceitUnranked: unranked }).where(eq(players.id, playerId));
+  },
 };
 
 export const dbBackfillStore: BackfillStore = {

@@ -1,0 +1,1 @@
+ALTER TABLE "players" ADD COLUMN "faceit_unranked" boolean DEFAULT false NOT NULL;

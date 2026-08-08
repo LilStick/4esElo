@@ -47,10 +47,11 @@ leaderboardRoutes.get("/leaderboard/movers", async (c) => {
     formation: string | null;
     promo_start: number | null;
     promo_end: number | null;
+    faceit_unranked: boolean;
     baseline_elo: number | null;
   }>(sql`
     select p.id, p.discord_id, p.discord_name, p.faceit_nickname, p.steam_id64,
-           p.discord_avatar, p.formation, p.promo_start, p.promo_end,
+           p.discord_avatar, p.formation, p.promo_start, p.promo_end, p.faceit_unranked,
            cur.elo, cur.level, base.elo as baseline_elo
     from players p
     left join lateral (
@@ -81,6 +82,8 @@ leaderboardRoutes.get("/leaderboard/movers", async (c) => {
     formation: r.formation,
     promoStart: r.promo_start,
     promoEnd: r.promo_end,
+    // Placement = notion FACEIT ; jamais pour premier (B19.5).
+    unranked: source === "faceit" && r.faceit_unranked,
     delta: r.elo !== null && r.baseline_elo !== null ? r.elo - r.baseline_elo : null,
   }));
   const movers = [...ranked].sort((a, b) => {
@@ -202,9 +205,11 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     formation: string | null;
     promo_start: number | null;
     promo_end: number | null;
+    faceit_unranked: boolean;
   }>(sql`
     select p.id, p.discord_id, p.discord_name, p.faceit_nickname, p.steam_id64,
-           p.discord_avatar, p.formation, p.promo_start, p.promo_end, s.elo, s.level
+           p.discord_avatar, p.formation, p.promo_start, p.promo_end, p.faceit_unranked,
+           s.elo, s.level
     from players p
     left join lateral (
       select elo, level from elo_snapshots
@@ -228,6 +233,8 @@ leaderboardRoutes.get("/leaderboard", async (c) => {
     formation: r.formation,
     promoStart: r.promo_start,
     promoEnd: r.promo_end,
+    // Placement = notion FACEIT ; jamais pour premier (B19.5).
+    unranked: source === "faceit" && r.faceit_unranked,
     badges: [],
     badgeTiers: [],
   }));
