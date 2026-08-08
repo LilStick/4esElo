@@ -119,6 +119,9 @@ registerRoutes.post("/register", async (c) => {
       formation: parsed.data.formation,
       promoStart: parsed.data.promoStart,
       promoEnd: parsed.data.promoEnd,
+      // Un inscrit peut arriver en placement (Season 8+) → flag posé dès l'insert,
+      // le worker le maintient ensuite (B19.5).
+      faceitUnranked: found.cs2?.unranked ?? false,
     })
     .onConflictDoNothing()
     .returning();
@@ -134,6 +137,7 @@ registerRoutes.post("/register", async (c) => {
         steamId64: created.steamId64,
         elo: found.cs2?.elo ?? null,
         level: found.cs2?.skillLevel ?? null,
+        unranked: found.cs2?.unranked ?? false,
         discordAvatar: created.discordAvatar,
         formation: created.formation,
         promoStart: created.promoStart,

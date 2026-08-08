@@ -27,12 +27,14 @@ function unrankedProfile(): FaceitPlayer {
 function makeStore(
   latest: number | null,
   opts: { steamIdMissing?: boolean } = {},
-): SnapshotStore & { inserts: unknown[]; backfilled: string[] } {
+): SnapshotStore & { inserts: unknown[]; backfilled: string[]; unrankedFlags: boolean[] } {
   const inserts: unknown[] = [];
   const backfilled: string[] = [];
+  const unrankedFlags: boolean[] = [];
   return {
     inserts,
     backfilled,
+    unrankedFlags,
     getLatestElo: async () => latest,
     insertSnapshot: async (input) => {
       inserts.push(input);
@@ -40,6 +42,9 @@ function makeStore(
     backfillSteamId64: async (_playerId, steamId64) => {
       backfilled.push(steamId64);
       return opts.steamIdMissing ?? false; // true = colonne vide → écriture
+    },
+    setUnranked: async (_playerId, unranked) => {
+      unrankedFlags.push(unranked);
     },
   };
 }
@@ -68,6 +73,7 @@ test("records a snapshot when ELO changed", async () => {
     elo: 1875,
     level: 8,
   });
+  assert.deepEqual(store.unrankedFlags, [false]); // classé → drapeau baissé
 });
 
 test("records the first-ever snapshot when there is no history", async () => {
@@ -114,6 +120,7 @@ test("returns unranked and inserts nothing when the player is in placement", asy
 
   assert.deepEqual(res, { status: "unranked", steamIdFilled: false });
   assert.equal(store.inserts.length, 0); // ELO caché → pas de point de courbe
+  assert.deepEqual(store.unrankedFlags, [true]); // placement → drapeau persisté
 });
 
 test("returns not-found when Faceit 404s", async () => {

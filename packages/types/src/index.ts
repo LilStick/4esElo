@@ -11,6 +11,9 @@ export interface PlayerSummary {
   elo: number | null;
   /** Faceit skill level 1-10 (null for premier / unknown). */
   level: number | null;
+  /** Placement FACEIT (Season 8+) : true = en calibration, ELO caché → le front affiche
+   *  le logo « en placement » plutôt que l'ELO (B19.5). Toujours false pour premier. */
+  unranked: boolean;
   /** Discord avatar hash (register) - null until the member registers on the site. */
   discordAvatar: string | null;
   /** Formation + promo years (register) - null until the member registers. */

@@ -7,6 +7,7 @@ Format d'une ligne : `- AAAA-MM-JJ — <description courte> (#<ticket>)`
 
 ## 2026-08-08
 
+- 2026-08-08 · API : l'état « en placement » Faceit (Season 8+ : non classé, ELO caché) est désormais exposé sur le classement et le profil — le worker persiste le drapeau `unranked` (et le lève au re-rank), pour que le front affiche le logo placement plutôt qu'un ELO ambigu. (#464)
 - 2026-08-08 · API : le bouton « rafraîchir » du profil re-fetch désormais **tout** le membre — ELO, **photo de profil Discord** (fini les pdp périmées) et matchs/stats récents — au lieu du seul ELO. (#460)
 
 ## 2026-08-07

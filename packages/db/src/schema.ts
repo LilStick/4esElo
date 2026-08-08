@@ -42,6 +42,9 @@ export const players = pgTable("players", {
   premierShareCode: text("premier_share_code"),
   /** Dernière sync Premier réussie (null = jamais). */
   premierSyncedAt: timestamp("premier_synced_at", { withTimezone: true }),
+  /** Placement FACEIT (Season 8+) : true = ELO caché en calibration, écrit par le worker (B19.5).
+   *  Sert le badge/logo « en placement » du classement & profil ; repasse false au re-rank. */
+  faceitUnranked: boolean("faceit_unranked").notNull().default(false),
 });
 
 /** Série temporelle d'ELO (une ligne par capture) → la courbe. */
