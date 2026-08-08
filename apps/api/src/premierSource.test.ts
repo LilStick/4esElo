@@ -11,8 +11,13 @@ import type {
   PremierMatchStats,
 } from "@4eselo/types";
 import { app } from "./app";
+import { premierDeps } from "./premier";
 
 /** Intégration : les endpoints séparent bien source=premier de source=faceit (B18.5). */
+
+// Le gate serveur (B18.21) ferme la surface Premier quand le flag est off. Les
+// tests de séparation des sources tournent donc flag ON ; on restaure après.
+const PREV_PREMIER_ENABLED = premierDeps.enabled;
 
 async function dbReachable(): Promise<boolean> {
   try {
@@ -30,6 +35,7 @@ const STEAM_ID = "76561199000000042";
 let playerId = "";
 
 before(async () => {
+  premierDeps.enabled = true; // surface Premier ouverte pour les tests de séparation
   if (!DB_UP) return;
   await db.delete(players).where(inArray(players.faceitId, [FACEIT_ID])); // cascade → snapshots
   const [p] = await db
@@ -88,6 +94,7 @@ before(async () => {
   ]);
 });
 after(async () => {
+  premierDeps.enabled = PREV_PREMIER_ENABLED;
   if (DB_UP) await db.delete(players).where(inArray(players.faceitId, [FACEIT_ID]));
 });
 
@@ -144,6 +151,23 @@ test("premier/matches : joueur inconnu → 404", { skip }, async () => {
   const res = await app.request(`/players/00000000-0000-0000-0000-000000000000/premier/matches`);
   assert.equal(res.status, 404);
 });
+
+test(
+  "gate serveur : flag off → source=premier et /premier/matches fermés (403), faceit ouvert",
+  { skip },
+  async () => {
+    premierDeps.enabled = false;
+    try {
+      assert.equal((await app.request(`/leaderboard?source=premier`)).status, 403);
+      assert.equal((await app.request(`/players/${playerId}/elo?source=premier`)).status, 403);
+      assert.equal((await app.request(`/players/${playerId}/premier/matches`)).status, 403);
+      // La surface Faceit reste ouverte quel que soit le flag Premier.
+      assert.equal((await app.request(`/leaderboard?source=faceit`)).status, 200);
+    } finally {
+      premierDeps.enabled = true; // les tests suivants restent flag ON
+    }
+  },
+);
 
 test("GET /config expose premierEnabled (public, sans auth)", async () => {
   const res = await app.request("/config");

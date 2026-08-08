@@ -5,6 +5,7 @@ import { sql, inArray } from "drizzle-orm";
 import { db, players, eloSnapshots } from "@4eselo/db";
 import type { LeaderboardResponse, PlayerDetail } from "@4eselo/types";
 import { app } from "./app";
+import { premierDeps } from "./premier";
 
 // Intégration = vraie DB, skip propre si Postgres absent.
 async function dbReachable(): Promise<boolean> {
@@ -22,6 +23,7 @@ let rankedId = "";
 let placementId = "";
 
 before(async () => {
+  premierDeps.enabled = true; // le gate B18.21 ferme source=premier flag off ; ici on teste la surface Premier
   if (!DB_UP) return;
   const [ranked] = await db
     .insert(players)
