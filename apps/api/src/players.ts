@@ -47,7 +47,24 @@ playersRoutes.get("/players/:id", async (c) => {
   const source = readSource(c);
   if (!source) return badRequest(c, "invalid source (faceit|premier)");
 
-  const [player] = await db.select().from(players).where(eq(players.id, id)).limit(1);
+  // Colonnes explicites (B11.19) : jamais SELECT * → une nouvelle colonne non migrée
+  // en prod ne peut plus faire tomber le profil (incident is_admin du 08/08).
+  const [player] = await db
+    .select({
+      id: players.id,
+      discordId: players.discordId,
+      discordName: players.discordName,
+      faceitNickname: players.faceitNickname,
+      steamId64: players.steamId64,
+      discordAvatar: players.discordAvatar,
+      formation: players.formation,
+      promoStart: players.promoStart,
+      promoEnd: players.promoEnd,
+      createdAt: players.createdAt,
+    })
+    .from(players)
+    .where(eq(players.id, id))
+    .limit(1);
   if (!player) return c.json({ error: "player not found" }, 404);
 
   const [latest] = await db
