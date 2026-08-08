@@ -1,4 +1,9 @@
-import { ingestPlayerMatches, type MatchReader, type MatchStatsStore, type PlayerToIngest } from "./ingest";
+import {
+  ingestPlayerMatches,
+  type MatchReader,
+  type MatchStatsStore,
+  type PlayerToIngest,
+} from "@4eselo/faceit";
 
 /**
  * Deep-ingest à l'inscription (B17.11) : à l'arrivée d'un membre, on tire tout

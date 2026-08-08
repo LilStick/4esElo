@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { MatchReader, MatchStatsStore } from "./ingest";
+import type { MatchReader, MatchStatsStore } from "@4eselo/faceit";
 import { deepIngestPlayers, type DeepIngestStore } from "./deepIngest";
 
 const noSleep = async () => {};

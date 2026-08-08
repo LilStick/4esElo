@@ -2,9 +2,9 @@ import "./env";
 import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { sql, eq, desc } from "drizzle-orm";
-import { db, players, eloSnapshots } from "@4eselo/db";
-import type { FaceitPlayer } from "@4eselo/faceit";
-import type { RefreshEloResponse } from "@4eselo/types";
+import { db, players, eloSnapshots, faceitMatchStats } from "@4eselo/db";
+import type { FaceitPlayer, FaceitMatchRef, FaceitMatchDetail } from "@4eselo/faceit";
+import type { FaceitMatchStats, RefreshEloResponse } from "@4eselo/types";
 import { app } from "./app";
 import { refreshDeps, resetRefreshCooldown } from "./refresh";
 
@@ -24,6 +24,41 @@ const skip = DB_UP ? false : "requires Postgres - run `pnpm db:up`";
 let pid = "";
 let currentElo = 1500; // ce que le faux Faceit renvoie (mutable par test)
 let unranked = false; // simule un joueur en placement (Season 8+)
+let matchHistory: FaceitMatchRef[] = []; // historique renvoyé par le faux Faceit
+let matchStats: Record<string, FaceitMatchDetail | null> = {};
+
+const zeroStats = (): FaceitMatchStats =>
+  Object.fromEntries(
+    [
+      "kills",
+      "deaths",
+      "assists",
+      "kd",
+      "kr",
+      "adr",
+      "damage",
+      "hsPercent",
+      "mvps",
+      "doubleKills",
+      "tripleKills",
+      "quadroKills",
+      "pentaKills",
+      "clutch1v1Count",
+      "clutch1v1Wins",
+      "clutch1v2Count",
+      "clutch1v2Wins",
+      "clutchKills",
+      "entryCount",
+      "entryWins",
+      "firstKills",
+      "utilityDamage",
+      "utilityCount",
+      "flashCount",
+      "enemiesFlashed",
+      "flashSuccesses",
+      "sniperKills",
+    ].map((k) => [k, 0]),
+  ) as unknown as FaceitMatchStats;
 
 const fakeFaceit = {
   async getPlayerById(): Promise<FaceitPlayer> {
@@ -37,16 +72,30 @@ const fakeFaceit = {
         : { elo: currentElo, skillLevel: 8, steamId64: "765_iref", unranked: false },
     };
   },
+  async getMatchHistory(_faceitId: string, opts: { limit: number; offset: number }) {
+    return opts.offset === 0 ? matchHistory : []; // une seule page
+  },
+  async getMatchStats(matchId: string) {
+    return matchStats[matchId] ?? null;
+  },
 };
 
-const saved = refreshDeps.faceit;
+const saved = { faceit: refreshDeps.faceit, bot: refreshDeps.bot };
 
 before(async () => {
   refreshDeps.faceit = fakeFaceit;
+  refreshDeps.bot = null; // pas d'appel Discord réel par défaut
   if (!DB_UP) return;
   const [p] = await db
     .insert(players)
-    .values({ discordName: "iref", faceitNickname: "iref", faceitId: "f-iref", steamId64: "765_iref" })
+    .values({
+      discordName: "iref",
+      discordId: "d-iref",
+      discordAvatar: "old-hash",
+      faceitNickname: "iref",
+      faceitId: "f-iref",
+      steamId64: "765_iref",
+    })
     .returning({ id: players.id });
   pid = p!.id;
   await db.insert(eloSnapshots).values({ playerId: pid, source: "faceit", elo: 1400, level: 7 }); // baseline
@@ -56,11 +105,15 @@ beforeEach(() => {
   resetRefreshCooldown();
   currentElo = 1500;
   unranked = false;
+  matchHistory = [];
+  matchStats = {};
+  refreshDeps.bot = null;
 });
 
 after(async () => {
-  refreshDeps.faceit = saved;
-  if (DB_UP && pid) await db.delete(players).where(eq(players.id, pid)); // cascade → snapshots
+  refreshDeps.faceit = saved.faceit;
+  refreshDeps.bot = saved.bot;
+  if (DB_UP && pid) await db.delete(players).where(eq(players.id, pid)); // cascade → snapshots + matchs
 });
 
 const post = (id: string) => app.request(`/players/${id}/refresh`, { method: "POST" });
@@ -107,6 +160,35 @@ test("refresh : joueur en placement → elo null, unranked true, aucun snapshot"
   assert.equal(body.changed, false);
   assert.equal(body.unranked, true);
   assert.equal(await snapCount(), before); // ELO caché → pas de point de courbe
+});
+
+test("refresh : met à jour l'avatar Discord si le hash a changé (pp)", { skip }, async () => {
+  refreshDeps.bot = { getUserAvatar: async () => "new-hash" }; // pp changée côté Discord
+  const res = await post(pid);
+  assert.equal(res.status, 200);
+  const [row] = await db.select({ av: players.discordAvatar }).from(players).where(eq(players.id, pid));
+  assert.equal(row!.av, "new-hash");
+});
+
+test("refresh : ré-ingère un nouveau match du membre", { skip }, async () => {
+  const started = new Date(Date.now() - 60 * 60 * 1000); // il y a 1h (dans la fenêtre 30j)
+  matchHistory = [{ matchId: "m-refresh-1", startedAt: started, finishedAt: new Date() }];
+  matchStats = {
+    "m-refresh-1": {
+      matchId: "m-refresh-1",
+      map: "de_ancient",
+      players: [{ playerId: "f-iref", nickname: "iref", result: 1, stats: zeroStats() }],
+      teams: [],
+      winnerTeamId: null,
+    },
+  };
+  const res = await post(pid);
+  assert.equal(res.status, 200);
+  const [row] = await db
+    .select({ id: faceitMatchStats.matchId })
+    .from(faceitMatchStats)
+    .where(eq(faceitMatchStats.matchId, "m-refresh-1"));
+  assert.ok(row, "le nouveau match doit être ingéré");
 });
 
 test("refresh : 2e appel dans le cooldown → 429", { skip }, async () => {
