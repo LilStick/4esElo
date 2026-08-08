@@ -176,8 +176,9 @@ authRoutes.get("/me", async (c) => {
           discordName: player.discordName,
           faceitNickname: player.faceitNickname,
           steamId64: player.steamId64,
-          elo: null, // le front a déjà l'ELO via le leaderboard
+          elo: null, // le front a déjà l'ELO (et l'état placement) via le leaderboard
           level: null,
+          unranked: false, // idem : source de vérité = leaderboard/profil (B19.5)
           discordAvatar: player.discordAvatar,
           formation: player.formation,
           promoStart: player.promoStart,

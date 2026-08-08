@@ -60,6 +60,7 @@ playersRoutes.get("/players/:id", async (c) => {
       formation: players.formation,
       promoStart: players.promoStart,
       promoEnd: players.promoEnd,
+      faceitUnranked: players.faceitUnranked,
       createdAt: players.createdAt,
     })
     .from(players)
@@ -113,6 +114,8 @@ playersRoutes.get("/players/:id", async (c) => {
     formation: player.formation,
     promoStart: player.promoStart,
     promoEnd: player.promoEnd,
+    // Placement = notion FACEIT ; jamais pour premier (B19.5).
+    unranked: source === "faceit" && player.faceitUnranked,
     createdAt: player.createdAt.toISOString(),
     history: await eloHistory(id, source),
     playtimePrivate: lastPlaytime ? lastPlaytime.minutes === null : null,

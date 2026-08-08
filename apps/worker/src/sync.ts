@@ -17,6 +17,9 @@ export interface SnapshotStore {
     elo: number;
     level: number | null;
   }): Promise<void>;
+  /** Persiste l'état placement FACEIT (B19.5) : true en calibration, false une fois classé.
+   *  Servi par /leaderboard & /players/:id pour le logo « en placement » du front. */
+  setUnranked(playerId: string, unranked: boolean): Promise<void>;
 }
 
 export interface PlayerToSync {
@@ -53,10 +56,14 @@ export async function syncPlayer(
   // Placement (Season 8+) : ELO caché → on ne pose PAS de snapshot (ne pollue pas la
   // courbe, comme les games de placement Premier). On reprendra une fois classé.
   // On lit le drapeau `unranked` (source de vérité du provider), pas `elo === null`.
-  if (profile.cs2.unranked) return { status: "unranked" };
   const { elo, skillLevel } = profile.cs2;
   // Invariant provider : non-unranked ⇒ elo/skillLevel non null. Garde défensive typée.
-  if (elo === null || skillLevel === null) return { status: "unranked" };
+  if (profile.cs2.unranked || elo === null || skillLevel === null) {
+    await store.setUnranked(player.id, true);
+    return { status: "unranked" };
+  }
+  // Classé : lève le drapeau (re-rank → le front réaffiche l'ELO au prochain sync).
+  await store.setUnranked(player.id, false);
   const previous = await store.getLatestElo(player.id, "faceit");
 
   if (previous === elo) return { status: "unchanged", elo };
