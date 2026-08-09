@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TbChartLine } from "react-icons/tb";
 import type { PremierMatchSummary } from "@4eselo/types";
 import { getPlayerPremierMatches } from "../lib/api";
-import { Card, Skeleton } from "../ui";
+import { Card, PremierBadge, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { fullDate } from "../lib/relativeTime";
 import { PerfGraph, type PerfPoint } from "./PerfGraph";
@@ -80,7 +80,7 @@ export function PremierRecentPerformance({ id }: { id: string }) {
           <div className="min-w-0 flex-1">
             <PerfGraph
               points={points}
-              formatTick={fmt}
+              renderTick={(v) => <PremierBadge rating={v} height={18} />}
               emptyHint="La courbe se trace dès que tes matchs Premier portent leur CS Rating."
             />
           </div>
