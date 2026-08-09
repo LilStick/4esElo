@@ -178,8 +178,10 @@ export function EloSummaryCard({
         <div className="flex flex-col items-center gap-2 py-2">
           {premier ? (
             <>
-              <PremierBadge rating={elo ?? 0} height={64} />
-              <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">CS Rating Premier</div>
+              <PremierBadge rating={elo} height={64} />
+              <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">
+                {elo == null ? "En placement" : "CS Rating Premier"}
+              </div>
             </>
           ) : (
             <>

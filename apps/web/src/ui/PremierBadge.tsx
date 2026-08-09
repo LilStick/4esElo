@@ -16,20 +16,24 @@ const fmt = (n: number) => n.toLocaleString("en-US"); // 33800 -> "33,800"
 /**
  * Rang Premier (CS Rating) façon CS2 : badge « drapeau » coloré du palier
  * (asset SVG dédié) + le rating en blanc italique par-dessus.
+ *
+ * `rating` peut être `null` : membre **en placement** (rating pas encore attribué).
+ * On rend alors un badge neutre (steel) avec « — » plutôt qu'un « 0 » trompeur (#480).
  */
 export function PremierBadge({
   rating,
   height = 28,
   className,
 }: {
-  rating: number;
+  rating: number | null;
   /** Hauteur du badge en px (largeur dérivée du ratio 178:64). */
   height?: number;
   className?: string;
 }) {
-  const t = premierTier(rating);
+  const placement = rating == null;
+  const t = premierTier(rating ?? 0);
   const width = Math.round((height * 178) / 64);
-  const s = fmt(rating);
+  const s = placement ? "—" : fmt(rating);
   const [head, ...rest] = s.split(",");
   const tail = rest.length ? "," + rest.join(",") : "";
 
@@ -38,9 +42,14 @@ export function PremierBadge({
       className={cn("relative inline-block shrink-0 select-none", className)}
       style={{ width, height }}
       role="img"
-      aria-label={`CS Rating ${s}`}
+      aria-label={placement ? "En placement (CS Rating non attribué)" : `CS Rating ${s}`}
     >
-      <img src={SRC[t.name] ?? steel} alt="" draggable={false} className="absolute inset-0 h-full w-full" />
+      <img
+        src={placement ? steel : (SRC[t.name] ?? steel)}
+        alt=""
+        draggable={false}
+        className={cn("absolute inset-0 h-full w-full", placement && "opacity-60")}
+      />
       <span
         aria-hidden
         className="absolute inset-0 flex items-center justify-center pl-[14%] font-extrabold tabular-nums text-white italic"

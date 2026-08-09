@@ -241,7 +241,7 @@ export function Leaderboard() {
           <Sparkline points={e.sparkline} className="hidden shrink-0 sm:block" />
         )}
         {premier ? (
-          <PremierBadge rating={e.elo ?? 0} height={22} />
+          <PremierBadge rating={e.elo} height={22} />
         ) : (
           <span className="w-14 text-right font-mono text-[15px] font-bold text-brand tabular-nums">
             {e.elo ?? "-"}
