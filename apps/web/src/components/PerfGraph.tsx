@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 import { perfScale } from "../lib/perfScale";
 
@@ -47,10 +47,14 @@ const OUTCOME_PILL: Record<PerfPoint["outcome"], string> = {
 export function PerfGraph({
   points,
   formatTick = (v) => String(v),
+  renderTick,
   emptyHint,
 }: {
   points: PerfPoint[];
   formatTick?: (v: number) => string;
+  /** Rendu complet d'une graduation (défaut = la valeur seule). Permet un badge de
+   *  rang : niveau Faceit + ELO, ou drapeau Premier avec le rating dessus. */
+  renderTick?: (v: number) => ReactNode;
   emptyHint?: string;
 }) {
   const [active, setActive] = useState<number | null>(null);
@@ -90,11 +94,15 @@ export function PerfGraph({
 
   return (
     <div className="flex gap-2">
-      {/* Barème Y (valeurs rondes) */}
-      <div className="relative w-14 shrink-0" style={{ height: "14rem" }}>
+      {/* Barème Y : badge de rang (ou valeur seule par défaut) */}
+      <div className="relative w-20 shrink-0" style={{ height: "14rem" }}>
         {ticks.map((t) => (
           <div key={t} className="absolute right-1 -translate-y-1/2" style={{ top: `${yOf(t)}%` }}>
-            <span className="font-mono text-[10px] text-ink-faint tabular-nums">{formatTick(t)}</span>
+            {renderTick ? (
+              renderTick(t)
+            ) : (
+              <span className="font-mono text-[10px] text-ink-faint tabular-nums">{formatTick(t)}</span>
+            )}
           </div>
         ))}
       </div>
