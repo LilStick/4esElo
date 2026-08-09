@@ -14,10 +14,10 @@ import type { PremierMatchSummary } from "@4eselo/types";
 import { Modal, MapIcon } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
-import { premierMatchRating, ratingColor } from "../lib/rating";
 import { mapScreen } from "../lib/mapScreens";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
+const fmtRating = (n: number) => n.toLocaleString("en-US"); // 15234 -> "15,234"
 
 /** Libellé + teinte du résultat (Premier connaît l'égalité, pas Faceit). */
 function resultTone(result: PremierMatchSummary["result"]) {
@@ -84,7 +84,6 @@ export function PremierMatchDetailModal({
 }) {
   const s = match?.stats;
   const tone = match ? resultTone(match.result) : null;
-  const r = s ? premierMatchRating(s) : null;
 
   return (
     <Modal open={!!match} onClose={onClose} title="Détail du match" size="lg">
@@ -130,9 +129,8 @@ export function PremierMatchDetailModal({
           <div className="grid grid-cols-2 divide-white/[0.06] rounded-xl border border-white/[0.06] bg-white/[0.02] sm:grid-cols-4 sm:divide-x">
             <HeroCell
               icon={TbStar}
-              label="Rating"
-              value={r != null ? r.toFixed(2) : "-"}
-              accent={r != null ? ratingColor(r) : undefined}
+              label="CS Rating"
+              value={match.ratingAfter != null ? fmtRating(match.ratingAfter) : "-"}
             />
             <HeroCell icon={TbSwords} label="K / D / A" value={`${s.kills}/${s.deaths}/${s.assists}`} />
             <HeroCell icon={TbActivity} label="ADR" value={s.adr.toFixed(0)} />
