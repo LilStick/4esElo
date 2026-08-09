@@ -16,12 +16,13 @@ import {
   TbUserQuestion,
 } from "react-icons/tb";
 import type { PlayerDetail, StatsRange } from "@4eselo/types";
-import { getPlayer } from "../lib/api";
+import { getPlayer, getPlayerElo, getSeasons } from "../lib/api";
 import { hasInAppHistory } from "../lib/nav";
 import { useEloSource } from "../lib/useEloSource";
 import { usePremierEnabled } from "../lib/usePremierEnabled";
+import { currentSeasonId } from "../lib/seasons";
 import { discordAvatarUrl } from "../lib/discord";
-import { Avatar, Button, Card, RangeTabs, Skeleton, SourceToggle } from "../ui";
+import { Avatar, Button, Card, RangeTabs, SeasonSelect, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
 import { EloChart } from "../components/EloChart";
 import { EmptyState } from "../components/EmptyState";
@@ -184,6 +185,26 @@ export function Player() {
     enabled: id.length > 0,
   });
 
+  // Saisons Faceit (B19.4) : le sélecteur alimente `?season=` sur courbe/matchs/stats.
+  // Premier n'a pas de saisons. Défaut = saison courante ; l'utilisateur peut choisir.
+  const [pickedSeason, setPickedSeason] = useState<string | undefined>(undefined);
+  const { data: seasonsData } = useQuery({
+    queryKey: ["seasons"],
+    queryFn: getSeasons,
+    enabled: !premier,
+    staleTime: 60 * 60_000,
+  });
+  const seasons = seasonsData?.seasons ?? [];
+  const season = pickedSeason ?? currentSeasonId(seasons);
+
+  // Courbe ELO filtrable par saison (Faceit) — sépare la courbe du `getPlayer` global.
+  const { data: eloData } = useQuery({
+    queryKey: ["elo", id, source, season],
+    queryFn: () => getPlayerElo(id, source, season),
+    enabled: !premier && id.length > 0,
+  });
+  const history = premier ? (data?.history ?? []) : (eloData?.points ?? data?.history ?? []);
+
   // Identité : pseudo Discord en priorité (on sait qui est qui), Faceit en secondaire.
   const name = data?.discordName ?? data?.faceitNickname ?? "Joueur";
   useTitle(name);
@@ -203,7 +224,7 @@ export function Player() {
 
       {data && (
         <>
-          {/* Barre haut : retour + sélecteur de source (si Premier activé). */}
+          {/* Barre haut : retour + sélecteur de saison (Faceit) + sélecteur de source. */}
           <div className="mb-4 flex items-center justify-between gap-3">
             <button
               onClick={goBack}
@@ -211,7 +232,12 @@ export function Player() {
             >
               <TbArrowLeft size={16} /> Retour
             </button>
-            {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
+            <div className="flex items-center gap-2">
+              {!premier && seasons.length > 0 && season && (
+                <SeasonSelect seasons={seasons} value={season} onChange={setPickedSeason} />
+              )}
+              {premierEnabled && <SourceToggle value={source} onChange={setSource} />}
+            </div>
           </div>
 
           {/* Même grille / breakpoints / gutters qu'en Faceit. En Premier, les cards
@@ -252,7 +278,8 @@ export function Player() {
                   elo={data.elo}
                   level={data.level}
                   source={source}
-                  history={data.history}
+                  history={history}
+                  unranked={data.unranked}
                 />
               </div>
               <div className="order-3">
@@ -262,11 +289,17 @@ export function Player() {
                       <SectionTitle icon={TbChartLine}>Progression CS Rating</SectionTitle>
                     </div>
                     <Card className="p-5">
-                      <EloChart points={data.history} />
+                      <EloChart points={history} />
                     </Card>
                   </>
                 ) : (
-                  <RecentPerformance id={id} history={data.history} elo={data.elo} streak={data.streak} />
+                  <RecentPerformance
+                    id={id}
+                    history={history}
+                    elo={data.elo}
+                    streak={data.streak}
+                    season={season}
+                  />
                 )}
               </div>
               {premier && (
@@ -284,25 +317,25 @@ export function Player() {
                       <SectionTitle icon={TbChartBar}>Statistiques</SectionTitle>
                       <RangeTabs value={range} onChange={setRange} />
                     </div>
-                    <StatsBento id={id} range={range} />
+                    <StatsBento id={id} range={range} season={season} />
                   </div>
                   <div className="order-5">
                     <div className="mb-3">
                       <SectionTitle icon={TbRadar2}>Profil de performance</SectionTitle>
                     </div>
-                    <RadarPerf id={id} range={range} />
+                    <RadarPerf id={id} range={range} season={season} />
                   </div>
                   <div className="order-7">
                     <div className="mb-3">
                       <SectionTitle icon={TbMap2}>Par map</SectionTitle>
                     </div>
-                    <MapStats id={id} range={range} />
+                    <MapStats id={id} range={range} season={season} />
                   </div>
                   <div className="order-8 min-w-0">
                     <div className="mb-3">
                       <SectionTitle icon={TbSwords}>Matchs récents</SectionTitle>
                     </div>
-                    <MatchesList id={id} />
+                    <MatchesList id={id} season={season} />
                   </div>
                   <div className="order-9">
                     <div className="mb-3">

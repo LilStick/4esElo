@@ -67,11 +67,19 @@ function StatCard({
   );
 }
 
-export function StatsBento({ id, range = "all" }: { id: string; range?: StatsRange }) {
+export function StatsBento({
+  id,
+  range = "all",
+  season,
+}: {
+  id: string;
+  range?: StatsRange;
+  season?: string;
+}) {
   const reduce = useReducedMotion();
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["stats", id, range],
-    queryFn: () => getPlayerStats(id, range),
+    queryKey: ["stats", id, range, season],
+    queryFn: () => getPlayerStats(id, range, season),
   });
 
   if (isLoading) {
