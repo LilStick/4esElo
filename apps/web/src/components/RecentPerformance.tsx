@@ -15,15 +15,17 @@ export function RecentPerformance({
   history,
   elo,
   streak,
+  season,
 }: {
   id: string;
   history: EloPoint[];
   elo: number | null;
   streak: PlayerStreak;
+  season?: string;
 }) {
   const { data, isLoading } = useQuery({
-    queryKey: ["matches", id, 30],
-    queryFn: () => getPlayerMatches(id, 30),
+    queryKey: ["matches", id, 30, season],
+    queryFn: () => getPlayerMatches(id, 30, season),
   });
 
   const items = data?.items ?? [];

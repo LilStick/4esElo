@@ -13,4 +13,5 @@ export { PremierBadge } from "./PremierBadge";
 export { ScrollFadeX } from "./ScrollFadeX";
 export { SourceToggle } from "./SourceToggle";
 export { RangeTabs } from "./RangeTabs";
+export { SeasonSelect } from "./SeasonSelect";
 export { Skeleton } from "./Skeleton";

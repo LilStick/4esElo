@@ -91,11 +91,19 @@ function buildAxes(o: StatsAggregate) {
   ];
 }
 
-export function RadarPerf({ id, range = "all" }: { id: string; range?: StatsRange }) {
+export function RadarPerf({
+  id,
+  range = "all",
+  season,
+}: {
+  id: string;
+  range?: StatsRange;
+  season?: string;
+}) {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["stats", id, range],
-    queryFn: () => getPlayerStats(id, range),
+    queryKey: ["stats", id, range, season],
+    queryFn: () => getPlayerStats(id, range, season),
   });
 
   if (isLoading) {

@@ -29,12 +29,15 @@ export function EloSummaryCard({
   level,
   source = "faceit",
   history = [],
+  unranked = false,
 }: {
   id: string;
   elo: number | null;
   level: number | null;
   source?: EloSource;
   history?: EloPoint[];
+  /** Faceit en placement (Season 8+) : ELO caché → affiche « en placement » (B19.4). */
+  unranked?: boolean;
 }) {
   const premier = source === "premier";
   const qc = useQueryClient();
@@ -186,13 +189,19 @@ export function EloSummaryCard({
           ) : (
             <>
               <LevelBadge level={level} size={72} />
-              <div
-                className="font-mono text-[44px] leading-none font-extrabold tracking-[-0.02em] tabular-nums"
-                style={{ color, textShadow: `0 0 24px ${color}55` }}
-              >
-                {elo != null ? <CountUp value={elo} /> : "-"}
+              {unranked ? (
+                <div className="text-2xl font-extrabold tracking-[-0.01em] text-ink-dim">En placement</div>
+              ) : (
+                <div
+                  className="font-mono text-[44px] leading-none font-extrabold tracking-[-0.02em] tabular-nums"
+                  style={{ color, textShadow: `0 0 24px ${color}55` }}
+                >
+                  {elo != null ? <CountUp value={elo} /> : "-"}
+                </div>
+              )}
+              <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">
+                {unranked ? "Calibration Faceit" : "Elo Faceit"}
               </div>
-              <div className="text-[11px] tracking-[0.18em] text-ink-faint uppercase">Elo Faceit</div>
             </>
           )}
         </div>

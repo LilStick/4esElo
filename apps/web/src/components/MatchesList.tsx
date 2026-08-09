@@ -80,11 +80,11 @@ function Header() {
   );
 }
 
-export function MatchesList({ id, limit = 10 }: { id: string; limit?: number }) {
+export function MatchesList({ id, limit = 10, season }: { id: string; limit?: number; season?: string }) {
   const [selected, setSelected] = useState<MatchSummary | null>(null);
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["matches", id, limit],
-    queryFn: () => getPlayerMatches(id, limit),
+    queryKey: ["matches", id, limit, season],
+    queryFn: () => getPlayerMatches(id, limit, season),
   });
 
   if (isLoading) {

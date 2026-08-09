@@ -37,6 +37,8 @@ import type {
   RegisterRequest,
   RegisterResponse,
   RoastResponse,
+  EloCurveResponse,
+  SeasonsResponse,
   StatsRange,
   WrappedResponse,
 } from "@4eselo/types";
@@ -180,8 +182,21 @@ export function getPlayerAchievements(id: string) {
   return get<AchievementsResponse>(`/players/${id}/achievements`);
 }
 
-export function getPlayerStats(id: string, range: StatsRange = "all") {
-  return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}`);
+/** Saisons Faceit (B19.4) pour alimenter le sélecteur de saison. */
+export function getSeasons() {
+  return get<SeasonsResponse>(`/seasons`);
+}
+
+/** `&season=<id>` optionnel (B19.4) : filtre courbe/matchs/stats sur une saison Faceit. */
+const seasonParam = (season?: string) => (season ? `&season=${season}` : "");
+
+/** Courbe ELO (B19.4) - séparée de `getPlayer` pour pouvoir la filtrer par saison. */
+export function getPlayerElo(id: string, source: EloSource = "faceit", season?: string) {
+  return get<EloCurveResponse>(`/players/${id}/elo?source=${source}${seasonParam(season)}`);
+}
+
+export function getPlayerStats(id: string, range: StatsRange = "all", season?: string) {
+  return get<PlayerStatsResponse>(`/players/${id}/stats?range=${range}${seasonParam(season)}`);
 }
 
 /** Benchmark intra-asso (B5.12) - ta place dans le pôle (percentile par stat clé), même fenêtre que /stats. */
@@ -189,8 +204,8 @@ export function getPlayerBenchmark(id: string, range: StatsRange = "all") {
   return get<PlayerBenchmarkResponse>(`/players/${id}/benchmark?range=${range}`);
 }
 
-export function getPlayerMatches(id: string, limit = 10) {
-  return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}`);
+export function getPlayerMatches(id: string, limit = 10, season?: string) {
+  return get<MatchesResponse>(`/players/${id}/matches?limit=${limit}${seasonParam(season)}`);
 }
 
 /** Matchs Premier + stats par match (B18.15). Source démo, table dédiée. */
