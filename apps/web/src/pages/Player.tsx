@@ -5,7 +5,6 @@ import type { IconType } from "react-icons";
 import {
   TbArrowLeft,
   TbChartBar,
-  TbChartLine,
   TbExternalLink,
   TbFlame,
   TbLock,
@@ -24,7 +23,6 @@ import { currentSeasonId } from "../lib/seasons";
 import { discordAvatarUrl } from "../lib/discord";
 import { Avatar, Button, Card, RangeTabs, SeasonSelect, Skeleton, SourceToggle } from "../ui";
 import { Badges } from "../components/Badges";
-import { EloChart } from "../components/EloChart";
 import { EmptyState } from "../components/EmptyState";
 import { StatsBento } from "../components/StatsBento";
 import { RadarPerf } from "../components/RadarPerf";
@@ -33,6 +31,7 @@ import { MapStats } from "../components/MapStats";
 import { MatchesList } from "../components/MatchesList";
 import { PremierMatchesList } from "../components/PremierMatchesList";
 import { RecentPerformance } from "../components/RecentPerformance";
+import { PremierRecentPerformance } from "../components/PremierRecentPerformance";
 import { AchievementsSummary } from "../components/AchievementsSummary";
 import { ProfileRoast } from "../components/ProfileRoast";
 import { ActivityHeatmap } from "../components/ActivityHeatmap";
@@ -284,14 +283,7 @@ export function Player() {
               </div>
               <div className="order-3">
                 {premier ? (
-                  <>
-                    <div className="mb-3">
-                      <SectionTitle icon={TbChartLine}>Progression CS Rating</SectionTitle>
-                    </div>
-                    <Card className="p-5">
-                      <EloChart points={history} />
-                    </Card>
-                  </>
+                  <PremierRecentPerformance id={id} />
                 ) : (
                   <RecentPerformance
                     id={id}
