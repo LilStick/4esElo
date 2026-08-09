@@ -6,11 +6,11 @@ import { getPlayerPremierMatches } from "../lib/api";
 import { Card, HoverBarList, MapIcon, Skeleton } from "../ui";
 import { cn } from "../lib/cn";
 import { relativeTime, fullDate } from "../lib/relativeTime";
-import { premierMatchRating, ratingColor } from "../lib/rating";
 import { EmptyState } from "./EmptyState";
 import { PremierMatchDetailModal } from "./PremierMatchDetailModal";
 
 const prettyMap = (m: string) => m.replace(/^de_/, "").replace(/^\w/, (c) => c.toUpperCase());
+const fmtRating = (n: number) => n.toLocaleString("en-US"); // 15234 -> "15,234"
 
 /** Pastille de résultat : V (win) / D (loss) / N (égalité), teintée. */
 function ResultBadge({ result }: { result: PremierMatchSummary["result"] }) {
@@ -33,7 +33,6 @@ function ResultBadge({ result }: { result: PremierMatchSummary["result"] }) {
 }
 
 function MatchRowContent({ m }: { m: PremierMatchSummary }) {
-  const r = premierMatchRating(m.stats);
   const hasScore = m.myScore != null && m.oppScore != null;
   return (
     <>
@@ -47,10 +46,13 @@ function MatchRowContent({ m }: { m: PremierMatchSummary }) {
       </div>
       <div className="flex shrink-0 items-center gap-4 font-mono text-sm font-semibold tabular-nums sm:gap-9">
         <span
-          className={cn("w-11 text-right font-extrabold", r != null ? ratingColor(r) : "text-ink-faint")}
-          title="Rating (façon HLTV)"
+          className={cn(
+            "w-16 text-right font-extrabold",
+            m.ratingAfter != null ? "text-ink" : "text-ink-faint",
+          )}
+          title="CS Rating après le match"
         >
-          {r != null ? r.toFixed(2) : "-"}
+          {m.ratingAfter != null ? fmtRating(m.ratingAfter) : "-"}
         </span>
         <span className="hidden w-16 text-right sm:block">
           {m.stats.kills}
@@ -84,7 +86,7 @@ function Header() {
       <span className="w-9 shrink-0 text-center">V/D</span>
       <span className="min-w-0 flex-1">Match</span>
       <span className="flex shrink-0 items-center gap-4 sm:gap-9">
-        <span className="w-11 text-right">Rating</span>
+        <span className="w-16 text-right">CS Rating</span>
         <span className="hidden w-16 text-right sm:block">K / D</span>
         <span className="hidden w-12 text-right sm:block">Ratio</span>
         <span className="hidden w-12 text-right sm:block">ADR</span>
