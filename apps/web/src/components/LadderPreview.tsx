@@ -63,7 +63,7 @@ export function LadderPreview({ top = 5 }: { top?: number }) {
                   <Badges tiers={e.badgeTiers} max={2} />
                 </span>
                 {premier ? (
-                  <PremierBadge rating={e.elo ?? 0} height={20} />
+                  <PremierBadge rating={e.elo} height={20} />
                 ) : (
                   <span className="font-mono text-sm font-bold text-brand tabular-nums">{e.elo ?? "-"}</span>
                 )}
